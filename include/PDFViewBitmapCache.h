@@ -16,7 +16,7 @@ public:
 	void RenderPage(int pageIndex, const wxSize& bmpSize, void* pdfDoc, void* pdfForm);
 
 private:
-	int m_maxCapacity;
+	unsigned int m_maxCapacity;
 	wxCriticalSection m_cacheCS;
 	std::list<std::pair<int, wxBitmap>> m_entries;
 };

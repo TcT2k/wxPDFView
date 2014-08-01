@@ -36,6 +36,13 @@ void wxPDFViewBitmapCache::RenderPage(int pageIndex, const wxSize& bmpSize, void
 	FPDF_BITMAP bitmap = FPDFBitmap_Create(bmpSize.x, bmpSize.y, 0);
 	FPDFBitmap_FillRect(bitmap, 0, 0, bmpSize.x, bmpSize.y, 0xFFFFFFFF);
 
+#ifdef __WXMSW__
+	wxBitmap bmp(bmpSize, 24);
+	wxMemoryDC memDC(bmp);
+	memDC.SetBackground(*wxWHITE_BRUSH);
+	memDC.Clear();
+	FPDF_RenderPage(memDC.GetHDC(), page, 0, 0, bmpSize.x, bmpSize.y, 0, 2);
+#else
 	FPDF_RenderPageBitmap(bitmap, page, 0, 0, bmpSize.x, bmpSize.y, 0, 2);
 	FPDF_FFLDraw(pdfForm, bitmap, page, 0, 0, bmpSize.x, bmpSize.y, 0, 0);
 	unsigned char* buffer =
@@ -63,6 +70,7 @@ void wxPDFViewBitmapCache::RenderPage(int pageIndex, const wxSize& bmpSize, void
 	}
 
 	FPDFBitmap_Destroy(bitmap);
+#endif
 
 	FORM_DoPageAAction(page, pdfForm, FPDFPAGE_AACTION_CLOSE);
 	FORM_OnBeforeClosePage(page, pdfForm);
