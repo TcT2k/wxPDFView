@@ -1,6 +1,7 @@
 #include "PDFView.h"
 
 #include <wx/dcbuffer.h>
+#include <fstream>
 
 #include <v8.h>
 #include "fpdfdoc.h"
@@ -135,7 +136,7 @@ int Get_Block(void* param, unsigned long pos, unsigned char* pBuf,
 	std::istream* pIstr = pdfView->GetStream();
 	pIstr->seekg(pos);
 	pIstr->read((char*) pBuf, size);
-	if (pIstr->tellg() > 0 && !pIstr->fail())
+	if (pIstr->gcount() > 0 && !pIstr->fail())
 		return 1;
 	else
 		return 0;
@@ -191,6 +192,8 @@ void wxPDFView::Init()
 	m_pDataStream = NULL;
 	m_dataStreamOwned = false;
 	m_pdfDoc = NULL;
+	m_pdfForm = NULL;
+	m_pdfAvail = NULL;
 
 	SetBackgroundStyle(wxBG_STYLE_PAINT);
 	SetBackgroundColour(*wxLIGHT_GREY);
@@ -469,7 +472,7 @@ void wxPDFView::ZoomFitPageWidth()
 
 void wxPDFView::LoadFile(const wxString& fileName)
 {
-	// TODO: create stream and call LoadStream
+	LoadStream(new std::ifstream((const char*) fileName, std::ios::in | std::ios::binary), true);
 }
 
 void wxPDFView::LoadStream(std::istream* pStream, bool takeOwnership)
@@ -519,6 +522,11 @@ void wxPDFView::LoadStream(std::istream* pStream, bool takeOwnership)
 	} else {
 		wxLogDebug("Linearized path...");
 		m_pdfDoc = FPDFAvail_GetDocument(m_pdfAvail, pdfPassword);
+	}
+	if (!m_pdfDoc)
+	{
+		wxLogError("Could not load document");
+		return;
 	}
 
 	unsigned long docPermissions = FPDF_GetDocPermissions(m_pdfDoc);
