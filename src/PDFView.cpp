@@ -1,7 +1,6 @@
 #include "PDFView.h"
 
 #include <wx/dcbuffer.h>
-#include <wx/rawbmp.h>
 
 #include <v8.h>
 #include "fpdfdoc.h"
@@ -173,10 +172,6 @@ wxPDFView::~wxPDFView()
 	m_bmpRequestHandlerActive = false;
 	m_bmpRequestHandlerCondition->Signal();
 
-	// Empty bitmap cache
-	for (auto it = m_bmpCache.begin(); it != m_bmpCache.end(); ++it)
-		delete it->second;
-
 	CloseDocument();
 
 	if (m_dataStreamOwned)
@@ -286,21 +281,12 @@ bool wxPDFView::DrawPage(wxGraphicsContext& gc, int pageIndex, const wxRect& pag
 	gc.SetPen(*wxBLACK_PEN);
 	gc.DrawRectangle(bgRect.x, bgRect.y, bgRect.width, bgRect.height);
 
-	// Find bitmap in cache
-	for (auto it = m_bmpCache.cbegin(); it != m_bmpCache.cend(); ++it)
-	{
-		if (it->first == pageIndex)
-		{
-			gc.DrawBitmap(*it->second, pageRect.x, pageRect.y, pageRect.width, pageRect.height);
-			if (it->second->GetWidth() == (int) (m_pageSizes[pageIndex].GetWidth() * GetScaleX()) &&
-				it->second->GetHeight() == (int) (m_pageSizes[pageIndex].GetHeight() * GetScaleY()))
-				return true;
-			else
-				break;
-		}
-	}
-
-	return false;
+	wxSize bmpSize(m_pageSizes[pageIndex].GetWidth() * GetScaleX(), m_pageSizes[pageIndex].GetHeight() * GetScaleY());
+	wxBitmap pageBmp;
+	bool matchingBitmap = m_bitmapCache.GetBitmapForPage(pageIndex, bmpSize, pageBmp);
+	if (pageBmp.IsOk())
+		gc.DrawBitmap(pageBmp, pageRect.x, pageRect.y, pageRect.width, pageRect.height);
+	return matchingBitmap;
 }
 
 void wxPDFView::RenderPage(int pageIndex)
@@ -308,71 +294,7 @@ void wxPDFView::RenderPage(int pageIndex)
 	wxSize bmpSize(m_pageSizes[pageIndex].x * GetScaleX(), m_pageSizes[pageIndex].y * GetScaleY());
 	wxLogDebug("Rendering page %d (%dx%d)...", pageIndex, bmpSize.x, bmpSize.y);
 
-	FPDF_PAGE page = FPDF_LoadPage(m_pdfDoc, pageIndex);
-	FPDF_TEXTPAGE text_page = FPDFText_LoadPage(page);
-	FORM_OnAfterLoadPage(page, m_pdfForm);
-	FORM_DoPageAAction(page, m_pdfForm, FPDFPAGE_AACTION_OPEN);
-
-	FPDF_BITMAP bitmap = FPDFBitmap_Create(bmpSize.x, bmpSize.y, 0);
-	FPDFBitmap_FillRect(bitmap, 0, 0, bmpSize.x, bmpSize.y, 0xFFFFFFFF);
-
-	FPDF_RenderPageBitmap(bitmap, page, 0, 0, bmpSize.x, bmpSize.y, 0, 2);
-	FPDF_FFLDraw(m_pdfForm, bitmap, page, 0, 0, bmpSize.x, bmpSize.y, 0, 0);
-	unsigned char* buffer =
-		reinterpret_cast<unsigned char*>(FPDFBitmap_GetBuffer(bitmap));
-
-	// Convert BGRA image data from PDF SDK to RGB image data
-	wxBitmap* bmp = new wxBitmap(bmpSize, 24);
-	unsigned char* srcP = buffer;
-	wxNativePixelData data(*bmp);
-	wxNativePixelData::Iterator p(data);
-	for (int y = 0; y < bmpSize.y; ++y)
-	{
-		wxNativePixelData::Iterator rowStart = p;
-
-		for (int x = 0; x < bmpSize.x; ++x, ++p)
-		{
-			p.Blue() = *(srcP++);
-			p.Green() = *(srcP++);
-			p.Red() = *(srcP++);
-			srcP++;
-		}
-
-		p = rowStart;
-		p.OffsetY(data, 1);
-	}
-
-	FPDFBitmap_Destroy(bitmap);
-
-	FORM_DoPageAAction(page, m_pdfForm, FPDFPAGE_AACTION_CLOSE);
-	FORM_OnBeforeClosePage(page, m_pdfForm);
-	FPDFText_ClosePage(text_page);
-	FPDF_ClosePage(page);
-
-	// Put rendered bitmap in cache
-	if (m_bmpCache.size() >= MAX_CACHE_ENTRIES)
-	{
-		wxLogDebug("Removing bitmap cache entry...");
-		wxBitmap* cacheEntry = m_bmpCache.front().second;
-		m_bmpCache.pop_front();
-		delete cacheEntry;
-	}
-
-	bool newPage = true;
-
-	for (auto it = m_bmpCache.begin(); it != m_bmpCache.end(); ++it)
-	{
-		if (it->first == pageIndex)
-		{
-			delete it->second;
-			it->second = bmp;
-			newPage = false;
-			break;
-		}
-	}
-
-	if (newPage)
-		m_bmpCache.push_back(std::make_pair<int, wxBitmap*>(pageIndex, bmp));
+	m_bitmapCache.RenderPage(pageIndex, bmpSize, m_pdfDoc, m_pdfForm);
 
 	wxThreadEvent evt(wxEVT_BMP_CACHE_AVAILABLE);
 	evt.SetInt(pageIndex);

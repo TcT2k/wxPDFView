@@ -6,9 +6,9 @@
 #include <wx/thread.h>
 #include <wx/graphics.h>
 #include <set>
-#include <list>
-#include <utility>
 #include <istream>
+
+#include "PDFViewBitmapCache.h"
 
 WX_DECLARE_OBJARRAY(wxSize, ArrayOfSize);
 
@@ -60,17 +60,13 @@ protected:
    virtual wxThread::ExitCode Entry();
 
 private:
-	enum
-	{
-		MAX_CACHE_ENTRIES = 20
-	};
-
 	// Data source
 	bool m_dataStreamOwned;
 	std::istream* m_pDataStream;
 	void* m_pdfDoc;
 	void* m_pdfForm;
 	void* m_pdfAvail;
+	wxPDFViewBitmapCache m_bitmapCache;
 
 	// Document information
 	int m_pageCount;
@@ -93,10 +89,6 @@ private:
 	wxCriticalSection m_bmpRequestCS;
 	std::set<int> m_bmpRequest;
 	wxCondition* m_bmpRequestHandlerCondition;
-
-	// Bitmap cache
-	wxCriticalSection m_bmpCacheCS;
-	std::list<std::pair<int, wxBitmap*>> m_bmpCache;
 
 	void Init();
 
