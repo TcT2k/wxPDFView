@@ -114,8 +114,6 @@ private:
 
 	void UpdateVirtualSize();
 
-	wxRect GetThumbIndicatorRect();
-
 	wxRect UnscaledToScaled(const wxRect& rect) const;
 
 	wxRect ScaledToUnscaled(const wxRect& rect) const;

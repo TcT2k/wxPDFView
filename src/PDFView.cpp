@@ -193,6 +193,7 @@ void wxPDFView::Init()
 	m_pdfDoc = NULL;
 
 	SetBackgroundStyle(wxBG_STYLE_PAINT);
+	SetBackgroundColour(*wxLIGHT_GREY);
 
 	Bind(wxEVT_PAINT, &wxPDFView::OnPaint, this);
 	Bind(wxEVT_MOUSEWHEEL, &wxPDFView::OnMouseWheel, this);
@@ -323,7 +324,7 @@ void wxPDFView::OnPaint(wxPaintEvent& event)
 	rectUpdate.SetPosition(CalcUnscrolledPosition(rectUpdate.GetPosition()));
 	rectUpdate = ScaledToUnscaled(rectUpdate);
 
-	dc.SetBackground(wxBrush(*wxLIGHT_GREY));
+	dc.SetBackground(GetBackgroundColour());
 	dc.Clear();
 
 	// Draw visible pages
