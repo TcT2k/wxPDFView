@@ -2,17 +2,33 @@
 #define PDFVIEW_H
 
 #include <wx/wx.h>
-#include <wx/thread.h>
-#include <wx/graphics.h>
-#include <set>
-#include <vector>
+#include <wx/sharedptr.h>
 #include <istream>
 
 #include "PDFViewBitmapCache.h"
 
-class wxPDFView: public wxScrolledCanvas, public wxThreadHelper
+class wxPDFViewImpl;
+
+enum wxPDFViewZoomType
+{
+	wxPDFVIEW_ZOOM_TYPE_FREE,
+	wxPDFVIEW_ZOOM_TYPE_FIT_PAGE,
+	wxPDFVIEW_ZOOM_TYPE_PAGE_WIDTH
+};
+
+enum wxPDFViewPageNavigation
+{
+	wxPDFVIEW_PAGE_NAV_NEXT,
+	wxPDFVIEW_PAGE_NAV_PREV,
+	wxPDFVIEW_PAGE_NAV_FIRST,
+	wxPDFVIEW_PAGE_NAV_LAST
+};
+
+class wxPDFView: public wxScrolledCanvas
 {
 public:
+	wxPDFView();
+
 	wxPDFView(wxWindow *parent,
 		wxWindowID winid = wxID_ANY,
 		const wxPoint& pos = wxDefaultPosition,
@@ -22,108 +38,41 @@ public:
 
 	virtual ~wxPDFView();
 
-	void GotoPage(int pageIndex);
+	bool Create(wxWindow *parent,
+		wxWindowID winid = wxID_ANY,
+		const wxPoint& pos = wxDefaultPosition,
+		const wxSize& size = wxDefaultSize,
+		long style = wxScrolledWindowStyle,
+		const wxString& name = wxPanelNameStr);
 
-	void GotoNextPage();
+	void NavigateToPage(wxPDFViewPageNavigation pageNavigation);
 
-	void GotoPrevPage();
+	int GetPageCount() const;
+
+	void SetCurrentPage(int pageIndex);
 
 	int GetCurrentPage() const;
 
-	int GetPageCount() const { return m_pageCount;  };
-
 	void SetZoom(int zoom);
 
-	int GetZoom() const { return m_zoom; };
+	int GetZoom() const;
 
-	int GetMaxZoom() const { return m_maxZoom; };
+	void SetZoomType(wxPDFViewZoomType zoomType);
 
-	int GetMinZoom() const { return m_minZoom; };
+	wxPDFViewZoomType GetZoomType() const;
 
-	void ZoomFitToPage();
+	bool LoadFile(const wxString& fileName);
 
-	void ZoomFitPageWidth();
-
-	void LoadFile(const wxString& fileName);
-
-	void LoadStream(std::istream* pStream, bool takeOwnership = false);
+	bool LoadStream(wxSharedPtr<std::istream> pStream);
 
 	void CloseDocument();
 
-	std::istream* GetStream() const { return m_pDataStream; };
-
-	void* GetDocument() const { return m_pdfDoc; };
-
-protected:
-   virtual wxThread::ExitCode Entry();
+	wxPDFViewImpl* GetImpl() const { return m_impl; };
 
 private:
-	// Data source
-	bool m_dataStreamOwned;
-	std::istream* m_pDataStream;
-	void* m_pdfDoc;
-	void* m_pdfForm;
-	void* m_pdfAvail;
-	wxPDFViewBitmapCache m_bitmapCache;
+	wxPDFViewImpl* m_impl;
 
-	// PDF SDK Structures
-	void* m_pdfFileAccess;
-	void* m_pdfFileAvail;
-
-	// Document information
-	int m_pageCount;
-	std::vector<wxRect> m_pageRects;
-	wxSize m_docSize;
-
-	// Display settings
-	int m_pagePadding;
-	int m_scrollStepX;
-	int m_scrollStepY;
-	int m_zoom;
-	int m_maxZoom;
-	int m_minZoom;
-	int m_currentPage;
-	wxCursor m_handCursor;
-
-	// Bitmap request stores page index of required page bitmaps
-	bool m_bmpRequestHandlerActive;
-	wxCriticalSection m_bmpRequestCS;
-	std::set<int> m_bmpRequest;
-	wxCondition* m_bmpRequestHandlerCondition;
-
-	void Init();
-
-	void UpdateDocumentInfo();
-
-	void AlignPageRects();
-
-	bool DrawPage(wxGraphicsContext& gc, int pageIndex, const wxRect& pageRect);
-
-	void RenderPage(int pageIndex);
-
-	void OnCacheBmpAvailable(wxThreadEvent& event);
-
-	void OnPaint(wxPaintEvent& event);
-
-	void OnSize(wxSizeEvent& event);
-
-	void OnMouseWheel(wxMouseEvent& event);
-
-	void OnMouseMotion(wxMouseEvent& event);
-
-	void OnMouseLeftUp(wxMouseEvent& event);
-
-	void OnScroll(wxScrollWinEvent& event);
-
-	void UpdateVirtualSize();
-
-	wxRect UnscaledToScaled(const wxRect& rect) const;
-
-	wxRect ScaledToUnscaled(const wxRect& rect) const;
-
-	int ClientToPage(const wxPoint& clientPos, wxPoint& pagePos);
-
-	int GetLinkTargetPageAtClientPos(const wxPoint& clientPos);
+	friend class wxPDFViewImpl;
 };
 
 wxDECLARE_EVENT(wxEVT_PDFVIEW_DOCUMENT_READY, wxCommandEvent);

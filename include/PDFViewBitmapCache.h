@@ -21,7 +21,7 @@ public:
 private:
 	unsigned int m_maxCapacity;
 	wxCriticalSection m_cacheCS;
-	std::list<std::pair<int, wxBitmap>> m_entries;
+	std::list< std::pair<int, wxBitmap> > m_entries;
 };
 
 

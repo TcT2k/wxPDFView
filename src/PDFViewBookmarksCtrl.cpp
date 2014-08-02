@@ -1,6 +1,7 @@
 #include "PDFViewBookmarksCtrl.h"
 
 #include "fpdfdoc/fpdf_doc.h"
+#include "PDFViewImpl.h"
 
 wxClientData* CreateBookmarkClientData(CPDF_Bookmark& bookmark, CPDF_Document* doc)
 {
@@ -21,7 +22,7 @@ int AddBookmarkToViewItem(CPDF_BookmarkTree& bmTree, wxPDFViewBookmarksCtrl& ctr
 {
 	int bookmarksAdded = 1;
 	CPDF_Bookmark firstChild = bmTree.GetFirstChild(bookmark);
-	wxClientData* clientData = CreateBookmarkClientData(bookmark, (CPDF_Document*) ctrl.GetPDFView()->GetDocument());
+	wxClientData* clientData = CreateBookmarkClientData(bookmark, (CPDF_Document*) ctrl.GetPDFView()->GetImpl()->GetDocument());
 	if (firstChild)
 	{
 		wxDataViewItem containerItem = ctrl.AppendContainer(viewItem, (const wchar_t*) bookmark.GetTitle(), -1, -1, clientData);
@@ -88,7 +89,7 @@ void wxPDFViewBookmarksCtrl::OnSelectionChanged(wxDataViewEvent& event)
 	{
 		wxString dest = static_cast<wxStringClientData*>(clientData)->GetData();
 		if (m_pdfView)
-			m_pdfView->GotoPage(wxAtoi(dest));
+			m_pdfView->SetCurrentPage(wxAtoi(dest));
 	}
 }
 
@@ -101,7 +102,7 @@ void wxPDFViewBookmarksCtrl::UpdateDocumentBookmarks()
 {
 	DeleteAllItems();
 
-	CPDF_BookmarkTree bmTree((CPDF_Document*)m_pdfView->GetDocument());
+	CPDF_BookmarkTree bmTree((CPDF_Document*)m_pdfView->GetImpl()->GetDocument());
 	CPDF_Bookmark emptyBM;
 	CPDF_Bookmark rootBM = bmTree.GetFirstChild(emptyBM);
 	if (rootBM)

@@ -12,6 +12,7 @@ include( ${wxWidgets_USE_FILE} )
 
 set(INCLUDES
 	PDFView.h
+	PDFViewImpl.h
 	PDFViewBitmapCache.h
 	PDFViewBookmarksCtrl.h
 	PDFViewThumbnailListBox.h	
@@ -19,6 +20,7 @@ set(INCLUDES
 	
 set(SOURCES
 	PDFView.cpp
+	PDFViewImpl.cpp
 	PDFViewBitmapCache.cpp
 	PDFViewBookmarksCtrl.cpp
 	PDFViewThumbnailListBox.cpp
