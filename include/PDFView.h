@@ -68,6 +68,10 @@ private:
 	void* m_pdfAvail;
 	wxPDFViewBitmapCache m_bitmapCache;
 
+	// PDF SDK Structures
+	void* m_pdfFileAccess;
+	void* m_pdfFileAvail;
+
 	// Document information
 	int m_pageCount;
 	ArrayOfSize m_pageSizes;

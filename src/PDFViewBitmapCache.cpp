@@ -12,7 +12,7 @@ wxPDFViewBitmapCache::wxPDFViewBitmapCache():
 
 }
 
-bool wxPDFViewBitmapCache::GetBitmapForPage(int pageIndex, const wxSize& size, wxBitmap& bmp)
+bool wxPDFViewBitmapCache::GetBitmapForPage(int pageIndex, const wxSize& size, wxBitmap& bmp) const
 {
 	for (auto it = m_entries.cbegin(); it != m_entries.cend(); ++it)
 	{
@@ -98,4 +98,9 @@ void wxPDFViewBitmapCache::RenderPage(int pageIndex, const wxSize& bmpSize, void
 
 	if (newPage)
 		m_entries.push_back(std::make_pair<int, wxBitmap>(pageIndex, bmp));
+}
+
+void wxPDFViewBitmapCache::Clear()
+{
+	m_entries.clear();
 }

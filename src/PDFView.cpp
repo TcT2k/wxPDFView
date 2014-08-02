@@ -21,6 +21,38 @@ wxDEFINE_EVENT(wxEVT_PDFVIEW_DOCUMENT_READY, wxCommandEvent);
 wxDEFINE_EVENT(wxEVT_PDFVIEW_PAGE_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(wxEVT_PDFVIEW_ZOOM_CHANGED, wxCommandEvent);
 
+void LogPDFError()
+{
+	unsigned long error = FPDF_GetLastError();
+	wxString errorMsg;
+	switch (error)
+	{
+	case FPDF_ERR_UNKNOWN:
+		errorMsg = _("Unknown Error");
+		break;
+	case FPDF_ERR_FILE:
+		errorMsg = _("File not found or could not be opened.");
+		break;
+	case FPDF_ERR_FORMAT:
+		errorMsg = _("File not in PDF format or corrupted.");
+		break;
+	case FPDF_ERR_PASSWORD:
+		errorMsg = _("Password required or incorrect password.");
+		break;
+	case FPDF_ERR_SECURITY:
+		errorMsg = _("Unsupported security scheme.");
+		break;
+	case FPDF_ERR_PAGE:
+		errorMsg = _("Page not found or content error.");
+		break;
+	default:
+		errorMsg = wxString::Format(_("Unknown Error (%d)"), error);
+		break;
+	};
+	if (error != FPDF_ERR_SUCCESS)
+		wxLogError("PDF Error: %s", errorMsg);
+}
+
 int Form_Alert(IPDF_JSPLATFORM* pThis, FPDF_WIDESTRING Msg, FPDF_WIDESTRING Title, int Type, int Icon)
 {
 	wxLogDebug("Form_Alert called.");
@@ -129,6 +161,11 @@ void Unsupported_Handler(UNSUPPORT_INFO*, int type)
   wxLogError("Unsupported feature: %s.", feature.c_str());
 }
 
+UNSUPPORT_INFO g_unsupported_info = {
+	1,
+	Unsupported_Handler
+};
+
 int Get_Block(void* param, unsigned long pos, unsigned char* pBuf,
 			  unsigned long size) 
 {
@@ -136,7 +173,7 @@ int Get_Block(void* param, unsigned long pos, unsigned char* pBuf,
 	std::istream* pIstr = pdfView->GetStream();
 	pIstr->seekg(pos);
 	pIstr->read((char*) pBuf, size);
-	if (pIstr->gcount() > 0 && !pIstr->fail())
+	if (pIstr->gcount() == size && !pIstr->fail())
 		return 1;
 	else
 		return 0;
@@ -178,6 +215,10 @@ wxPDFView::~wxPDFView()
 	if (m_dataStreamOwned)
 		delete m_pDataStream;
 
+	// PDF SDK structures
+	delete m_pdfFileAccess;
+	delete m_pdfFileAvail;
+
 	FPDF_DestroyLibrary();
 }
 
@@ -194,6 +235,20 @@ void wxPDFView::Init()
 	m_pdfDoc = NULL;
 	m_pdfForm = NULL;
 	m_pdfAvail = NULL;
+
+	// PDF SDK structures
+	m_pdfFileAccess = new FPDF_FILEACCESS;
+	FPDF_FILEACCESS* file_access = (FPDF_FILEACCESS*) m_pdfFileAccess;
+	memset(file_access, '\0', sizeof(*file_access));
+	file_access->m_FileLen = 0;
+	file_access->m_GetBlock = Get_Block;
+	file_access->m_Param = this;
+
+	m_pdfFileAvail = new FX_FILEAVAIL;
+	FX_FILEAVAIL* file_avail = (FX_FILEAVAIL*) m_pdfFileAvail;
+	memset(file_avail, '\0', sizeof(*file_avail));
+	file_avail->version = 1;
+	file_avail->IsDataAvail = Is_Data_Avail;
 
 	SetBackgroundStyle(wxBG_STYLE_PAINT);
 	SetBackgroundColour(*wxLIGHT_GREY);
@@ -231,12 +286,7 @@ void wxPDFView::Init()
 
 	FPDF_InitLibrary(NULL);
 
-	UNSUPPORT_INFO unsupported_info;
-	memset(&unsupported_info, '\0', sizeof(unsupported_info));
-	unsupported_info.version = 1;
-	unsupported_info.FSDK_UnSupport_Handler = Unsupported_Handler;
-
-	FSDK_SetUnSpObjProcessHandler(&unsupported_info);
+	FSDK_SetUnSpObjProcessHandler(&g_unsupported_info);
 }
 
 void wxPDFView::UpdateDocumentInfo()
@@ -477,6 +527,8 @@ void wxPDFView::LoadFile(const wxString& fileName)
 
 void wxPDFView::LoadStream(std::istream* pStream, bool takeOwnership)
 {
+	CloseDocument();
+
 	m_pDataStream = pStream;
 	m_dataStreamOwned = takeOwnership;
 
@@ -495,37 +547,29 @@ void wxPDFView::LoadStream(std::istream* pStream, bool takeOwnership)
 	form_callbacks.version = 1;
 	form_callbacks.m_pJsPlatform = &platform_callbacks;
 
-	FPDF_FILEACCESS file_access;
-	memset(&file_access, '\0', sizeof(file_access));
-	file_access.m_FileLen = docFileSize;
-	file_access.m_GetBlock = Get_Block;
-	file_access.m_Param = this;
+	FPDF_FILEACCESS* file_access = (FPDF_FILEACCESS*) m_pdfFileAccess;
+	file_access->m_FileLen = docFileSize;
 
-	FX_FILEAVAIL file_avail;
-	memset(&file_avail, '\0', sizeof(file_avail));
-	file_avail.version = 1;
-	file_avail.IsDataAvail = Is_Data_Avail;
+	FX_FILEAVAIL* file_avail = (FX_FILEAVAIL*) m_pdfFileAvail;
 
 	FX_DOWNLOADHINTS hints;
 	memset(&hints, '\0', sizeof(hints));
 	hints.version = 1;
 	hints.AddSegment = Add_Segment;
 
-	m_pdfAvail = FPDFAvail_Create(&file_avail, &file_access);
+	m_pdfAvail = FPDFAvail_Create(file_avail, file_access);
 
 	(void) FPDFAvail_IsDocAvail(m_pdfAvail, &hints);
 
 	FPDF_BYTESTRING pdfPassword = NULL;
 	if (!FPDFAvail_IsLinearized(m_pdfAvail)) {
-		wxLogDebug("Non-linearized path...");
-		m_pdfDoc = FPDF_LoadCustomDocument(&file_access, pdfPassword);
+		m_pdfDoc = FPDF_LoadCustomDocument(file_access, pdfPassword);
 	} else {
-		wxLogDebug("Linearized path...");
 		m_pdfDoc = FPDFAvail_GetDocument(m_pdfAvail, pdfPassword);
 	}
 	if (!m_pdfDoc)
 	{
-		wxLogError("Could not load document");
+		LogPDFError();
 		return;
 	}
 
@@ -551,14 +595,18 @@ void wxPDFView::LoadStream(std::istream* pStream, bool takeOwnership)
 		if (FPDF_GetPageSizeByIndex(m_pdfDoc, i, &width, &height))
 		{
 			m_pageSizes.Add(wxSize(width, height));
+		} else {
+			// Document broken?
+			m_pageCount = i;
+			break;
 		}
 	}
 
+	Refresh();
 	UpdateDocumentInfo();
 
 	FORM_DoDocumentJSAction(m_pdfForm);
 	FORM_DoDocumentOpenAction(m_pdfForm);
-
 
 }
 
@@ -568,11 +616,24 @@ void wxPDFView::CloseDocument()
 	{
 		FORM_DoDocumentAAction(m_pdfForm, FPDFDOC_AACTION_WC);
 		FPDFDOC_ExitFormFillEnviroument(m_pdfForm);
+		m_pdfForm = NULL;
 	}
 	if (m_pdfDoc)
+	{
 		FPDF_CloseDocument(m_pdfDoc);
+		m_pdfDoc = NULL;
+	}
 	if (m_pdfAvail)
+	{
 		FPDFAvail_Destroy(m_pdfAvail);
+		m_pdfAvail = NULL;
+	}
+	m_bitmapCache.Clear();
+	m_pageSizes.Clear();
+	m_docHeight = 0;
+	m_pageCount = 0;
+	m_docMaxWidth = 0;
+	UpdateVirtualSize();
 }
 
 wxThread::ExitCode wxPDFView::Entry()
