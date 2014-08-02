@@ -8,6 +8,8 @@
 
 #include "Simple.h"
 
+#include "PDFViewDocumentFrame.h"
+
 bool SimpleApp::OnInit()
 {
 	SimpleFrame *frame = new SimpleFrame();
@@ -20,12 +22,9 @@ SimpleFrame::SimpleFrame() : wxFrame(NULL, wxID_ANY, "wxPDFView")
 {
 	wxBoxSizer *topsizer = new wxBoxSizer(wxVERTICAL);
 
-	m_pdfView = new wxPDFView(this, wxID_ANY);
-
 	wxButton* btn = new wxButton(this, wxID_ANY, "Load document");
 
-	topsizer->Add(m_pdfView, 1, wxEXPAND);
-	topsizer->Add(btn);
+	topsizer->Add(btn, 0, wxCENTER);
 
 	this->SetSizer(topsizer);
 	this->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SimpleFrame::OnButton, this);
@@ -36,6 +35,9 @@ void SimpleFrame::OnButton(wxCommandEvent &evt)
 	wxFileDialog dlg(this, "Select Document", wxEmptyString, wxEmptyString, "*.pdf", wxCENTRE|wxFD_OPEN|wxFD_FILE_MUST_EXIST);
 	if (dlg.ShowModal() == wxID_OK)
 	{
-		m_pdfView->LoadFile(dlg.GetPath());
+		wxPDFViewDocumentFrame* frame = new wxPDFViewDocumentFrame(this);
+
+		if (frame->LoadFile(dlg.GetPath()))
+			frame->Show();
 	}
 }

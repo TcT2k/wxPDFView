@@ -4,8 +4,6 @@
 #include <wx/app.h>
 #include <wx/frame.h>
 
-#include "PDFView.h"
-
 class SimpleApp : public wxApp
 {
 public:
@@ -17,9 +15,6 @@ class SimpleFrame : public wxFrame
 public:
 	SimpleFrame();
 	void OnButton(wxCommandEvent &evt);
-
-private:
-	wxPDFView* m_pdfView;
 };
 
 wxIMPLEMENT_APP(SimpleApp);

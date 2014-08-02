@@ -91,6 +91,22 @@ int wxPDFView::GetZoom() const
 		return 0;
 }
 
+int wxPDFView::GetMaxZoom() const
+{
+	if (m_impl)
+		return m_impl->GetMaxZoom();
+	else
+		return 0;
+}
+
+int wxPDFView::GetMinZoom() const
+{
+	if (m_impl)
+		return m_impl->GetMinZoom();
+	else
+		return 0;
+}
+
 void wxPDFView::SetZoomType(wxPDFViewZoomType zoomType)
 {
 	if (m_impl)

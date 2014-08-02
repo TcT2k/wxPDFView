@@ -57,6 +57,10 @@ public:
 
 	int GetZoom() const;
 
+	int GetMaxZoom() const;
+
+	int GetMinZoom() const;
+
 	void SetZoomType(wxPDFViewZoomType zoomType);
 
 	wxPDFViewZoomType GetZoomType() const;

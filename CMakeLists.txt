@@ -15,6 +15,7 @@ set(INCLUDES
 	PDFViewImpl.h
 	PDFViewBitmapCache.h
 	PDFViewBookmarksCtrl.h
+	PDFViewDocumentFrame.h
 	PDFViewThumbnailListBox.h	
 	)
 	
@@ -23,6 +24,7 @@ set(SOURCES
 	PDFViewImpl.cpp
 	PDFViewBitmapCache.cpp
 	PDFViewBookmarksCtrl.cpp
+	PDFViewDocumentFrame.cpp
 	PDFViewThumbnailListBox.cpp
 	)
 

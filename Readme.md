@@ -21,6 +21,7 @@ Currently includes 3 controls
 * wxPDFView Main pdf view
 * wxPDFViewBookmarksCtrl tree control displaying bookmarks contained in the PDF
 * wxPDFViewThumbnailsListBox listbox control for displaying thumbnails
+* wxPDFViewDocumentFrame Frame combining all controls into a PDF viewer window
 
 After initializing an instance of wxPDFView call SetPDFView on wxPDFViewBookmarksCtrl 
 and/or wxPDFViewThumbnailsListBox. Call wxPDFView->LoadDocument to load a PDF into the 
