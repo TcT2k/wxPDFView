@@ -2,15 +2,13 @@
 #define PDFVIEW_H
 
 #include <wx/wx.h>
-#include <wx/dynarray.h>
 #include <wx/thread.h>
 #include <wx/graphics.h>
 #include <set>
+#include <vector>
 #include <istream>
 
 #include "PDFViewBitmapCache.h"
-
-WX_DECLARE_OBJARRAY(wxSize, ArrayOfSize);
 
 class wxPDFView: public wxScrolledCanvas, public wxThreadHelper
 {
@@ -74,9 +72,8 @@ private:
 
 	// Document information
 	int m_pageCount;
-	ArrayOfSize m_pageSizes;
-	int m_docHeight;
-	int m_docMaxWidth;
+	std::vector<wxRect> m_pageRects;
+	wxSize m_docSize;
 
 	// Display settings
 	int m_pagePadding;
@@ -98,7 +95,7 @@ private:
 
 	void UpdateDocumentInfo();
 
-	wxRect GetPageRect(int pageIndex) const;
+	void AlignPageRects();
 
 	bool DrawPage(wxGraphicsContext& gc, int pageIndex, const wxRect& pageRect);
 
@@ -107,6 +104,8 @@ private:
 	void OnCacheBmpAvailable(wxThreadEvent& event);
 
 	void OnPaint(wxPaintEvent& event);
+
+	void OnSize(wxSizeEvent& event);
 
 	void OnMouseWheel(wxMouseEvent& event);
 

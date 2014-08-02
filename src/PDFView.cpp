@@ -11,9 +11,6 @@
 #include "fpdftext.h"
 #include "fpdfview.h"
 
-#include <wx/arrimpl.cpp> // This is a magic incantation which must be done! 
-WX_DEFINE_OBJARRAY(ArrayOfSize);
-
 wxDECLARE_EVENT(wxEVT_BMP_CACHE_AVAILABLE, wxThreadEvent);
 
 wxDEFINE_EVENT(wxEVT_BMP_CACHE_AVAILABLE, wxThreadEvent);
@@ -254,6 +251,7 @@ void wxPDFView::Init()
 	SetBackgroundColour(*wxLIGHT_GREY);
 
 	Bind(wxEVT_PAINT, &wxPDFView::OnPaint, this);
+	Bind(wxEVT_SIZE, &wxPDFView::OnSize, this);
 	Bind(wxEVT_MOUSEWHEEL, &wxPDFView::OnMouseWheel, this);
 	Bind(wxEVT_MOTION, &wxPDFView::OnMouseMotion, this);
 	Bind(wxEVT_LEFT_UP, &wxPDFView::OnMouseLeftUp, this);
@@ -291,17 +289,6 @@ void wxPDFView::Init()
 
 void wxPDFView::UpdateDocumentInfo()
 {
-	// Determine screen size
-	m_docHeight = 0;
-	m_docMaxWidth = 0;
-	for (int i = 0; i < m_pageCount; i++)
-	{
-		m_docHeight += m_pageSizes[i].GetHeight();
-		int pageWidth = m_pageSizes[i].GetWidth();
-		if (pageWidth > m_docMaxWidth)
-			m_docMaxWidth = pageWidth;
-	}
-
 	UpdateVirtualSize();
 
 	ProcessEvent(wxCommandEvent(wxEVT_PDFVIEW_DOCUMENT_READY));
@@ -310,21 +297,11 @@ void wxPDFView::UpdateDocumentInfo()
 	ProcessEvent(pgEvent);
 }
 
-wxRect wxPDFView::GetPageRect(int pageIndex) const
+void wxPDFView::AlignPageRects()
 {
-	wxRect pageRect;
-	pageRect.SetSize(m_pageSizes[pageIndex]);
-	pageRect.y += m_pagePadding / 2;
-	for (int i = 0; i < pageIndex; i++)
-	{
-		pageRect.y += m_pageSizes[i].GetHeight();
-		pageRect.y += m_pagePadding;
-	}
-
-	wxSize ctrlSize = GetVirtualSize();
-	pageRect.x = ((ctrlSize.GetWidth() / GetScaleX()) - pageRect.GetWidth()) / 2;
-
-	return pageRect;
+	int ctrlWidth = GetVirtualSize().GetWidth() / GetScaleX();
+	for (auto it = m_pageRects.begin(); it != m_pageRects.end(); ++it)
+		it->x = (ctrlWidth - it->width) / 2;
 }
 
 bool wxPDFView::DrawPage(wxGraphicsContext& gc, int pageIndex, const wxRect& pageRect)
@@ -335,7 +312,7 @@ bool wxPDFView::DrawPage(wxGraphicsContext& gc, int pageIndex, const wxRect& pag
 	gc.SetPen(*wxBLACK_PEN);
 	gc.DrawRectangle(bgRect.x, bgRect.y, bgRect.width, bgRect.height);
 
-	wxSize bmpSize(m_pageSizes[pageIndex].GetWidth() * GetScaleX(), m_pageSizes[pageIndex].GetHeight() * GetScaleY());
+	wxSize bmpSize(m_pageRects[pageIndex].GetWidth() * GetScaleX(), m_pageRects[pageIndex].GetHeight() * GetScaleY());
 	wxBitmap pageBmp;
 	bool matchingBitmap = m_bitmapCache.GetBitmapForPage(pageIndex, bmpSize, pageBmp);
 	if (pageBmp.IsOk())
@@ -345,7 +322,7 @@ bool wxPDFView::DrawPage(wxGraphicsContext& gc, int pageIndex, const wxRect& pag
 
 void wxPDFView::RenderPage(int pageIndex)
 {
-	wxSize bmpSize(m_pageSizes[pageIndex].x * GetScaleX(), m_pageSizes[pageIndex].y * GetScaleY());
+	wxSize bmpSize(m_pageRects[pageIndex].width * GetScaleX(), m_pageRects[pageIndex].height * GetScaleY());
 	wxLogDebug("Rendering page %d (%dx%d)...", pageIndex, bmpSize.x, bmpSize.y);
 
 	m_bitmapCache.RenderPage(pageIndex, bmpSize, m_pdfDoc, m_pdfForm);
@@ -357,7 +334,7 @@ void wxPDFView::RenderPage(int pageIndex)
 
 void wxPDFView::OnCacheBmpAvailable(wxThreadEvent& event)
 {
-	wxRect updateRect = GetPageRect(event.GetInt());
+	wxRect updateRect = m_pageRects[event.GetInt()];
 	updateRect = UnscaledToScaled(updateRect);
 	updateRect.SetPosition(CalcScrolledPosition(updateRect.GetPosition()));
 
@@ -383,23 +360,23 @@ void wxPDFView::OnPaint(wxPaintEvent& event)
 	// Draw visible pages
 	std::set<int> requiredBitmaps;
 	bool pageRendered = false;
-	for (int i = 0; i < m_pageCount; i++)
+	int pageIndex = 0;
+	for (auto it = m_pageRects.begin(); it != m_pageRects.end(); ++it, ++pageIndex)
 	{
-		wxRect pageRect = GetPageRect(i);
-		if (pageRect.Intersects(rectUpdate))
+		if (it->Intersects(rectUpdate))
 		{
-			bool hasBitmap = DrawPage(*gc, i, pageRect);
-			if (!pageRendered && m_currentPage != i)
+			bool hasBitmap = DrawPage(*gc, pageIndex, *it);
+			if (!pageRendered && m_currentPage != pageIndex)
 			{
-				m_currentPage = i;
+				m_currentPage = pageIndex;
 				wxCommandEvent* evt = new wxCommandEvent(wxEVT_PDFVIEW_PAGE_CHANGED);
-				evt->SetInt(i);
+				evt->SetInt(pageIndex);
 				QueueEvent(evt);
 			}
 			pageRendered = true;
 
 			if (!hasBitmap)
-				requiredBitmaps.insert(i);
+				requiredBitmaps.insert(pageIndex);
 		}
 		else if (pageRendered)
 			break;
@@ -411,6 +388,12 @@ void wxPDFView::OnPaint(wxPaintEvent& event)
 		m_bmpRequest = requiredBitmaps;
 		m_bmpRequestHandlerCondition->Broadcast();
 	}
+}
+
+void wxPDFView::OnSize(wxSizeEvent& event)
+{
+	AlignPageRects();
+	event.Skip();
 }
 
 void wxPDFView::OnMouseWheel(wxMouseEvent& event)
@@ -478,7 +461,7 @@ void wxPDFView::GotoPage(int pageIndex)
 	else if (pageIndex >= m_pageCount)
 		pageIndex = m_pageCount -1;
 
-	wxRect pageRect = UnscaledToScaled(GetPageRect(pageIndex));
+	wxRect pageRect = UnscaledToScaled(m_pageRects[pageIndex]);
 	Scroll(0, pageRect.GetTop() / m_scrollStepY);
 }
 
@@ -489,8 +472,8 @@ int wxPDFView::GetCurrentPage() const
 
 void wxPDFView::UpdateVirtualSize()
 {
-	int virtualHeight = m_docHeight + (m_pageCount * m_pagePadding);
-	SetVirtualSize(m_docMaxWidth * GetScaleX(), virtualHeight * GetScaleY());
+	int virtualHeight = m_docSize.y + (m_pageCount * m_pagePadding);
+	SetVirtualSize(m_docSize.x * GetScaleX(), virtualHeight * GetScaleY());
 	SetScrollRate(m_scrollStepX, m_scrollStepY);
 }
 
@@ -506,6 +489,7 @@ void wxPDFView::SetZoom(int zoom)
 	SetScale(m_zoom / (double) 100, m_zoom / (double) 100);
 
 	UpdateVirtualSize();
+	AlignPageRects();
 	Refresh();
 	ProcessEvent(wxCommandEvent(wxEVT_PDFVIEW_ZOOM_CHANGED));
 }
@@ -585,7 +569,11 @@ void wxPDFView::LoadStream(std::istream* pStream, bool takeOwnership)
 	(void) FPDFAvail_IsPageAvail(m_pdfAvail, first_page, &hints);
 
 	m_pageCount = FPDF_GetPageCount(m_pdfDoc);
-	m_pageSizes.Alloc(m_pageCount);
+	m_pageRects.reserve(m_pageCount);
+
+	m_docSize.Set(0, 0);
+	wxRect pageRect;
+	pageRect.y += m_pagePadding / 2;
 	for (int i = 0; i < m_pageCount; ++i)
 	{
 		(void) FPDFAvail_IsPageAvail(m_pdfAvail, i, &hints);
@@ -594,13 +582,24 @@ void wxPDFView::LoadStream(std::istream* pStream, bool takeOwnership)
 		double height;
 		if (FPDF_GetPageSizeByIndex(m_pdfDoc, i, &width, &height))
 		{
-			m_pageSizes.Add(wxSize(width, height));
+			pageRect.width = width;
+			pageRect.height = height;
+			m_pageRects.push_back(pageRect);
+
+			if (width > m_docSize.x)
+				m_docSize.x = width;
+
+			pageRect.y += height;
+			pageRect.y += m_pagePadding;
 		} else {
 			// Document broken?
 			m_pageCount = i;
 			break;
 		}
 	}
+	m_docSize.SetHeight(pageRect.y);
+
+	AlignPageRects();
 
 	Refresh();
 	UpdateDocumentInfo();
@@ -629,10 +628,9 @@ void wxPDFView::CloseDocument()
 		m_pdfAvail = NULL;
 	}
 	m_bitmapCache.Clear();
-	m_pageSizes.Clear();
-	m_docHeight = 0;
+	m_pageRects.clear();
 	m_pageCount = 0;
-	m_docMaxWidth = 0;
+	m_docSize.Set(0, 0);
 	UpdateVirtualSize();
 }
 
@@ -697,7 +695,7 @@ int wxPDFView::ClientToPage(const wxPoint& clientPos, wxPoint& pagePos)
 
 	for (int i = 0; i < m_pageCount; ++i)
 	{
-		wxRect pageRect = GetPageRect(i);
+		wxRect pageRect = m_pageRects[i];
 
 		if (pageRect.Contains(docPos))
 		{
@@ -722,7 +720,7 @@ int wxPDFView::GetLinkTargetPageAtClientPos(const wxPoint& clientPos)
 	{
 		FPDF_PAGE page = FPDF_LoadPage(m_pdfDoc, pageIndex);
 		// Mouse movement on page check
-		wxRect pageRect = GetPageRect(pageIndex);
+		wxRect pageRect = m_pageRects[pageIndex];
 		double page_x;
 		double page_y;
 		FPDF_DeviceToPage(page, 0, 0, pageRect.width, pageRect.height, 0, pagePos.x, pagePos.y, &page_x, &page_y);
