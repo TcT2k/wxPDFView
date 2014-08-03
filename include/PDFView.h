@@ -73,6 +73,8 @@ public:
 
 	wxPDFViewImpl* GetImpl() const { return m_impl; };
 
+    virtual void ScrollWindow(int dx, int dy, const wxRect *rect = NULL);
+
 private:
 	wxPDFViewImpl* m_impl;
 

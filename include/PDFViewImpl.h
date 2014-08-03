@@ -46,6 +46,8 @@ public:
 
 	void CloseDocument();
 
+	void HandleScrollWindow(int dx, int dy);
+
 	std::istream* GetStream() const { return m_pDataStream.get(); };
 
 	void* GetDocument() const { return m_pdfDoc; };
@@ -124,6 +126,8 @@ private:
 	// Returns true if a link is found at the specified position. 
 	// If performAction is true the link action will be performed
 	bool EvaluateLinkTargetPageAtClientPos(const wxPoint& clientPos, bool performAction);
+
+	void CalcVisiblePages();
 };
 
 #endif // PDFVIEW_IMPL_H

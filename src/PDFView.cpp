@@ -142,3 +142,12 @@ void wxPDFView::CloseDocument()
 	if (m_impl)
 		m_impl->CloseDocument();
 }
+
+void wxPDFView::ScrollWindow(int dx, int dy, const wxRect *rect)
+{
+	wxScrolledCanvas::ScrollWindow(dx, dy, rect);
+
+	if (m_impl)
+		m_impl->HandleScrollWindow(dx, dy);
+}
+

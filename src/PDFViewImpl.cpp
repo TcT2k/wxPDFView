@@ -330,8 +330,6 @@ void wxPDFViewImpl::OnCacheBmpAvailable(wxThreadEvent& event)
 
 void wxPDFViewImpl::OnPaint(wxPaintEvent& event)
 {
-	wxSize clientSize = m_ctrl->GetClientSize();
-
 	wxAutoBufferedPaintDC dc(m_ctrl);
 	m_ctrl->PrepareDC(dc);
 
@@ -353,13 +351,6 @@ void wxPDFViewImpl::OnPaint(wxPaintEvent& event)
 		if (it->Intersects(rectUpdate))
 		{
 			bool hasBitmap = DrawPage(*gc, pageIndex, *it);
-			if (!pageRendered && m_currentPage != pageIndex)
-			{
-				m_currentPage = pageIndex;
-				wxCommandEvent* evt = new wxCommandEvent(wxEVT_PDFVIEW_PAGE_CHANGED);
-				evt->SetInt(pageIndex);
-				m_ctrl->QueueEvent(evt);
-			}
 			pageRendered = true;
 
 			if (!hasBitmap)
@@ -380,6 +371,7 @@ void wxPDFViewImpl::OnPaint(wxPaintEvent& event)
 void wxPDFViewImpl::OnSize(wxSizeEvent& event)
 {
 	AlignPageRects();
+	CalcVisiblePages();
 	event.Skip();
 }
 
@@ -460,12 +452,16 @@ void wxPDFViewImpl::SetZoom(int zoom)
 	else if (zoom > m_maxZoom)
 		zoom = m_maxZoom;
 
+	if (zoom == m_zoom)
+		return;
+
 	m_zoom = zoom;
 
 	m_ctrl->SetScale(m_zoom / (double) 100, m_zoom / (double) 100);
 
 	UpdateVirtualSize();
 	AlignPageRects();
+	CalcVisiblePages();
 	m_ctrl->Refresh();
 	m_ctrl->ProcessEvent(wxCommandEvent(wxEVT_PDFVIEW_ZOOM_CHANGED));
 }
@@ -587,6 +583,11 @@ void wxPDFViewImpl::CloseDocument()
 	m_pageCount = 0;
 	m_docSize.Set(0, 0);
 	UpdateVirtualSize();
+}
+
+void wxPDFViewImpl::HandleScrollWindow(int dx, int dy)
+{
+	CalcVisiblePages();
 }
 
 wxThread::ExitCode wxPDFViewImpl::Entry()
@@ -722,4 +723,39 @@ bool wxPDFViewImpl::EvaluateLinkTargetPageAtClientPos(const wxPoint& clientPos, 
 	}
 
 	return foundLink;
+}
+
+void wxPDFViewImpl::CalcVisiblePages()
+{
+	wxRect viewRect(m_ctrl->CalcUnscrolledPosition(wxPoint(0, 0)), m_ctrl->GetClientSize());
+	viewRect = ScaledToUnscaled(viewRect);
+
+	int firstPage = -1;
+	int lastPage = -1;
+
+	int pageIndex = 0;
+	for (auto it = m_pageRects.begin(); it != m_pageRects.end(); ++it, ++pageIndex)
+	{
+		if (it->Intersects(viewRect))
+		{
+			if (firstPage == -1)
+				firstPage = pageIndex;
+			if (pageIndex > lastPage)
+				lastPage = pageIndex;
+		}
+
+		if (it->y > viewRect.y + viewRect.height)
+			break;
+	}
+
+	//TODO: make page displayed in center current page ?
+	int newCurrentPage = firstPage;
+
+	if (newCurrentPage >= 0 && newCurrentPage != m_currentPage)
+	{
+		m_currentPage = newCurrentPage;
+		wxCommandEvent* evt = new wxCommandEvent(wxEVT_PDFVIEW_PAGE_CHANGED);
+		evt->SetInt(m_currentPage);
+		m_ctrl->QueueEvent(evt);
+	}
 }
