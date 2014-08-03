@@ -33,9 +33,6 @@ void wxPDFViewBitmapCache::RenderPage(int pageIndex, const wxSize& bmpSize, void
 	FORM_OnAfterLoadPage(page, pdfForm);
 	FORM_DoPageAAction(page, pdfForm, FPDFPAGE_AACTION_OPEN);
 
-	FPDF_BITMAP bitmap = FPDFBitmap_Create(bmpSize.x, bmpSize.y, 0);
-	FPDFBitmap_FillRect(bitmap, 0, 0, bmpSize.x, bmpSize.y, 0xFFFFFFFF);
-
 #ifdef __WXMSW__
 	wxBitmap bmp(bmpSize, 24);
 	wxMemoryDC memDC(bmp);
@@ -43,6 +40,9 @@ void wxPDFViewBitmapCache::RenderPage(int pageIndex, const wxSize& bmpSize, void
 	memDC.Clear();
 	FPDF_RenderPage(memDC.GetHDC(), page, 0, 0, bmpSize.x, bmpSize.y, 0, 2);
 #else
+	FPDF_BITMAP bitmap = FPDFBitmap_Create(bmpSize.x, bmpSize.y, 0);
+	FPDFBitmap_FillRect(bitmap, 0, 0, bmpSize.x, bmpSize.y, 0xFFFFFFFF);
+
 	FPDF_RenderPageBitmap(bitmap, page, 0, 0, bmpSize.x, bmpSize.y, 0, 2);
 	FPDF_FFLDraw(pdfForm, bitmap, page, 0, 0, bmpSize.x, bmpSize.y, 0, 0);
 	unsigned char* buffer =
