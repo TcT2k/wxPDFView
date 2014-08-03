@@ -23,9 +23,11 @@ int AddBookmarkToViewItem(CPDF_BookmarkTree& bmTree, wxPDFViewBookmarksCtrl& ctr
 	int bookmarksAdded = 1;
 	CPDF_Bookmark firstChild = bmTree.GetFirstChild(bookmark);
 	wxClientData* clientData = CreateBookmarkClientData(bookmark, (CPDF_Document*) ctrl.GetPDFView()->GetImpl()->GetDocument());
+	CFX_ByteString bookmarkTitleSDK = bookmark.GetTitle().UTF8Encode();
+	wxString bookmarkTitle = wxString::FromUTF8(bookmarkTitleSDK, bookmarkTitleSDK.GetLength());
 	if (firstChild)
 	{
-		wxDataViewItem containerItem = ctrl.AppendContainer(viewItem, (const wchar_t*) bookmark.GetTitle(), -1, -1, clientData);
+		wxDataViewItem containerItem = ctrl.AppendContainer(viewItem, bookmarkTitle, -1, -1, clientData);
 
 		// Enumerate child nodes
 		CPDF_Bookmark bm = firstChild;
@@ -36,7 +38,7 @@ int AddBookmarkToViewItem(CPDF_BookmarkTree& bmTree, wxPDFViewBookmarksCtrl& ctr
 		}
 		ctrl.Expand(containerItem);
 	} else
-		ctrl.AppendItem(viewItem, (const wchar_t*) bookmark.GetTitle(), -1, clientData);
+		ctrl.AppendItem(viewItem, bookmarkTitle, -1, clientData);
 
 	return bookmarksAdded;
 }
