@@ -4,7 +4,7 @@ wxPDFView
 wxPDFView is a set of wxWidgets controls to display and 
 navigate PDF documents using Google Chromes [PDFium library][2].
 
-![Screenshot](https://tct2k.github.io/wxPDFView/images/PDFViewDocumentFrame_thumb.png "wxPDFViewDocumentFrame")
+![Screenshot](https://tct2k.github.io/wxPDFView/images/PDFViewDocumentFrame.png "wxPDFViewDocumentFrame")
 
 Requirements
 ------------
