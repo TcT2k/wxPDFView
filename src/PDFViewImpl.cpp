@@ -440,8 +440,7 @@ int wxPDFViewImpl::GetCurrentPage() const
 
 void wxPDFViewImpl::UpdateVirtualSize()
 {
-	int virtualHeight = m_docSize.y + (m_pageCount * m_pagePadding);
-	m_ctrl->SetVirtualSize(m_docSize.x * m_ctrl->GetScaleX(), virtualHeight * m_ctrl->GetScaleY());
+	m_ctrl->SetVirtualSize(m_docSize.x * m_ctrl->GetScaleX(), m_docSize.y * m_ctrl->GetScaleY());
 	m_ctrl->SetScrollRate(m_scrollStepX, m_scrollStepY);
 }
 
@@ -547,7 +546,7 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream)
 			break;
 		}
 	}
-	m_docSize.SetHeight(pageRect.y);
+	m_docSize.SetHeight(pageRect.y - (m_pagePadding / 2));
 
 	AlignPageRects();
 
