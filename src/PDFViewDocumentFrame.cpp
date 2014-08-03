@@ -134,6 +134,7 @@ wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent,
 	m_pdfView->Bind(wxEVT_PDFVIEW_DOCUMENT_READY, &wxPDFViewDocumentFrame::OnPDFDocumentReady, this);
 	m_pdfView->Bind(wxEVT_PDFVIEW_PAGE_CHANGED, &wxPDFViewDocumentFrame::OnPDFPageChanged, this);
 	m_pdfView->Bind(wxEVT_PDFVIEW_ZOOM_CHANGED, &wxPDFViewDocumentFrame::OnPDFZoomChanged, this);
+	m_pdfView->Bind(wxEVT_PDFVIEW_URL_CLICKED, &wxPDFViewDocumentFrame::OnPDFURLClicked, this);
 
 	m_pdfViewBookmarksCtrl->SetPDFView(m_pdfView);
 	m_thumbnailListBox->SetPDFView(m_pdfView);
@@ -180,6 +181,12 @@ void wxPDFViewDocumentFrame::OnPDFDocumentReady(wxCommandEvent& event)
 	m_pdfView->SetFocus();
 
 	event.Skip();
+}
+
+void wxPDFViewDocumentFrame::OnPDFURLClicked(wxCommandEvent& event)
+{
+	if (!event.GetString().empty())
+		wxLaunchDefaultBrowser(event.GetString());
 }
 
 void wxPDFViewDocumentFrame::OnNavigationClick(wxCommandEvent& event)

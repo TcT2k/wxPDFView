@@ -121,7 +121,9 @@ private:
 
 	int ClientToPage(const wxPoint& clientPos, wxPoint& pagePos);
 
-	int GetLinkTargetPageAtClientPos(const wxPoint& clientPos);
+	// Returns true if a link is found at the specified position. 
+	// If performAction is true the link action will be performed
+	bool EvaluateLinkTargetPageAtClientPos(const wxPoint& clientPos, bool performAction);
 };
 
 #endif // PDFVIEW_IMPL_H

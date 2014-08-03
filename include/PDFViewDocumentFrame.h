@@ -73,6 +73,7 @@ protected:
 	void OnPDFPageChanged(wxCommandEvent& event);
 	void OnPDFZoomChanged(wxCommandEvent& event);
 	void OnPDFDocumentReady(wxCommandEvent& event);
+	void OnPDFURLClicked(wxCommandEvent& event);
 private:
 
 };

@@ -407,7 +407,7 @@ void wxPDFViewImpl::OnMouseWheel(wxMouseEvent& event)
 
 void wxPDFViewImpl::OnMouseMotion(wxMouseEvent& event)
 {
-	if (GetLinkTargetPageAtClientPos(event.GetPosition()) >= 0)
+	if (EvaluateLinkTargetPageAtClientPos(event.GetPosition(), false))
 		m_ctrl->SetCursor(m_handCursor);
 	else
 		m_ctrl->SetCursor(wxCURSOR_ARROW);
@@ -417,9 +417,8 @@ void wxPDFViewImpl::OnMouseMotion(wxMouseEvent& event)
 
 void wxPDFViewImpl::OnMouseLeftUp(wxMouseEvent& event)
 {
-	int linkPage = GetLinkTargetPageAtClientPos(event.GetPosition());
-	if (linkPage >= 0)
-		SetCurrentPage(linkPage);
+	if (EvaluateLinkTargetPageAtClientPos(event.GetPosition(), true))
+		m_ctrl->SetCursor(wxCURSOR_ARROW);
 
 	event.Skip();
 }
@@ -666,16 +665,15 @@ int wxPDFViewImpl::ClientToPage(const wxPoint& clientPos, wxPoint& pagePos)
 	return -1;
 }
 
-int wxPDFViewImpl::GetLinkTargetPageAtClientPos(const wxPoint& clientPos)
+bool wxPDFViewImpl::EvaluateLinkTargetPageAtClientPos(const wxPoint& clientPos, bool performAction)
 {
-	int targetPageIndex = -1;
+	bool foundLink = false;
 
 	wxPoint pagePos;
 	int pageIndex = ClientToPage(clientPos, pagePos);
 	if (pageIndex >= 0)
 	{
 		FPDF_PAGE page = FPDF_LoadPage(m_pdfDoc, pageIndex);
-		// Mouse movement on page check
 		wxRect pageRect = m_pageRects[pageIndex];
 		double page_x;
 		double page_y;
@@ -683,19 +681,45 @@ int wxPDFViewImpl::GetLinkTargetPageAtClientPos(const wxPoint& clientPos)
 		FPDF_LINK link = FPDFLink_GetLinkAtPoint(page, page_x, page_y);
 		if (link)
 		{
-			FPDF_DEST dest = FPDFLink_GetDest(m_pdfDoc, link);
-			if (!dest)
+			foundLink = true;
+			if (performAction)
 			{
-				FPDF_ACTION action = FPDFLink_GetAction(link);
-				if (action)
-					dest = FPDFAction_GetDest(m_pdfDoc, action);
+				FPDF_DEST dest = FPDFLink_GetDest(m_pdfDoc, link);
+				if (!dest)
+				{
+					FPDF_ACTION action = FPDFLink_GetAction(link);
+					if (action)
+					{
+						unsigned long actionType = FPDFAction_GetType(action);
+						switch (actionType)
+						{
+							case PDFACTION_GOTO:
+								dest = FPDFAction_GetDest(m_pdfDoc, action);
+								break;
+							case PDFACTION_URI:
+								{
+									int uriSize = FPDFAction_GetURIPath(m_pdfDoc, action, NULL, 0);
+									char* uriBuf = new char[uriSize];
+									FPDFAction_GetURIPath(m_pdfDoc, action, uriBuf, uriSize);
+									wxString uriString(uriBuf, uriSize);
+
+									wxCommandEvent urlEvent(wxEVT_PDFVIEW_URL_CLICKED);
+									urlEvent.SetString(uriString);
+									m_ctrl->ProcessEvent(urlEvent);
+
+									delete [] uriBuf;
+									break;
+								}
+						}
+					}
+				}
+
+				if (dest)
+					SetCurrentPage(FPDFDest_GetPageIndex(m_pdfDoc, dest));
 			}
-			
-			if (dest)
-				targetPageIndex = FPDFDest_GetPageIndex(m_pdfDoc, dest);
 		}
 		FPDF_ClosePage(page);
 	}
 
-	return targetPageIndex;
+	return foundLink;
 }
