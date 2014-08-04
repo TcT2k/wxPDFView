@@ -13,17 +13,19 @@ Requirements
 
 Compiling
 ---------
-Build PDFium per instructions in the projects [wiki][3]. Use the 
-included CMake file in your project and link wxPDFView lib (will 
-link the required pdfium libs).
+* Build PDFium per instructions in the projects [wiki][3].
+* Use [CMake][4] to build the samples/simple project
+* Or use the  included CMake file in your project and link wxPDFView lib (will link the required pdfium libs)
 
 Using
 -----
-Currently includes 3 controls
+Currently includes 3 classes you can include into your own frames
 * wxPDFView Main pdf view
 * wxPDFViewBookmarksCtrl tree control displaying bookmarks contained in the PDF
 * wxPDFViewThumbnailsListBox listbox control for displaying thumbnails
-* wxPDFViewDocumentFrame Frame combining all controls into a PDF viewer window
+
+Or you can base your PDF viewing on a complete PDF viewer frame
+* wxPDFViewDocumentFrame Combining all controls into a PDF viewer window
 
 After initializing an instance of wxPDFView call SetPDFView on wxPDFViewBookmarksCtrl 
 and/or wxPDFViewThumbnailsListBox. Call wxPDFView->LoadDocument to load a PDF into the 
@@ -33,3 +35,4 @@ view.
 [1]: http://www.wxwidgets.org
 [2]: https://code.google.com/p/pdfium/
 [3]: https://code.google.com/p/pdfium/wiki/Build
+[4]: http://cmake.org/
