@@ -3,59 +3,167 @@
 #include "fpdfdoc/fpdf_doc.h"
 #include "PDFViewImpl.h"
 
-wxClientData* CreateBookmarkClientData(CPDF_Bookmark& bookmark, CPDF_Document* doc)
+#include <vector>
+
+class wxPDFViewBookmark: public std::vector<wxPDFViewBookmark>
 {
-	CPDF_Dest dest = bookmark.GetDest(doc);
-	if (!dest)
+public:
+	wxPDFViewBookmark(CPDF_BookmarkTree& bmTree, CPDF_Bookmark& bookmark):
+		m_bookmark(bookmark)
 	{
-		CPDF_Action action = bookmark.GetAction();
-		dest = action.GetDest(doc);
+		CFX_ByteString bookmarkTitleSDK = bookmark.GetTitle().UTF8Encode();
+		m_title = wxString::FromUTF8(bookmarkTitleSDK, bookmarkTitleSDK.GetLength());
+		CPDF_Bookmark child = bmTree.GetFirstChild(bookmark);
+		while (child)
+		{
+			push_back(wxPDFViewBookmark(bmTree, child));
+			child = bmTree.GetNextSibling(child);
+		}
 	}
 
-	if (dest)
-		return new wxStringClientData(wxString::Format("%d", dest.GetPageIndex(doc)));
-	else
-		return NULL;
-}
-
-int AddBookmarkToViewItem(CPDF_BookmarkTree& bmTree, wxPDFViewBookmarksCtrl& ctrl, const wxDataViewItem& viewItem, CPDF_Bookmark& bookmark)
-{
-	int bookmarksAdded = 1;
-	CPDF_Bookmark firstChild = bmTree.GetFirstChild(bookmark);
-	wxClientData* clientData = CreateBookmarkClientData(bookmark, (CPDF_Document*) ctrl.GetPDFView()->GetImpl()->GetDocument());
-	CFX_ByteString bookmarkTitleSDK = bookmark.GetTitle().UTF8Encode();
-	wxString bookmarkTitle = wxString::FromUTF8(bookmarkTitleSDK, bookmarkTitleSDK.GetLength());
-	if (firstChild)
+	void Navigate(wxPDFView* pdfView)
 	{
-		wxDataViewItem containerItem = ctrl.AppendContainer(viewItem, bookmarkTitle, -1, -1, clientData);
-
-		// Enumerate child nodes
-		CPDF_Bookmark bm = firstChild;
-		while (bm)
+		CPDF_Document* doc = (CPDF_Document*) pdfView->GetImpl()->GetDocument();
+		CPDF_Dest dest = m_bookmark.GetDest(doc);
+		if (!dest)
 		{
-			bookmarksAdded += AddBookmarkToViewItem(bmTree, ctrl, containerItem, bm);
-			bm = bmTree.GetNextSibling(bm);
+			CPDF_Action action = m_bookmark.GetAction();
+			dest = action.GetDest(doc);
 		}
-		ctrl.Expand(containerItem);
-	} else
-		ctrl.AppendItem(viewItem, bookmarkTitle, -1, clientData);
 
-	return bookmarksAdded;
-}
+		if (dest)
+			pdfView->SetCurrentPage(dest.GetPageIndex(doc));
+	}
+
+	wxString m_title;
+	CPDF_Bookmark m_bookmark;
+};
+
+class wxPDFViewBookmarksModel: public wxDataViewModel
+{
+public:
+	wxPDFViewBookmarksModel(CPDF_Document* doc):
+		m_tree(doc)
+	{
+		CPDF_Bookmark emptyBM;
+		CPDF_Bookmark rootBM = m_tree.GetFirstChild(emptyBM);
+		if (rootBM)
+			m_rootBookmark = new wxPDFViewBookmark(m_tree, emptyBM);
+		else
+			m_rootBookmark = NULL;
+
+		m_isEmpty = (m_rootBookmark == NULL) || m_rootBookmark->empty();
+	}
+
+	~wxPDFViewBookmarksModel()
+	{
+		delete m_rootBookmark;
+	}
+
+	virtual unsigned int GetColumnCount() const
+	{
+		return 1;
+	}
+
+	virtual wxString GetColumnType( unsigned int col ) const
+	{
+		return wxT("wxDataViewIconText");
+	}
+
+	virtual void GetValue( wxVariant &variant, const wxDataViewItem &item, unsigned int col ) const
+	{
+		wxPDFViewBookmark* bm = (wxPDFViewBookmark*) item.GetID();
+		if (col == 0)
+		{
+			wxDataViewIconText data(bm->m_title);
+
+			variant << data;
+		}
+	}
+
+	virtual bool SetValue( const wxVariant &variant, const wxDataViewItem &item, unsigned int col )
+	{
+		return false;
+	}
+
+	virtual bool IsEnabled( const wxDataViewItem &item, unsigned int col ) const
+	{
+		return true;
+	}
+
+	virtual wxDataViewItem GetParent( const wxDataViewItem &item ) const
+	{
+		// the invisible root node has no parent
+		if (!item.IsOk())
+			return wxDataViewItem(0);
+
+		return wxDataViewItem( (void*) NULL );
+	}
+
+	virtual bool IsContainer( const wxDataViewItem &item ) const
+	{
+		// the invisble root node can have children
+		if (!m_rootBookmark)
+			return false;
+		if (!item.IsOk())
+			return true;
+
+		wxPDFViewBookmark* bm = (wxPDFViewBookmark*) item.GetID();
+		return !bm->empty();
+	}
+
+	virtual unsigned int GetChildren( const wxDataViewItem &parent, wxDataViewItemArray &array ) const
+	{
+		wxPDFViewBookmark* bm = (wxPDFViewBookmark*) parent.GetID();
+		if (!bm && m_rootBookmark)
+			bm = m_rootBookmark;
+
+		for (auto it = bm->begin(); it != bm->end(); ++it)
+		{
+			wxPDFViewBookmark* pChildBM = (wxPDFViewBookmark*) &(*it);
+			array.Add( wxDataViewItem( (void*) pChildBM ) );
+		}
+
+		return bm->size();
+	}
+
+	bool m_isEmpty;
+
+private:
+	CPDF_BookmarkTree m_tree;
+	wxPDFViewBookmark* m_rootBookmark;
+};
 
 //
 // wxPDFViewBookmarksCtrl
 //
 
-wxPDFViewBookmarksCtrl::wxPDFViewBookmarksCtrl(wxWindow *parent,
+bool wxPDFViewBookmarksCtrl::Create(wxWindow *parent,
 					wxWindowID id,
 					const wxPoint& pos,
 					const wxSize& size,
 					long style,
-					const wxValidator& validator):
-	wxDataViewTreeCtrl(parent, id, pos, size, style, validator)
+					const wxValidator& validator)
 {
-	Init();
+	if ( !wxDataViewCtrl::Create( parent, id, pos, size, style | wxDV_NO_HEADER, validator ) )
+		return false;
+
+	m_pdfView = NULL;
+	m_isEmpty = true;
+	Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, &wxPDFViewBookmarksCtrl::OnSelectionChanged, this);
+	Bind(wxEVT_SIZE, &wxPDFViewBookmarksCtrl::OnSize, this);
+
+	AppendIconTextColumn
+	(
+		wxString(),					// no label (header is not shown anyhow)
+		0,							// the only model column
+		wxDATAVIEW_CELL_ACTIVATABLE,
+		-1,							// default width
+		wxALIGN_NOT,				//  and alignment
+		0							// not resizable
+	);
+
+	return true;
 }
 
 void wxPDFViewBookmarksCtrl::SetPDFView(wxPDFView* pdfView)
@@ -75,50 +183,31 @@ void wxPDFViewBookmarksCtrl::SetPDFView(wxPDFView* pdfView)
 	}
 }
 
-void wxPDFViewBookmarksCtrl::Init()
-{
-	m_pdfView = NULL;
-	m_isEmpty = true;
-	Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, &wxPDFViewBookmarksCtrl::OnSelectionChanged, this);
-	Bind(wxEVT_DATAVIEW_ITEM_START_EDITING, &wxPDFViewBookmarksCtrl::OnStartEditing, this);
-}
-
 void wxPDFViewBookmarksCtrl::OnSelectionChanged(wxDataViewEvent& event)
 {
-	wxDataViewItem selectedItem = GetSelection();
-	wxClientData* clientData = GetItemData(selectedItem);
-	if (clientData)
-	{
-		wxString dest = static_cast<wxStringClientData*>(clientData)->GetData();
-		if (m_pdfView)
-			m_pdfView->SetCurrentPage(wxAtoi(dest));
-	}
-}
-
-void wxPDFViewBookmarksCtrl::OnStartEditing(wxDataViewEvent& event)
-{
-	event.Veto();
-}
-
-void wxPDFViewBookmarksCtrl::UpdateDocumentBookmarks()
-{
-	DeleteAllItems();
-
-	CPDF_BookmarkTree bmTree((CPDF_Document*)m_pdfView->GetImpl()->GetDocument());
-	CPDF_Bookmark emptyBM;
-	CPDF_Bookmark rootBM = bmTree.GetFirstChild(emptyBM);
-	if (rootBM)
-	{
-		wxDataViewItem rootViewItem;
-		int bookmarksAdded = AddBookmarkToViewItem(bmTree, *this, rootViewItem, rootBM);
-		m_isEmpty = bookmarksAdded < 2;
-	} else
-		m_isEmpty = true;
+	wxPDFViewBookmark* bm = (wxPDFViewBookmark*) GetSelection().GetID();
+	if (bm)
+		bm->Navigate(m_pdfView);
 }
 
 void wxPDFViewBookmarksCtrl::OnPDFDocumentReady(wxCommandEvent& event)
 {
-	UpdateDocumentBookmarks();
+	wxObjectDataPtr<wxPDFViewBookmarksModel> treeModel(new wxPDFViewBookmarksModel((CPDF_Document*) m_pdfView->GetImpl()->GetDocument()));
+	AssociateModel(treeModel.get());
+	m_isEmpty = treeModel->m_isEmpty;
 
 	event.Skip();
+}
+
+void wxPDFViewBookmarksCtrl::OnSize(wxSizeEvent& event)
+{
+#if defined(wxUSE_GENERICDATAVIEWCTRL)
+    // automatically resize our only column to take the entire control width
+    if ( GetColumnCount() )
+    {
+        wxSize size = GetClientSize();
+        GetColumn(0)->SetWidth(size.x);
+    }
+#endif
+    event.Skip();
 }

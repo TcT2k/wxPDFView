@@ -5,15 +5,27 @@
 
 #include "PDFView.h"
 
-class wxPDFViewBookmarksCtrl: public wxDataViewTreeCtrl
+class wxPDFViewBookmarksCtrl: public wxDataViewCtrl
 {
 public:
+	wxPDFViewBookmarksCtrl() { };
+
 	wxPDFViewBookmarksCtrl(wxWindow *parent,
-					   wxWindowID id,
-					   const wxPoint& pos = wxDefaultPosition,
-					   const wxSize& size = wxDefaultSize,
-					   long style = wxDV_NO_HEADER | wxDV_ROW_LINES,
-					   const wxValidator& validator = wxDefaultValidator);
+							wxWindowID id,
+							const wxPoint& pos = wxDefaultPosition,
+							const wxSize& size = wxDefaultSize,
+							long style = wxDV_ROW_LINES,
+							const wxValidator& validator = wxDefaultValidator)
+	{
+		Create(parent, id, pos, size, style, validator);
+	};
+
+	bool Create(wxWindow *parent,
+			wxWindowID id,
+			const wxPoint& pos = wxDefaultPosition,
+			const wxSize& size = wxDefaultSize,
+			long style = wxDV_ROW_LINES,
+			const wxValidator& validator = wxDefaultValidator);
 
 	void SetPDFView(wxPDFView* pdfView);
 
@@ -27,15 +39,11 @@ private:
 	wxPDFView* m_pdfView;
 	bool m_isEmpty;
 
-	void Init();
-
-	void UpdateDocumentBookmarks();
-
 	void OnPDFDocumentReady(wxCommandEvent& event);
 
 	void OnSelectionChanged(wxDataViewEvent& event);
 
-	void OnStartEditing(wxDataViewEvent& event);
+	void OnSize(wxSizeEvent& event);
 };
 
 #endif // PDFVIEW_BOOKMARKS_CTRL_H
