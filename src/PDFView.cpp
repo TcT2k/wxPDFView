@@ -12,11 +12,6 @@ wxDEFINE_EVENT(wxEVT_PDFVIEW_URL_CLICKED, wxCommandEvent);
 // wxPDFView
 //
 
-wxPDFView::wxPDFView()
-{
-	Create(NULL);
-}
-
 wxPDFView::wxPDFView(wxWindow *parent,
 	wxWindowID winid,
 	const wxPoint& pos,

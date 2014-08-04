@@ -27,7 +27,7 @@ enum wxPDFViewPageNavigation
 class wxPDFView: public wxScrolledCanvas
 {
 public:
-	wxPDFView();
+	wxPDFView() { };
 
 	wxPDFView(wxWindow *parent,
 		wxWindowID winid = wxID_ANY,
