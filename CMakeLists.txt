@@ -12,11 +12,14 @@ include( ${wxWidgets_USE_FILE} )
 
 set(INCLUDES
 	PDFView.h
-	PDFViewImpl.h
 	PDFViewBookmarksCtrl.h
 	PDFViewDocumentFrame.h
-	PDFViewPages.h
 	PDFViewThumbnailListBox.h	
+	)
+	
+set(PRIVATE_INCLUDES
+	PDFViewImpl.h
+	PDFViewPages.h
 	)
 	
 set(SOURCES
@@ -31,9 +34,14 @@ set(SOURCES
 foreach(Inc ${INCLUDES})
 	set(SRCS ${SRCS} include/${Inc})
 endforeach(Inc)
+foreach(Inc ${PRIVATE_INCLUDES})
+	set(SRCS ${SRCS} include/private/${Inc})
+endforeach(Inc)
 foreach(Src ${SOURCES})
 	set(SRCS ${SRCS} src/${Src})
 endforeach(Src)
+
+source_group("Private Headers" REGULAR_EXPRESSION "include/private/*")
 
 set(wxPDFView_INCLUDE_DIRS ${wxPDFView_INCLUDE_DIRS}
 	${PROJECT_SOURCE_DIR}/include/

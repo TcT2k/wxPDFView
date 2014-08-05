@@ -1,5 +1,5 @@
 #include "PDFView.h"
-#include "PDFViewImpl.h"
+#include "private/PDFViewImpl.h"
 
 #include <fstream>
 

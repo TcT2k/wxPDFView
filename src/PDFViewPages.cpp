@@ -1,4 +1,4 @@
-#include "PDFViewPages.h"
+#include "private/PDFViewPages.h"
 
 #include <algorithm>
 

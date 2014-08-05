@@ -1,4 +1,4 @@
-#include "PDFViewImpl.h"
+#include "private/PDFViewImpl.h"
 
 #include <wx/webview.h>
 

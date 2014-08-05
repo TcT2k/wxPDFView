@@ -3,7 +3,7 @@
 #include <wx/artprov.h>
 
 #include "fpdfdoc/fpdf_doc.h"
-#include "PDFViewImpl.h"
+#include "private/PDFViewImpl.h"
 
 #include <vector>
 
