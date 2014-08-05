@@ -557,7 +557,7 @@ int wxPDFViewImpl::ClientToPage(const wxPoint& clientPos, wxPoint& pagePos)
 	docPos.x /= m_ctrl->GetScaleX();
 	docPos.y /= m_ctrl->GetScaleY();
 
-	for (int i = 0; i < m_pageCount; ++i)
+	for (int i = m_firstVisiblePage; i <= m_lastVisiblePage; ++i)
 	{
 		wxRect pageRect = m_pageRects[i];
 
@@ -582,7 +582,7 @@ bool wxPDFViewImpl::EvaluateLinkTargetPageAtClientPos(const wxPoint& clientPos, 
 	int pageIndex = ClientToPage(clientPos, pagePos);
 	if (pageIndex >= 0)
 	{
-		FPDF_PAGE page = FPDF_LoadPage(m_pdfDoc, pageIndex);
+		FPDF_PAGE page = m_pages[pageIndex].GetPage();
 		wxRect pageRect = m_pageRects[pageIndex];
 		double page_x;
 		double page_y;
@@ -627,7 +627,6 @@ bool wxPDFViewImpl::EvaluateLinkTargetPageAtClientPos(const wxPoint& clientPos, 
 					SetCurrentPage(FPDFDest_GetPageIndex(m_pdfDoc, dest));
 			}
 		}
-		FPDF_ClosePage(page);
 	}
 
 	return foundLink;
