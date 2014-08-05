@@ -81,8 +81,8 @@ wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent,
 	m_toolBar->AddTool(wxID_PRINT, _("Print"), wxArtProvider::GetBitmap(wxART_PRINT, wxART_TOOLBAR), _("Print Document"));
 	m_toolBar->AddSeparator();
 
-	m_toolBar->AddTool(ID_PAGE_PREV, _("Previous Page"), wxArtProvider::GetBitmap(wxART_GO_BACK, wxART_TOOLBAR), _("Show previous page"));
-	m_toolBar->AddTool(ID_PAGE_NEXT, _("Next Page"), wxArtProvider::GetBitmap(wxART_GO_FORWARD, wxART_TOOLBAR), _("Show next page"));
+	m_toolBar->AddTool(wxID_BACKWARD, _("Previous Page"), wxArtProvider::GetBitmap(wxART_GO_BACK, wxART_TOOLBAR), _("Show previous page"));
+	m_toolBar->AddTool(wxID_FORWARD, _("Next Page"), wxArtProvider::GetBitmap(wxART_GO_FORWARD, wxART_TOOLBAR), _("Show next page"));
 	m_pageTxtCtrl = new wxTextCtrl(m_toolBar, wxID_ANY, "0", wxDefaultPosition, wxSize(30, -1), wxTE_PROCESS_ENTER | wxTE_CENTRE);
 	m_toolBar->AddControl(m_pageTxtCtrl);
 	wxStaticText* pageCountDivTxt = new wxStaticText(m_toolBar, wxID_ANY, "/", wxDefaultPosition, wxSize(20, -1), wxALIGN_CENTRE_HORIZONTAL);
@@ -109,8 +109,8 @@ wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent,
 
 	m_toolBar->Realize();
 
-	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnPageNextClick, this, ID_PAGE_NEXT);
-	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnPagePrevClick, this, ID_PAGE_PREV);
+	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnPageNextClick, this, wxID_FORWARD);
+	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnPagePrevClick, this, wxID_BACKWARD);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnZoomInClick, this, ID_ZOOM_IN);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnZoomOutClick, this, ID_ZOOM_OUT);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnNavigationClick, this, ID_NAVIGATION);
@@ -120,8 +120,8 @@ wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent,
 	this->Centre( wxBOTH );
 
 	// Prepare for display while loading
-	m_toolBar->EnableTool(ID_PAGE_NEXT, false);
-	m_toolBar->EnableTool(ID_PAGE_PREV, false);
+	m_toolBar->EnableTool(wxID_FORWARD, false);
+	m_toolBar->EnableTool(wxID_BACKWARD, false);
 	m_pageTxtCtrl->Disable();
 	m_toolBar->EnableTool(wxID_PRINT, false);
 	m_toolBar->EnableTool(ID_ZOOM_OUT, false);
@@ -153,8 +153,8 @@ bool wxPDFViewDocumentFrame::LoadFile(const wxString& fileName)
 void wxPDFViewDocumentFrame::OnPDFPageChanged(wxCommandEvent& event)
 {
 	m_pageTxtCtrl->SetLabelText(wxString::Format("%d", event.GetInt() + 1));
-	m_toolBar->EnableTool(ID_PAGE_PREV, event.GetInt() > 0);
-	m_toolBar->EnableTool(ID_PAGE_NEXT, event.GetInt() < m_pdfView->GetPageCount() - 1);
+	m_toolBar->EnableTool(wxID_BACKWARD, event.GetInt() > 0);
+	m_toolBar->EnableTool(wxID_FORWARD, event.GetInt() < m_pdfView->GetPageCount() - 1);
 }
 
 void wxPDFViewDocumentFrame::OnPDFZoomChanged(wxCommandEvent& event)

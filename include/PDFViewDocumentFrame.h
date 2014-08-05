@@ -29,10 +29,7 @@ public:
 protected:
 	enum
 	{
-		ID_PAGE_NEXT = 1500,
-		ID_PAGE_PREV,
-		ID_PRINT,
-		ID_ZOOM_IN,
+		ID_ZOOM_IN = 1500,
 		ID_ZOOM_OUT,
 		ID_NAVIGATION
 	};
