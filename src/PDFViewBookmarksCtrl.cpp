@@ -1,5 +1,7 @@
 #include "PDFViewBookmarksCtrl.h"
 
+#include <wx/artprov.h>
+
 #include "fpdfdoc/fpdf_doc.h"
 #include "PDFViewImpl.h"
 
@@ -75,7 +77,8 @@ public:
 		wxPDFViewBookmark* bm = (wxPDFViewBookmark*) item.GetID();
 		if (col == 0)
 		{
-			wxDataViewIconText data(bm->m_title);
+			wxDataViewIconText data(bm->m_title, wxArtProvider::GetIcon(
+				(bm->empty()) ? wxART_HELP_PAGE : wxART_HELP_FOLDER, wxART_OTHER));
 
 			variant << data;
 		}
@@ -125,6 +128,18 @@ public:
 		}
 
 		return bm->size();
+	}
+
+	void PrepareCtrl(wxDataViewCtrl* dataView)
+	{
+		if (m_rootBookmark)
+		{
+			for (auto it = m_rootBookmark->begin(); it != m_rootBookmark->end(); ++it)
+			{
+				wxPDFViewBookmark* pChildBM = (wxPDFViewBookmark*) &(*it);
+				dataView->Expand( wxDataViewItem( (void*) pChildBM) );
+			}
+		}
 	}
 
 	bool m_isEmpty;
@@ -194,6 +209,7 @@ void wxPDFViewBookmarksCtrl::OnPDFDocumentReady(wxCommandEvent& event)
 {
 	wxObjectDataPtr<wxPDFViewBookmarksModel> treeModel(new wxPDFViewBookmarksModel((CPDF_Document*) m_pdfView->GetImpl()->GetDocument()));
 	AssociateModel(treeModel.get());
+	treeModel->PrepareCtrl(this);
 	m_isEmpty = treeModel->m_isEmpty;
 
 	event.Skip();
@@ -202,12 +218,12 @@ void wxPDFViewBookmarksCtrl::OnPDFDocumentReady(wxCommandEvent& event)
 void wxPDFViewBookmarksCtrl::OnSize(wxSizeEvent& event)
 {
 #if defined(wxUSE_GENERICDATAVIEWCTRL)
-    // automatically resize our only column to take the entire control width
-    if ( GetColumnCount() )
-    {
-        wxSize size = GetClientSize();
-        GetColumn(0)->SetWidth(size.x);
-    }
+	// automatically resize our only column to take the entire control width
+	if ( GetColumnCount() )
+	{
+		wxSize size = GetClientSize();
+		GetColumn(0)->SetWidth(size.x);
+	}
 #endif
-    event.Skip();
+	event.Skip();
 }
