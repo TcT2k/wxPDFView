@@ -7,9 +7,6 @@
 #include "fpdf_ext.h"
 #include "fpdftext.h"
 
-wxDECLARE_EVENT(wxEVT_BMP_CACHE_AVAILABLE, wxThreadEvent);
-wxDEFINE_EVENT(wxEVT_BMP_CACHE_AVAILABLE, wxThreadEvent);
-
 void LogPDFError()
 {
 	unsigned long error = FPDF_GetLastError();
@@ -196,6 +193,8 @@ wxPDFViewImpl::wxPDFViewImpl(wxPDFView* ctrl):
 	m_pdfDoc = NULL;
 	m_pdfForm = NULL;
 	m_pdfAvail = NULL;
+	m_firstVisiblePage = -1;
+	m_lastVisiblePage = -1;
 
 	// PDF SDK structures
 	memset(&m_pdfFileAccess, '\0', sizeof(m_pdfFileAccess));
@@ -212,7 +211,6 @@ wxPDFViewImpl::wxPDFViewImpl(wxPDFView* ctrl):
 	m_ctrl->Bind(wxEVT_MOUSEWHEEL, &wxPDFViewImpl::OnMouseWheel, this);
 	m_ctrl->Bind(wxEVT_MOTION, &wxPDFViewImpl::OnMouseMotion, this);
 	m_ctrl->Bind(wxEVT_LEFT_UP, &wxPDFViewImpl::OnMouseLeftUp, this);
-	m_ctrl->Bind(wxEVT_BMP_CACHE_AVAILABLE, &wxPDFViewImpl::OnCacheBmpAvailable, this);
 	m_ctrl->Bind(wxEVT_SCROLLWIN_LINEUP, &wxPDFViewImpl::OnScroll, this);
 	m_ctrl->Bind(wxEVT_SCROLLWIN_LINEDOWN, &wxPDFViewImpl::OnScroll, this);
 	m_ctrl->Bind(wxEVT_SCROLLWIN_PAGEUP, &wxPDFViewImpl::OnScroll, this);
@@ -220,21 +218,7 @@ wxPDFViewImpl::wxPDFViewImpl(wxPDFView* ctrl):
 	m_ctrl->Bind(wxEVT_SCROLLWIN_TOP, &wxPDFViewImpl::OnScroll, this);
 	m_ctrl->Bind(wxEVT_SCROLLWIN_BOTTOM, &wxPDFViewImpl::OnScroll, this);
 
-	// Init bitmap request handler
-	m_bmpRequestHandlerActive = true;
-	m_bmpRequestHandlerCondition = NULL;
-
-	if (CreateThread(wxTHREAD_JOINABLE) != wxTHREAD_NO_ERROR)     
-	{         
-		wxLogError("Could not create the worker thread!");         
-		return;     
-	}
-
-	if (GetThread()->Run() != wxTHREAD_NO_ERROR)
-	{
-		wxLogError("Could not run the worker thread!");
-		return;
-	}
+	m_pages.Bind(wxEVT_PDFVIEW_PAGE_UPDATED, &wxPDFViewImpl::OnPageUpdate, this);
 
 	// Initialize PDF Rendering library
 	v8::V8::InitializeICU();
@@ -246,10 +230,6 @@ wxPDFViewImpl::wxPDFViewImpl(wxPDFView* ctrl):
 
 wxPDFViewImpl::~wxPDFViewImpl()
 {
-	// End bitmap request handler
-	m_bmpRequestHandlerActive = false;
-	m_bmpRequestHandlerCondition->Signal();
-
 	CloseDocument();
 
 	FPDF_DestroyLibrary();
@@ -291,35 +271,7 @@ void wxPDFViewImpl::AlignPageRects()
 		it->x = (ctrlWidth - it->width) / 2;
 }
 
-bool wxPDFViewImpl::DrawPage(wxGraphicsContext& gc, int pageIndex, const wxRect& pageRect)
-{
-	// Draw page background
-	wxRect bgRect = pageRect.Inflate(2, 2);
-	gc.SetBrush(*wxWHITE_BRUSH);
-	gc.SetPen(*wxBLACK_PEN);
-	gc.DrawRectangle(bgRect.x, bgRect.y, bgRect.width, bgRect.height);
-
-	wxSize bmpSize(m_pageRects[pageIndex].GetWidth() * m_ctrl->GetScaleX(), m_pageRects[pageIndex].GetHeight() * m_ctrl->GetScaleY());
-	wxBitmap pageBmp;
-	bool matchingBitmap = m_bitmapCache.GetBitmapForPage(pageIndex, bmpSize, pageBmp);
-	if (pageBmp.IsOk())
-		gc.DrawBitmap(pageBmp, pageRect.x, pageRect.y, pageRect.width, pageRect.height);
-	return matchingBitmap;
-}
-
-void wxPDFViewImpl::RenderPage(int pageIndex)
-{
-	wxSize bmpSize(m_pageRects[pageIndex].width * m_ctrl->GetScaleX(), m_pageRects[pageIndex].height * m_ctrl->GetScaleY());
-	wxLogDebug("Rendering page %d (%dx%d)...", pageIndex, bmpSize.x, bmpSize.y);
-
-	m_bitmapCache.RenderPage(pageIndex, bmpSize, m_pdfDoc, m_pdfForm);
-
-	wxThreadEvent evt(wxEVT_BMP_CACHE_AVAILABLE);
-	evt.SetInt(pageIndex);
-	m_ctrl->AddPendingEvent(evt);
-}
-
-void wxPDFViewImpl::OnCacheBmpAvailable(wxThreadEvent& event)
+void wxPDFViewImpl::OnPageUpdate(wxThreadEvent& event)
 {
 	wxRect updateRect = m_pageRects[event.GetInt()];
 	updateRect = UnscaledToScaled(updateRect);
@@ -343,28 +295,15 @@ void wxPDFViewImpl::OnPaint(wxPaintEvent& event)
 	dc.Clear();
 
 	// Draw visible pages
-	std::set<int> requiredBitmaps;
 	bool pageRendered = false;
-	int pageIndex = 0;
-	for (auto it = m_pageRects.begin(); it != m_pageRects.end(); ++it, ++pageIndex)
-	{
-		if (it->Intersects(rectUpdate))
-		{
-			bool hasBitmap = DrawPage(*gc, pageIndex, *it);
-			pageRendered = true;
+	if (m_firstVisiblePage < 0)
+		return;
 
-			if (!hasBitmap)
-				requiredBitmaps.insert(pageIndex);
-		}
-		else if (pageRendered)
-			break;
-	}
-
-	if (!requiredBitmaps.empty())
+	for (int pageIndex = m_firstVisiblePage; pageIndex <= m_lastVisiblePage; ++pageIndex)
 	{
-		wxCriticalSectionLocker csl(m_bmpRequestCS);
-		m_bmpRequest = requiredBitmaps;
-		m_bmpRequestHandlerCondition->Broadcast();
+		wxRect pageRect = m_pageRects[pageIndex];
+		if (pageRect.Intersects(rectUpdate))
+			m_pages[pageIndex].Draw(dc, *gc, pageRect);
 	}
 }
 
@@ -517,7 +456,8 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream)
 	int first_page = FPDFAvail_GetFirstPageNum(m_pdfDoc);
 	(void) FPDFAvail_IsPageAvail(m_pdfAvail, first_page, &hints);
 
-	m_pageCount = FPDF_GetPageCount(m_pdfDoc);
+	m_pages.SetDocument(m_pdfDoc);
+	m_pageCount = m_pages.size();
 	m_pageRects.reserve(m_pageCount);
 
 	m_docSize.Set(0, 0);
@@ -561,6 +501,7 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream)
 
 void wxPDFViewImpl::CloseDocument()
 {
+	m_pages.SetDocument(NULL);
 	if (m_pdfForm)
 	{
 		FORM_DoDocumentAAction(m_pdfForm, FPDFDOC_AACTION_WC);
@@ -577,7 +518,6 @@ void wxPDFViewImpl::CloseDocument()
 		FPDFAvail_Destroy(m_pdfAvail);
 		m_pdfAvail = NULL;
 	}
-	m_bitmapCache.Clear();
 	m_pageRects.clear();
 	m_pageCount = 0;
 	m_docSize.Set(0, 0);
@@ -587,37 +527,6 @@ void wxPDFViewImpl::CloseDocument()
 void wxPDFViewImpl::HandleScrollWindow(int dx, int dy)
 {
 	CalcVisiblePages();
-}
-
-wxThread::ExitCode wxPDFViewImpl::Entry()
-{
-	wxMutex requestHandlerMutex;
-	requestHandlerMutex.Lock();
-	m_bmpRequestHandlerCondition = new wxCondition(requestHandlerMutex);
-
-	while (m_bmpRequestHandlerActive)
-	{
-		m_bmpRequestHandlerCondition->Wait();
-
-		while (!m_bmpRequest.empty() && m_bmpRequestHandlerActive)
-		{
-			int requestedPageIndex;
-
-			{
-				wxCriticalSectionLocker csl(m_bmpRequestCS);
-				requestedPageIndex = *m_bmpRequest.begin();
-			}
-
-			RenderPage(requestedPageIndex);
-
-			{
-				wxCriticalSectionLocker csl(m_bmpRequestCS);
-				m_bmpRequest.erase(requestedPageIndex);
-			}
-		}
-	}
-
-	return 0;
 }
 
 wxRect wxPDFViewImpl::UnscaledToScaled(const wxRect& rect) const
@@ -756,5 +665,13 @@ void wxPDFViewImpl::CalcVisiblePages()
 		wxCommandEvent* evt = new wxCommandEvent(wxEVT_PDFVIEW_PAGE_CHANGED);
 		evt->SetInt(m_currentPage);
 		m_ctrl->QueueEvent(evt);
+	}
+
+	if (firstPage != m_firstVisiblePage || lastPage != m_lastVisiblePage)
+	{
+		wxLogDebug("Visible pages: %d to %d", firstPage, lastPage);
+		m_firstVisiblePage = firstPage;
+		m_lastVisiblePage = lastPage;
+		m_pages.SetVisiblePages(firstPage, lastPage);
 	}
 }

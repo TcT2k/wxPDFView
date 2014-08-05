@@ -13,18 +13,18 @@ include( ${wxWidgets_USE_FILE} )
 set(INCLUDES
 	PDFView.h
 	PDFViewImpl.h
-	PDFViewBitmapCache.h
 	PDFViewBookmarksCtrl.h
 	PDFViewDocumentFrame.h
+	PDFViewPages.h
 	PDFViewThumbnailListBox.h	
 	)
 	
 set(SOURCES
 	PDFView.cpp
 	PDFViewImpl.cpp
-	PDFViewBitmapCache.cpp
 	PDFViewBookmarksCtrl.cpp
 	PDFViewDocumentFrame.cpp
+	PDFViewPages.cpp
 	PDFViewThumbnailListBox.cpp
 	)
 

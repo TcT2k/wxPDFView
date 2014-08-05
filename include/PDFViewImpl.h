@@ -2,7 +2,6 @@
 #define PDFVIEW_IMPL_H
 
 #include <wx/sharedptr.h>
-#include <wx/thread.h>
 #include <wx/graphics.h>
 #include <set>
 #include <vector>
@@ -14,8 +13,9 @@
 #include "fpdfformfill.h"
 
 #include "PDFView.h"
+#include "PDFViewPages.h"
 
-class wxPDFViewImpl: public wxThreadHelper
+class wxPDFViewImpl
 {
 public:
 	wxPDFViewImpl(wxPDFView* ctrl);
@@ -52,9 +52,6 @@ public:
 
 	void* GetDocument() const { return m_pdfDoc; };
 
-protected:
-   virtual wxThread::ExitCode Entry();
-
 private:
 	wxPDFView* m_ctrl;
 
@@ -63,7 +60,6 @@ private:
 	FPDF_DOCUMENT m_pdfDoc;
 	FPDF_FORMHANDLE m_pdfForm;
 	FPDF_AVAIL m_pdfAvail;
-	wxPDFViewBitmapCache m_bitmapCache;
 
 	// PDF SDK Structures
 	FPDF_FILEACCESS m_pdfFileAccess;
@@ -72,6 +68,7 @@ private:
 	// Document information
 	int m_pageCount;
 	std::vector<wxRect> m_pageRects;
+	wxPDFViewPages m_pages;
 	wxSize m_docSize;
 
 	// Display settings
@@ -83,13 +80,9 @@ private:
 	int m_maxZoom;
 	int m_minZoom;
 	int m_currentPage;
+	int m_firstVisiblePage;
+	int m_lastVisiblePage;
 	wxCursor m_handCursor;
-
-	// Bitmap request stores page index of required page bitmaps
-	bool m_bmpRequestHandlerActive;
-	wxCriticalSection m_bmpRequestCS;
-	std::set<int> m_bmpRequest;
-	wxCondition* m_bmpRequestHandlerCondition;
 
 	void Init();
 
@@ -97,11 +90,7 @@ private:
 
 	void AlignPageRects();
 
-	bool DrawPage(wxGraphicsContext& gc, int pageIndex, const wxRect& pageRect);
-
-	void RenderPage(int pageIndex);
-
-	void OnCacheBmpAvailable(wxThreadEvent& event);
+	void OnPageUpdate(wxThreadEvent& event);
 
 	void OnPaint(wxPaintEvent& event);
 

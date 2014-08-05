@@ -5,8 +5,6 @@
 #include <wx/sharedptr.h>
 #include <istream>
 
-#include "PDFViewBitmapCache.h"
-
 class wxPDFViewImpl;
 
 enum wxPDFViewZoomType
@@ -73,7 +71,7 @@ public:
 
 	wxPDFViewImpl* GetImpl() const { return m_impl; };
 
-    virtual void ScrollWindow(int dx, int dy, const wxRect *rect = NULL);
+	virtual void ScrollWindow(int dx, int dy, const wxRect *rect = NULL);
 
 private:
 	wxPDFViewImpl* m_impl;
