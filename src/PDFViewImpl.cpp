@@ -186,15 +186,16 @@ wxPDFViewImpl::wxPDFViewImpl(wxPDFView* ctrl):
 	m_pagePadding = 16;
 	m_scrollStepX = 20;
 	m_scrollStepY = 20;
-	m_zoom = 100;
-	m_minZoom = 10;
-	m_maxZoom = 800;
+	m_zoom = 1.0;
+	m_minZoom = 0.1;
+	m_maxZoom = 10.0;
 	m_pDataStream.reset();
 	m_pdfDoc = NULL;
 	m_pdfForm = NULL;
 	m_pdfAvail = NULL;
 	m_firstVisiblePage = -1;
 	m_lastVisiblePage = -1;
+	m_currentPage = -1;
 
 	// PDF SDK structures
 	memset(&m_pdfFileAccess, '\0', sizeof(m_pdfFileAccess));
@@ -257,6 +258,7 @@ void wxPDFViewImpl::NavigateToPage(wxPDFViewPageNavigation pageNavigation)
 void wxPDFViewImpl::UpdateDocumentInfo()
 {
 	UpdateVirtualSize();
+	CalcZoomLevel();
 
 	m_ctrl->ProcessEvent(wxCommandEvent(wxEVT_PDFVIEW_DOCUMENT_READY));
 	wxCommandEvent pgEvent(wxEVT_PDFVIEW_PAGE_CHANGED);
@@ -310,6 +312,7 @@ void wxPDFViewImpl::OnPaint(wxPaintEvent& event)
 void wxPDFViewImpl::OnSize(wxSizeEvent& event)
 {
 	AlignPageRects();
+	CalcZoomLevel();
 	CalcVisiblePages();
 	event.Skip();
 }
@@ -318,15 +321,15 @@ void wxPDFViewImpl::OnMouseWheel(wxMouseEvent& event)
 {
 	if (event.ControlDown() && event.GetWheelRotation() != 0)
 	{
-		int currentZoom = m_zoom;
+		double currentZoom = m_zoom;
 
-		int delta;
+		double delta;
 		if ( currentZoom < 100 )
-			delta = 5;
+			delta = 0.05;
 		else if ( currentZoom <= 120 )
-			delta = 10;
+			delta = 0.1;
 		else
-			delta = 50;
+			delta = 0.5;
 
 		if ( event.GetWheelRotation() < 0 )
 			delta = -delta;
@@ -383,7 +386,7 @@ void wxPDFViewImpl::UpdateVirtualSize()
 	m_ctrl->SetScrollRate(m_scrollStepX, m_scrollStepY);
 }
 
-void wxPDFViewImpl::SetZoom(int zoom)
+void wxPDFViewImpl::SetZoom(double zoom)
 {
 	if (zoom < m_minZoom)
 		zoom = m_minZoom;
@@ -395,13 +398,22 @@ void wxPDFViewImpl::SetZoom(int zoom)
 
 	m_zoom = zoom;
 
-	m_ctrl->SetScale(m_zoom / (double) 100, m_zoom / (double) 100);
+	m_ctrl->SetScale(m_zoom, m_zoom);
 
 	UpdateVirtualSize();
 	AlignPageRects();
 	CalcVisiblePages();
 	m_ctrl->Refresh();
 	m_ctrl->ProcessEvent(wxCommandEvent(wxEVT_PDFVIEW_ZOOM_CHANGED));
+}
+
+void wxPDFViewImpl::SetZoomType(wxPDFViewZoomType zoomType)
+{
+	if (m_zoomType == zoomType)
+		return;
+
+	m_zoomType = zoomType;
+	CalcZoomLevel();
 }
 
 bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream)
@@ -673,4 +685,35 @@ void wxPDFViewImpl::CalcVisiblePages()
 		m_lastVisiblePage = lastPage;
 		m_pages.SetVisiblePages(firstPage, lastPage);
 	}
+}
+
+void wxPDFViewImpl::CalcZoomLevel()
+{
+	if (m_pages.empty() || m_currentPage < 0)
+		return;
+
+	wxSize clientSize = m_ctrl->GetClientSize();
+	wxSize pageSize = m_pageRects[m_currentPage].GetSize();
+	pageSize.x += 6; // Add padding to page width
+	pageSize.y += m_pagePadding;
+
+	double scale = 0;
+
+	switch (m_zoomType)
+	{
+		case wxPDFVIEW_ZOOM_TYPE_PAGE_WIDTH:
+			scale = (double) clientSize.x / (double) pageSize.x;
+			break;
+		case wxPDFVIEW_ZOOM_TYPE_FIT_PAGE:
+			if (pageSize.x > pageSize.y)
+			{
+				scale = (double) clientSize.x / (double) pageSize.x;
+			} else {
+				scale = (double) clientSize.y / (double) pageSize.y;
+			}
+			break;
+	}
+
+	if (scale > 0)
+		SetZoom(scale);
 }

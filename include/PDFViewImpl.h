@@ -30,15 +30,15 @@ public:
 
 	int GetCurrentPage() const;
 
-	void SetZoom(int zoom);
+	void SetZoom(double zoom);
 
-	int GetZoom() const { return m_zoom; };
+	double GetZoom() const { return m_zoom; };
 
 	int GetMaxZoom() const { return m_maxZoom; };
 
 	int GetMinZoom() const { return m_minZoom; };
 
-	void SetZoomType(wxPDFViewZoomType zoomType) { m_zoomType = zoomType; };
+	void SetZoomType(wxPDFViewZoomType zoomType);
 
 	wxPDFViewZoomType GetZoomType() const { return m_zoomType; };
 
@@ -76,9 +76,9 @@ private:
 	int m_pagePadding;
 	int m_scrollStepX;
 	int m_scrollStepY;
-	int m_zoom;
-	int m_maxZoom;
-	int m_minZoom;
+	double m_zoom;
+	double m_maxZoom;
+	double m_minZoom;
 	int m_currentPage;
 	int m_firstVisiblePage;
 	int m_lastVisiblePage;
@@ -117,6 +117,8 @@ private:
 	bool EvaluateLinkTargetPageAtClientPos(const wxPoint& clientPos, bool performAction);
 
 	void CalcVisiblePages();
+
+	void CalcZoomLevel();
 };
 
 #endif // PDFVIEW_IMPL_H

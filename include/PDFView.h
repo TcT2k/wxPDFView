@@ -51,13 +51,13 @@ public:
 
 	int GetCurrentPage() const;
 
-	void SetZoom(int zoom);
+	void SetZoom(double zoom);
 
-	int GetZoom() const;
+	double GetZoom() const;
 
-	int GetMaxZoom() const;
+	double GetMaxZoom() const;
 
-	int GetMinZoom() const;
+	double GetMinZoom() const;
 
 	void SetZoomType(wxPDFViewZoomType zoomType);
 

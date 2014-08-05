@@ -73,13 +73,16 @@ int wxPDFView::GetCurrentPage() const
 		return 0;
 }
 
-void wxPDFView::SetZoom(int zoom)
+void wxPDFView::SetZoom(double zoom)
 {
 	if (m_impl)
+	{
+		m_impl->SetZoomType(wxPDFVIEW_ZOOM_TYPE_FREE);
 		m_impl->SetZoom(zoom);
+	}
 }
 
-int wxPDFView::GetZoom() const
+double wxPDFView::GetZoom() const
 {
 	if (m_impl)
 		return m_impl->GetZoom();
@@ -87,7 +90,7 @@ int wxPDFView::GetZoom() const
 		return 0;
 }
 
-int wxPDFView::GetMaxZoom() const
+double wxPDFView::GetMaxZoom() const
 {
 	if (m_impl)
 		return m_impl->GetMaxZoom();
@@ -95,7 +98,7 @@ int wxPDFView::GetMaxZoom() const
 		return 0;
 }
 
-int wxPDFView::GetMinZoom() const
+double wxPDFView::GetMinZoom() const
 {
 	if (m_impl)
 		return m_impl->GetMinZoom();

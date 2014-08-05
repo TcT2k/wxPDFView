@@ -1,5 +1,6 @@
 #include "PDFViewDocumentFrame.h"
 #include <wx/artprov.h>
+#include <cmath>
 
 wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent, 
 	const wxPoint &pos, 
@@ -159,7 +160,7 @@ void wxPDFViewDocumentFrame::OnPDFPageChanged(wxCommandEvent& event)
 
 void wxPDFViewDocumentFrame::OnPDFZoomChanged(wxCommandEvent& event)
 {
-	m_zoomComboBox->SetLabel(wxString::Format("%d%%", m_pdfView->GetZoom()));
+	m_zoomComboBox->SetLabel(wxString::Format("%.1f%%", m_pdfView->GetZoom() * 100));
 	m_toolBar->EnableTool(ID_ZOOM_IN, m_pdfView->GetZoom() < m_pdfView->GetMaxZoom());
 	m_toolBar->EnableTool(ID_ZOOM_OUT, m_pdfView->GetZoom() > m_pdfView->GetMinZoom());
 }
@@ -199,12 +200,12 @@ void wxPDFViewDocumentFrame::OnNavigationClick(wxCommandEvent& event)
 
 void wxPDFViewDocumentFrame::OnZoomInClick( wxCommandEvent& event )
 {
-	m_pdfView->SetZoom(m_pdfView->GetZoom() + 10);
+	m_pdfView->SetZoom(m_pdfView->GetZoom() + 0.1);
 }
 
 void wxPDFViewDocumentFrame::OnZoomOutClick( wxCommandEvent& event )
 {
-	m_pdfView->SetZoom(m_pdfView->GetZoom() - 10);
+	m_pdfView->SetZoom(m_pdfView->GetZoom() - 0.1);
 }
 
 void wxPDFViewDocumentFrame::OnPageNextClick( wxCommandEvent& event )
@@ -224,7 +225,7 @@ void wxPDFViewDocumentFrame::OnZoomComboBox( wxCommandEvent& event )
 	else if (m_zoomComboBox->GetSelection() == 1)
 		m_pdfView->SetZoomType(wxPDFVIEW_ZOOM_TYPE_PAGE_WIDTH);
 	else if (m_zoomComboBox->GetSelection() > 1) {
-		int zoom = reinterpret_cast<int>(m_zoomComboBox->GetClientData(m_zoomComboBox->GetSelection()));
+		double zoom = reinterpret_cast<int>(m_zoomComboBox->GetClientData(m_zoomComboBox->GetSelection())) / (double) 100;
 		m_pdfView->SetZoom(zoom);
 	}
 }
