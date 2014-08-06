@@ -1,6 +1,7 @@
 #include "PDFViewDocumentFrame.h"
 #include <wx/artprov.h>
 #include <cmath>
+#include "PDFViewArtProvider.h"
 
 wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent, 
 	const wxPoint &pos, 
@@ -9,6 +10,8 @@ wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent,
 	const wxString &name):
 	wxFrame(parent, wxID_ANY, _("PDF Viewer"), pos, size, style, name)
 {
+	wxPDFViewArtProvider::Initialize();
+
 	this->SetSizeHints( wxSize( 800,600 ), wxDefaultSize );
 	this->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE ) );
 
@@ -92,8 +95,6 @@ wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent,
 	m_toolBar->AddControl(m_pageCountTxtCtrl);
 
 	m_zoomComboBox = new wxComboBox(m_toolBar, wxID_ANY, "100%", wxDefaultPosition, wxSize(80, -1), 0, NULL, wxTE_PROCESS_ENTER);
-	m_zoomComboBox->Append(_("Fit Page"));
-	m_zoomComboBox->Append(_("Fit Width"));
 	m_zoomComboBox->Append("50%", (void*)50);
 	m_zoomComboBox->Append("100%", (void*)100);
 	m_zoomComboBox->Append("150%", (void*)150);
@@ -105,6 +106,10 @@ wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent,
 	m_toolBar->AddTool(ID_ZOOM_IN, _("Zoom In"), wxArtProvider::GetBitmap(wxART_PLUS, wxART_TOOLBAR), _("Zoom In"));
 	m_toolBar->AddControl(m_zoomComboBox);
 
+	m_toolBar->AddSeparator();
+	m_toolBar->AddTool(ID_ZOOM_PAGE_FIT, _("Page Fit"), wxArtProvider::GetBitmap(wxART_PDFVIEW_PAGE_FIT, wxART_TOOLBAR), _("Fit one full page to window"), wxITEM_CHECK);
+	m_toolBar->AddTool(ID_ZOOM_PAGE_WIDTH, _("Fit Width"), wxArtProvider::GetBitmap(wxART_PDFVIEW_PAGE_WIDTH, wxART_TOOLBAR), _("Fit to window width"), wxITEM_CHECK);
+
 	m_toolBar->AddStretchableSpace();
 	m_toolBar->AddControl(m_searchCtrl);
 
@@ -114,6 +119,8 @@ wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent,
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnPagePrevClick, this, wxID_BACKWARD);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnZoomInClick, this, ID_ZOOM_IN);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnZoomOutClick, this, ID_ZOOM_OUT);
+	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnZoomPageFitClick, this, ID_ZOOM_PAGE_FIT);
+	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnZoomPageWidthClick, this, ID_ZOOM_PAGE_WIDTH);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnNavigationClick, this, ID_NAVIGATION);
 
 	Layout();
@@ -135,6 +142,7 @@ wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent,
 	m_pdfView->Bind(wxEVT_PDFVIEW_DOCUMENT_READY, &wxPDFViewDocumentFrame::OnPDFDocumentReady, this);
 	m_pdfView->Bind(wxEVT_PDFVIEW_PAGE_CHANGED, &wxPDFViewDocumentFrame::OnPDFPageChanged, this);
 	m_pdfView->Bind(wxEVT_PDFVIEW_ZOOM_CHANGED, &wxPDFViewDocumentFrame::OnPDFZoomChanged, this);
+	m_pdfView->Bind(wxEVT_PDFVIEW_ZOOM_TYPE_CHANGED, &wxPDFViewDocumentFrame::OnPDFZoomTypeChanged, this);
 	m_pdfView->Bind(wxEVT_PDFVIEW_URL_CLICKED, &wxPDFViewDocumentFrame::OnPDFURLClicked, this);
 
 	m_pdfViewBookmarksCtrl->SetPDFView(m_pdfView);
@@ -163,6 +171,12 @@ void wxPDFViewDocumentFrame::OnPDFZoomChanged(wxCommandEvent& event)
 	m_zoomComboBox->SetLabel(wxString::Format("%.1f%%", m_pdfView->GetZoom() * 100));
 	m_toolBar->EnableTool(ID_ZOOM_IN, m_pdfView->GetZoom() < m_pdfView->GetMaxZoom());
 	m_toolBar->EnableTool(ID_ZOOM_OUT, m_pdfView->GetZoom() > m_pdfView->GetMinZoom());
+}
+
+void wxPDFViewDocumentFrame::OnPDFZoomTypeChanged(wxCommandEvent& event)
+{
+	m_toolBar->ToggleTool(ID_ZOOM_PAGE_FIT, m_pdfView->GetZoomType() == wxPDFVIEW_ZOOM_TYPE_FIT_PAGE);
+	m_toolBar->ToggleTool(ID_ZOOM_PAGE_WIDTH, m_pdfView->GetZoomType() == wxPDFVIEW_ZOOM_TYPE_PAGE_WIDTH);
 }
 
 void wxPDFViewDocumentFrame::OnPDFDocumentReady(wxCommandEvent& event)
@@ -220,14 +234,21 @@ void wxPDFViewDocumentFrame::OnPagePrevClick( wxCommandEvent& event )
 
 void wxPDFViewDocumentFrame::OnZoomComboBox( wxCommandEvent& event )
 {
-	if (m_zoomComboBox->GetSelection() == 0)
-		m_pdfView->SetZoomType(wxPDFVIEW_ZOOM_TYPE_FIT_PAGE);
-	else if (m_zoomComboBox->GetSelection() == 1)
-		m_pdfView->SetZoomType(wxPDFVIEW_ZOOM_TYPE_PAGE_WIDTH);
-	else if (m_zoomComboBox->GetSelection() > 1) {
+	if (m_zoomComboBox->GetSelection() >= 0)
+	{
 		double zoom = reinterpret_cast<int>(m_zoomComboBox->GetClientData(m_zoomComboBox->GetSelection())) / (double) 100;
 		m_pdfView->SetZoom(zoom);
 	}
+}
+
+void wxPDFViewDocumentFrame::OnZoomPageFitClick( wxCommandEvent& event)
+{
+	m_pdfView->SetZoomType(wxPDFVIEW_ZOOM_TYPE_FIT_PAGE);
+}
+
+void wxPDFViewDocumentFrame::OnZoomPageWidthClick( wxCommandEvent& event)
+{
+	m_pdfView->SetZoomType(wxPDFVIEW_ZOOM_TYPE_PAGE_WIDTH);
 }
 
 void wxPDFViewDocumentFrame::OnSearchCtrlFind(wxCommandEvent& event)

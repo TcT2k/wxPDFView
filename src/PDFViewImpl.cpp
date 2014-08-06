@@ -414,6 +414,7 @@ void wxPDFViewImpl::SetZoomType(wxPDFViewZoomType zoomType)
 
 	m_zoomType = zoomType;
 	CalcZoomLevel();
+	m_ctrl->ProcessEvent(wxCommandEvent(wxEVT_PDFVIEW_ZOOM_TYPE_CHANGED));
 }
 
 bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream)

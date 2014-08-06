@@ -31,7 +31,9 @@ protected:
 	{
 		ID_ZOOM_IN = 1500,
 		ID_ZOOM_OUT,
-		ID_NAVIGATION
+		ID_NAVIGATION,
+		ID_ZOOM_PAGE_FIT,
+		ID_ZOOM_PAGE_WIDTH
 	};
 
 	wxSplitterWindow* m_splitter;
@@ -61,6 +63,9 @@ protected:
 
 	void OnZoomComboBox( wxCommandEvent& event );
 
+	void OnZoomPageFitClick( wxCommandEvent& event);
+	void OnZoomPageWidthClick( wxCommandEvent& event);
+
 	void OnSearchCtrlFind(wxCommandEvent& event);
 	void OnSearchCtrlCancel(wxCommandEvent& event);
 	void OnSearchCtrlText(wxCommandEvent& event);
@@ -69,6 +74,7 @@ protected:
 
 	void OnPDFPageChanged(wxCommandEvent& event);
 	void OnPDFZoomChanged(wxCommandEvent& event);
+	void OnPDFZoomTypeChanged(wxCommandEvent& event);
 	void OnPDFDocumentReady(wxCommandEvent& event);
 	void OnPDFURLClicked(wxCommandEvent& event);
 private:
