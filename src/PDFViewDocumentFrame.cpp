@@ -102,8 +102,8 @@ wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent,
 	m_zoomComboBox->Bind(wxEVT_COMBOBOX, &wxPDFViewDocumentFrame::OnZoomComboBox, this);
 
 	m_toolBar->AddSeparator();
-	m_toolBar->AddTool(ID_ZOOM_OUT, _("Zoom Out"), wxArtProvider::GetBitmap(wxART_MINUS, wxART_TOOLBAR), _("Zoom Out"));
-	m_toolBar->AddTool(ID_ZOOM_IN, _("Zoom In"), wxArtProvider::GetBitmap(wxART_PLUS, wxART_TOOLBAR), _("Zoom In"));
+	m_toolBar->AddTool(ID_ZOOM_OUT, _("Zoom Out"), wxArtProvider::GetBitmap(wxART_PDFVIEW_ZOOM_OUT, wxART_TOOLBAR), _("Zoom Out"));
+	m_toolBar->AddTool(ID_ZOOM_IN, _("Zoom In"), wxArtProvider::GetBitmap(wxART_PDFVIEW_ZOOM_IN, wxART_TOOLBAR), _("Zoom In"));
 	m_toolBar->AddControl(m_zoomComboBox);
 
 	m_toolBar->AddSeparator();
