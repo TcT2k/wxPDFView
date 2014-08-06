@@ -717,3 +717,9 @@ void wxPDFViewImpl::CalcZoomLevel()
 	if (scale > 0)
 		SetZoom(scale);
 }
+
+wxSize wxPDFViewImpl::GetPageSize(int pageIndex) const
+{
+	return m_pageRects[pageIndex].GetSize();
+}
+

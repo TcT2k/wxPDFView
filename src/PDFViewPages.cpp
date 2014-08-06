@@ -61,6 +61,25 @@ void wxPDFViewPage::Draw(wxDC& dc, wxGraphicsContext& gc, const wxRect& rect)
 	bmpSize.x *= scaleX;
 	bmpSize.y *= scaleY;
 
+	CheckBitmap(bmpSize);
+}
+
+void wxPDFViewPage::DrawThumbnail(wxDC& dc, const wxRect& rect)
+{
+	dc.SetBackground(*wxTRANSPARENT_BRUSH);
+	dc.SetPen(*wxLIGHT_GREY_PEN);
+	dc.DrawRectangle(rect.Inflate(1, 1));
+
+	if (m_bmp.Ok())
+	{
+		dc.DrawBitmap(m_bmp, rect.GetPosition());
+	}
+
+	CheckBitmap(rect.GetSize());
+}
+
+void wxPDFViewPage::CheckBitmap(const wxSize& bmpSize)
+{
 	// Request new bitmap if no bitmap is available or it has the wrong size
 	if (!m_bmp.IsOk() || m_bmp.GetSize() != bmpSize)
 	{
@@ -176,6 +195,11 @@ void wxPDFViewPages::SetDocument(FPDF_DOCUMENT doc)
 
 void wxPDFViewPages::SetVisiblePages(int firstPage, int lastPage)
 {
+	if (firstPage < 0)
+		firstPage = 0;
+	if (lastPage >= (int) size())
+		lastPage = size() - 1;
+
 	UnloadPages(0, firstPage - 1);
 	UnloadPages(lastPage + 1, size() - 1);
 	m_firstVisiblePage = firstPage;
@@ -207,6 +231,9 @@ wxThread::ExitCode wxPDFViewPages::Entry()
 	while (m_bmpUpdateHandlerActive)
 	{
 		m_bmpUpdateHandlerCondition->Wait();
+
+		if (m_firstVisiblePage < 0)
+			continue;
 
 		for (int pageIndex = m_firstVisiblePage; pageIndex <= m_lastVisiblePage && m_bmpUpdateHandlerActive; ++pageIndex)
 		{

@@ -14,12 +14,13 @@ set(INCLUDES
 	PDFView.h
 	PDFViewBookmarksCtrl.h
 	PDFViewDocumentFrame.h
-	PDFViewThumbnailListBox.h	
+	PDFViewThumbnailListBox.h
 	)
 	
 set(PRIVATE_INCLUDES
 	PDFViewImpl.h
 	PDFViewPages.h
+	PDFViewThumbnailListBoxImpl.h
 	)
 	
 set(SOURCES
@@ -29,6 +30,7 @@ set(SOURCES
 	PDFViewDocumentFrame.cpp
 	PDFViewPages.cpp
 	PDFViewThumbnailListBox.cpp
+	PDFViewThumbnailListBoxImpl.cpp
 	)
 
 foreach(Inc ${INCLUDES})

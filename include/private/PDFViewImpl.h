@@ -52,6 +52,8 @@ public:
 
 	void* GetDocument() const { return m_pdfDoc; };
 
+	wxSize GetPageSize(int pageIndex) const;
+
 private:
 	wxPDFView* m_ctrl;
 

@@ -23,6 +23,8 @@ public:
 
 	void Draw(wxDC& dc, wxGraphicsContext& gc, const wxRect& rect);
 
+	void DrawThumbnail(wxDC& dc, const wxRect& rect);
+
 	bool IsBitmapUpdateRequired() const;
 
 	void UpdateBitmap();
@@ -33,6 +35,8 @@ private:
 	FPDF_PAGE m_page;
 	wxBitmap m_bmp;
 	wxSize m_requiredBmpSize;
+
+	void CheckBitmap(const wxSize& bmpSize);
 };
 
 class wxPDFViewPages: public std::vector<wxPDFViewPage>, public wxEvtHandler, public wxThreadHelper
