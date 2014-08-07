@@ -200,20 +200,8 @@ void wxPDFViewPages::SetVisiblePages(int firstPage, int lastPage)
 	if (lastPage >= (int) size())
 		lastPage = size() - 1;
 
-	UnloadPages(0, firstPage - 1);
-	UnloadPages(lastPage + 1, size() - 1);
 	m_firstVisiblePage = firstPage;
 	m_lastVisiblePage = lastPage;
-}
-
-void wxPDFViewPages::UnloadPages(int firstPage, int lastPage)
-{
-	// Never unload a pages while a page might be rendering
-	wxCriticalSectionLocker csl(m_bmpRenderCS);
-	for (int pageIndex = firstPage; pageIndex <= lastPage; ++pageIndex)
-	{
-		(*this)[pageIndex].Unload();
-	}
 }
 
 void wxPDFViewPages::RequestBitmapUpdate()
@@ -232,23 +220,31 @@ wxThread::ExitCode wxPDFViewPages::Entry()
 	{
 		m_bmpUpdateHandlerCondition->Wait();
 
-		if (m_firstVisiblePage < 0)
+		int firstVisiblePage = m_firstVisiblePage;
+		int lastVisiblePage = m_lastVisiblePage;
+
+		// No updates required if no visible pages have been set
+		if (firstVisiblePage < 0)
 			continue;
 
-		for (int pageIndex = m_firstVisiblePage; pageIndex <= m_lastVisiblePage && m_bmpUpdateHandlerActive; ++pageIndex)
+		// Check all pages for required bitmap updates and unload invisible pages data
+		for (int pageIndex = 0; pageIndex < (int) size() && m_bmpUpdateHandlerActive; ++pageIndex)
 		{
-			wxLogDebug("Rendering page %d...", pageIndex);
 			wxPDFViewPage& page = (*this)[pageIndex];
-
-			if (page.IsBitmapUpdateRequired())
+			if (pageIndex >= firstVisiblePage && pageIndex <= lastVisiblePage)
 			{
-				wxCriticalSectionLocker csl(m_bmpRenderCS);
-				page.UpdateBitmap();
-			}
+				wxLogDebug("Rendering page %d...", pageIndex);
 
-			wxThreadEvent evt(wxEVT_PDFVIEW_PAGE_UPDATED);
-			evt.SetInt(pageIndex);
-			AddPendingEvent(evt);
+				if (page.IsBitmapUpdateRequired())
+				{
+					page.UpdateBitmap();
+
+					wxThreadEvent evt(wxEVT_PDFVIEW_PAGE_UPDATED);
+					evt.SetInt(pageIndex);
+					AddPendingEvent(evt);
+				}
+			} else
+				page.Unload();
 		}
 	}
 

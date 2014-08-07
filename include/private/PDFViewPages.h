@@ -50,8 +50,6 @@ public:
 
 	void SetVisiblePages(int firstPage, int lastPage);
 
-	void UnloadPages(int firstPage, int lastPage);
-
 	void RequestBitmapUpdate();
 
 	FPDF_DOCUMENT doc() const { return m_doc; };
@@ -66,7 +64,6 @@ private:
 
 	bool m_bmpUpdateHandlerActive;
 	wxCondition* m_bmpUpdateHandlerCondition;
-	wxCriticalSection m_bmpRenderCS;
 };
 
 wxDECLARE_EVENT(wxEVT_PDFVIEW_PAGE_UPDATED, wxThreadEvent);
