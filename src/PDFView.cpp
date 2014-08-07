@@ -129,6 +129,14 @@ wxPDFViewZoomType wxPDFView::GetZoomType() const
 		return wxPDFVIEW_ZOOM_TYPE_FREE;
 }
 
+long wxPDFView::Find(const wxString& text, int flags)
+{
+	if (m_impl)
+		return m_impl->Find(text, flags);
+	else
+		return wxNOT_FOUND;
+}
+
 bool wxPDFView::LoadFile(const wxString& fileName)
 {
 	wxSharedPtr<std::istream> pStr(new std::ifstream((const char*) fileName.c_str(), std::ios::in | std::ios::binary));

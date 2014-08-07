@@ -1,7 +1,5 @@
 #include "private/PDFViewImpl.h"
 
-#include <wx/webview.h>
-
 #include <wx/dcbuffer.h>
 #include <v8.h>
 #include "fpdf_ext.h"
@@ -416,6 +414,11 @@ void wxPDFViewImpl::SetZoomType(wxPDFViewZoomType zoomType)
 	m_zoomType = zoomType;
 	CalcZoomLevel();
 	m_ctrl->ProcessEvent(wxCommandEvent(wxEVT_PDFVIEW_ZOOM_TYPE_CHANGED));
+}
+
+long wxPDFViewImpl::Find(const wxString& text, int flags)
+{
+	return wxNOT_FOUND;
 }
 
 bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream)

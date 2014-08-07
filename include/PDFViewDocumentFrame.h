@@ -33,7 +33,9 @@ protected:
 		ID_ZOOM_OUT,
 		ID_NAVIGATION,
 		ID_ZOOM_PAGE_FIT,
-		ID_ZOOM_PAGE_WIDTH
+		ID_ZOOM_PAGE_WIDTH,
+		ID_FIND_NEXT,
+		ID_FIND_PREV
 	};
 
 	wxSplitterWindow* m_splitter;
@@ -48,10 +50,12 @@ protected:
 	wxToolBar* m_toolBar;
 
 	wxSearchCtrl* m_searchCtrl;
-	wxTimer m_searchTimer;
 	wxTextCtrl* m_pageTxtCtrl;
 	wxStaticText* m_pageCountTxtCtrl;
 	wxComboBox* m_zoomComboBox;
+
+private:
+	wxString m_searchText;
 
 	void OnNavigationClick(wxCommandEvent& event);
 
@@ -69,16 +73,17 @@ protected:
 	void OnSearchCtrlFind(wxCommandEvent& event);
 	void OnSearchCtrlCancel(wxCommandEvent& event);
 	void OnSearchCtrlText(wxCommandEvent& event);
-	void OnSearchCtrlKeyUp(wxKeyEvent& event);
-	void OnSearchTimerNotify( wxTimerEvent& event);
+	void OnSearchNext(wxCommandEvent& event);
+	void OnSearchPrev(wxCommandEvent& event);
 
 	void OnPDFPageChanged(wxCommandEvent& event);
 	void OnPDFZoomChanged(wxCommandEvent& event);
 	void OnPDFZoomTypeChanged(wxCommandEvent& event);
 	void OnPDFDocumentReady(wxCommandEvent& event);
 	void OnPDFURLClicked(wxCommandEvent& event);
-private:
 
+	void Find(const wxString& text, bool forward);
+	void UpdateSearchControls();
 };
 
 

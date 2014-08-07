@@ -45,6 +45,8 @@ public:
 
 	wxPDFViewZoomType GetZoomType() const { return m_zoomType; };
 
+	long Find(const wxString& text, int flags);
+
 	bool LoadStream(wxSharedPtr<std::istream> pStream);
 
 	void CloseDocument();

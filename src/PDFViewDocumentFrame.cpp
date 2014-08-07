@@ -78,8 +78,6 @@ wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent,
 	m_searchCtrl->Bind(wxEVT_COMMAND_SEARCHCTRL_SEARCH_BTN, &wxPDFViewDocumentFrame::OnSearchCtrlFind, this);
 	m_searchCtrl->Bind(wxEVT_COMMAND_TEXT_ENTER, &wxPDFViewDocumentFrame::OnSearchCtrlFind, this);
 	m_searchCtrl->Bind(wxEVT_COMMAND_TEXT_UPDATED, &wxPDFViewDocumentFrame::OnSearchCtrlText, this);
-	m_searchCtrl->Bind(wxEVT_KEY_UP, &wxPDFViewDocumentFrame::OnSearchCtrlKeyUp, this);
-	m_searchTimer.Bind(wxEVT_TIMER, &wxPDFViewDocumentFrame::OnSearchTimerNotify, this);
 
 	m_toolBar->AddTool(ID_NAVIGATION, _("Navigation"), wxArtProvider::GetBitmap(wxART_HELP_SIDE_PANEL, wxART_TOOLBAR), _("Show/Hide Navigation"), wxITEM_CHECK);
 	m_toolBar->AddTool(wxID_PRINT, _("Print"), wxArtProvider::GetBitmap(wxART_PRINT, wxART_TOOLBAR), _("Print Document"));
@@ -112,6 +110,8 @@ wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent,
 
 	m_toolBar->AddStretchableSpace();
 	m_toolBar->AddControl(m_searchCtrl);
+	m_toolBar->AddTool(ID_FIND_NEXT, _("Next"), wxArtProvider::GetBitmap(wxART_GO_DOWN, wxART_TOOLBAR), _("Find next"));
+	m_toolBar->AddTool(ID_FIND_PREV, _("Previous"), wxArtProvider::GetBitmap(wxART_GO_UP, wxART_TOOLBAR), _("Find previous"));
 
 	m_toolBar->Realize();
 
@@ -122,6 +122,8 @@ wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent,
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnZoomPageFitClick, this, ID_ZOOM_PAGE_FIT);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnZoomPageWidthClick, this, ID_ZOOM_PAGE_WIDTH);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnNavigationClick, this, ID_NAVIGATION);
+	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnSearchNext, this, ID_FIND_NEXT);
+	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnSearchPrev, this, ID_FIND_PREV);
 
 	Layout();
 
@@ -147,6 +149,8 @@ wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent,
 
 	m_pdfViewBookmarksCtrl->SetPDFView(m_pdfView);
 	m_thumbnailListBox->SetPDFView(m_pdfView);
+
+	UpdateSearchControls();
 }
 
 wxPDFViewDocumentFrame::~wxPDFViewDocumentFrame()
@@ -253,25 +257,45 @@ void wxPDFViewDocumentFrame::OnZoomPageWidthClick( wxCommandEvent& event)
 
 void wxPDFViewDocumentFrame::OnSearchCtrlFind(wxCommandEvent& event)
 {
-
-}
-
-void wxPDFViewDocumentFrame::OnSearchCtrlCancel(wxCommandEvent& event)
-{
-
+	Find(m_searchCtrl->GetValue(), true);
 }
 
 void wxPDFViewDocumentFrame::OnSearchCtrlText(wxCommandEvent& event)
 {
+	m_searchText = m_searchCtrl->GetValue();
 
+	UpdateSearchControls();
 }
 
-void wxPDFViewDocumentFrame::OnSearchCtrlKeyUp(wxKeyEvent& event)
+void wxPDFViewDocumentFrame::OnSearchCtrlCancel(wxCommandEvent& event)
 {
-
+	Find("", true);
 }
 
-void wxPDFViewDocumentFrame::OnSearchTimerNotify( wxTimerEvent& event)
+void wxPDFViewDocumentFrame::OnSearchNext(wxCommandEvent& event)
 {
+	Find(m_searchText, true);
+}
 
+void wxPDFViewDocumentFrame::OnSearchPrev(wxCommandEvent& event)
+{
+	Find(m_searchText, false);
+}
+
+void wxPDFViewDocumentFrame::Find(const wxString& text, bool forward)
+{
+	m_searchText = text;
+	UpdateSearchControls();
+
+	int flags = wxPDFVIEW_FIND_DEFAULT;
+	if (!forward)
+		flags = flags | wxPDFVIEW_FIND_BACKWARDS;
+	if (m_pdfView->Find(m_searchText, flags) == wxNOT_FOUND && !m_searchText.empty())
+		wxMessageBox(_("Text not found"), _("Warning"), wxICON_WARNING | wxOK, this);
+}
+
+void wxPDFViewDocumentFrame::UpdateSearchControls()
+{
+	m_toolBar->EnableTool(ID_FIND_NEXT, !m_searchText.empty());
+	m_toolBar->EnableTool(ID_FIND_PREV, !m_searchText.empty());
 }

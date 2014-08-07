@@ -23,6 +23,13 @@ enum wxPDFViewPageNavigation
 	wxPDFVIEW_PAGE_NAV_LAST
 };
 
+enum wxPDFViewFindFlags
+{
+	wxPDFVIEW_FIND_MATCH_CASE = 0x0001,
+	wxPDFVIEW_FIND_BACKWARDS = 0x0002,
+	wxPDFVIEW_FIND_DEFAULT = 0
+};
+
 class wxPDFViewBookmark;
 
 class wxPDFView: public wxScrolledCanvas
@@ -67,6 +74,9 @@ public:
 	void SetZoomType(wxPDFViewZoomType zoomType);
 
 	wxPDFViewZoomType GetZoomType() const;
+
+	// Scrolls next result into view and returns the number of matches or wxNOT_FOUND
+	long Find(const wxString& text, int flags = wxPDFVIEW_FIND_DEFAULT);
 
 	bool LoadFile(const wxString& fileName);
 
