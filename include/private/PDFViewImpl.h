@@ -14,6 +14,7 @@
 
 #include "PDFView.h"
 #include "PDFViewPages.h"
+#include "PDFViewBookmarks.h"
 
 class wxPDFViewImpl
 {
@@ -25,6 +26,8 @@ public:
 	void NavigateToPage(wxPDFViewPageNavigation pageNavigation);
 
 	int GetPageCount() const { return m_pageCount; };
+
+	const wxPDFViewBookmark* GetRootBookmark() const { return (m_bookmarks) ? m_bookmarks->GetRoot() : NULL; };
 
 	void SetCurrentPage(int pageIndex);
 
@@ -56,6 +59,7 @@ public:
 
 private:
 	wxPDFView* m_ctrl;
+	wxPDFViewBookmarks* m_bookmarks;
 
 	// Data source
 	wxSharedPtr<std::istream> m_pDataStream;

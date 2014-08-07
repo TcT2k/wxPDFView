@@ -3,6 +3,7 @@
 
 #include <wx/wx.h>
 #include <wx/sharedptr.h>
+#include <wx/vector.h>
 #include <istream>
 
 class wxPDFViewImpl;
@@ -21,6 +22,8 @@ enum wxPDFViewPageNavigation
 	wxPDFVIEW_PAGE_NAV_FIRST,
 	wxPDFVIEW_PAGE_NAV_LAST
 };
+
+class wxPDFViewBookmark;
 
 class wxPDFView: public wxScrolledCanvas
 {
@@ -46,6 +49,8 @@ public:
 	void NavigateToPage(wxPDFViewPageNavigation pageNavigation);
 
 	int GetPageCount() const;
+
+	const wxPDFViewBookmark* GetRootBookmark() const;
 
 	void SetCurrentPage(int pageIndex);
 
@@ -77,6 +82,13 @@ private:
 	wxPDFViewImpl* m_impl;
 
 	friend class wxPDFViewImpl;
+};
+
+class wxPDFViewBookmark: public wxVector< wxSharedPtr<wxPDFViewBookmark> >
+{
+public:
+	virtual wxString GetTitle() const = 0;
+	virtual void Navigate(wxPDFView* pdfView) = 0;
 };
 
 wxDECLARE_EVENT(wxEVT_PDFVIEW_DOCUMENT_READY, wxCommandEvent);

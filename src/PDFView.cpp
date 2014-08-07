@@ -60,6 +60,14 @@ int wxPDFView::GetPageCount() const
 		return 0;
 }
 
+const wxPDFViewBookmark* wxPDFView::GetRootBookmark() const
+{
+	if (m_impl)
+		return m_impl->GetRootBookmark();
+	else
+		return 0;
+}
+
 void wxPDFView::SetCurrentPage(int pageIndex)
 {
 	if (m_impl)

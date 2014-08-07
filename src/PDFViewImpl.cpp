@@ -196,6 +196,7 @@ wxPDFViewImpl::wxPDFViewImpl(wxPDFView* ctrl):
 	m_firstVisiblePage = -1;
 	m_lastVisiblePage = -1;
 	m_currentPage = -1;
+	m_bookmarks = NULL;
 
 	// PDF SDK structures
 	memset(&m_pdfFileAccess, '\0', sizeof(m_pdfFileAccess));
@@ -503,6 +504,7 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream)
 
 	AlignPageRects();
 
+	m_bookmarks = new wxPDFViewBookmarks(m_pdfDoc);
 	m_ctrl->Refresh();
 	UpdateDocumentInfo();
 
@@ -531,6 +533,7 @@ void wxPDFViewImpl::CloseDocument()
 		FPDFAvail_Destroy(m_pdfAvail);
 		m_pdfAvail = NULL;
 	}
+	wxDELETE(m_bookmarks);
 	m_pageRects.clear();
 	m_pageCount = 0;
 	m_docSize.Set(0, 0);

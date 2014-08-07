@@ -2,64 +2,12 @@
 
 #include <wx/artprov.h>
 
-#include "fpdfdoc/fpdf_doc.h"
-#include "private/PDFViewImpl.h"
-
-#include <vector>
-
-class wxPDFViewBookmark: public std::vector<wxPDFViewBookmark>
-{
-public:
-	wxPDFViewBookmark(CPDF_BookmarkTree& bmTree, CPDF_Bookmark& bookmark):
-		m_bookmark(bookmark)
-	{
-		CFX_ByteString bookmarkTitleSDK = bookmark.GetTitle().UTF8Encode();
-		m_title = wxString::FromUTF8(bookmarkTitleSDK, bookmarkTitleSDK.GetLength());
-		CPDF_Bookmark child = bmTree.GetFirstChild(bookmark);
-		while (child)
-		{
-			push_back(wxPDFViewBookmark(bmTree, child));
-			child = bmTree.GetNextSibling(child);
-		}
-	}
-
-	void Navigate(wxPDFView* pdfView)
-	{
-		CPDF_Document* doc = (CPDF_Document*) pdfView->GetImpl()->GetDocument();
-		CPDF_Dest dest = m_bookmark.GetDest(doc);
-		if (!dest)
-		{
-			CPDF_Action action = m_bookmark.GetAction();
-			dest = action.GetDest(doc);
-		}
-
-		if (dest)
-			pdfView->SetCurrentPage(dest.GetPageIndex(doc));
-	}
-
-	wxString m_title;
-	CPDF_Bookmark m_bookmark;
-};
-
 class wxPDFViewBookmarksModel: public wxDataViewModel
 {
 public:
-	wxPDFViewBookmarksModel(CPDF_Document* doc):
-		m_tree(doc)
+	wxPDFViewBookmarksModel(const wxPDFViewBookmark* root):
+		m_rootBookmark(root)
 	{
-		CPDF_Bookmark emptyBM;
-		CPDF_Bookmark rootBM = m_tree.GetFirstChild(emptyBM);
-		if (rootBM)
-			m_rootBookmark = new wxPDFViewBookmark(m_tree, emptyBM);
-		else
-			m_rootBookmark = NULL;
-
-		m_isEmpty = (m_rootBookmark == NULL) || m_rootBookmark->empty();
-	}
-
-	~wxPDFViewBookmarksModel()
-	{
-		delete m_rootBookmark;
 	}
 
 	virtual unsigned int GetColumnCount() const
@@ -77,7 +25,7 @@ public:
 		wxPDFViewBookmark* bm = (wxPDFViewBookmark*) item.GetID();
 		if (col == 0)
 		{
-			wxDataViewIconText data(bm->m_title, wxArtProvider::GetIcon(
+			wxDataViewIconText data(bm->GetTitle(), wxArtProvider::GetIcon(
 				(bm->empty()) ? wxART_HELP_PAGE : wxART_HELP_FOLDER, wxART_OTHER));
 
 			variant << data;
@@ -117,13 +65,13 @@ public:
 
 	virtual unsigned int GetChildren( const wxDataViewItem &parent, wxDataViewItemArray &array ) const
 	{
-		wxPDFViewBookmark* bm = (wxPDFViewBookmark*) parent.GetID();
+		const wxPDFViewBookmark* bm = (const wxPDFViewBookmark*) parent.GetID();
 		if (!bm && m_rootBookmark)
 			bm = m_rootBookmark;
 
 		for (auto it = bm->begin(); it != bm->end(); ++it)
 		{
-			wxPDFViewBookmark* pChildBM = (wxPDFViewBookmark*) &(*it);
+			wxPDFViewBookmark* pChildBM = it->get();
 			array.Add( wxDataViewItem( (void*) pChildBM ) );
 		}
 
@@ -136,17 +84,14 @@ public:
 		{
 			for (auto it = m_rootBookmark->begin(); it != m_rootBookmark->end(); ++it)
 			{
-				wxPDFViewBookmark* pChildBM = (wxPDFViewBookmark*) &(*it);
+				wxPDFViewBookmark* pChildBM = it->get();
 				dataView->Expand( wxDataViewItem( (void*) pChildBM) );
 			}
 		}
 	}
 
-	bool m_isEmpty;
-
 private:
-	CPDF_BookmarkTree m_tree;
-	wxPDFViewBookmark* m_rootBookmark;
+	const wxPDFViewBookmark* m_rootBookmark;
 };
 
 //
@@ -164,7 +109,6 @@ bool wxPDFViewBookmarksCtrl::Create(wxWindow *parent,
 		return false;
 
 	m_pdfView = NULL;
-	m_isEmpty = true;
 	Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, &wxPDFViewBookmarksCtrl::OnSelectionChanged, this);
 	Bind(wxEVT_SIZE, &wxPDFViewBookmarksCtrl::OnSize, this);
 
@@ -207,10 +151,9 @@ void wxPDFViewBookmarksCtrl::OnSelectionChanged(wxDataViewEvent& event)
 
 void wxPDFViewBookmarksCtrl::OnPDFDocumentReady(wxCommandEvent& event)
 {
-	wxObjectDataPtr<wxPDFViewBookmarksModel> treeModel(new wxPDFViewBookmarksModel((CPDF_Document*) m_pdfView->GetImpl()->GetDocument()));
+	wxObjectDataPtr<wxPDFViewBookmarksModel> treeModel(new wxPDFViewBookmarksModel(m_pdfView->GetRootBookmark()));
 	AssociateModel(treeModel.get());
 	treeModel->PrepareCtrl(this);
-	m_isEmpty = treeModel->m_isEmpty;
 
 	event.Skip();
 }

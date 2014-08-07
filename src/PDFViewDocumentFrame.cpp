@@ -189,7 +189,7 @@ void wxPDFViewDocumentFrame::OnPDFDocumentReady(wxCommandEvent& event)
 	m_pageTxtCtrl->Enable();
 	m_searchCtrl->Enable();
 
-	if (m_pdfViewBookmarksCtrl->IsEmpty())
+	if (!m_pdfView->GetRootBookmark())
 	{
 		m_docNotebook->RemovePage(0);
 	}

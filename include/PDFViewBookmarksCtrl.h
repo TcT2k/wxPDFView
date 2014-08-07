@@ -31,13 +31,10 @@ public:
 
 	wxPDFView* GetPDFView() const { return m_pdfView; };
 
-	bool IsEmpty() const { return m_isEmpty; };
-
 protected:
 
 private:
 	wxPDFView* m_pdfView;
-	bool m_isEmpty;
 
 	void OnPDFDocumentReady(wxCommandEvent& event);
 
