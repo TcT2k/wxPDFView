@@ -6,6 +6,20 @@ navigate PDF documents using Google Chromes [PDFium library][2].
 
 ![Screenshot](https://tct2k.github.io/wxPDFView/images/PDFViewDocumentFrame.png "wxPDFViewDocumentFrame")
 
+Features
+--------
+Currently implemented:
+* PDF page display control
+* PDF bookmarks control
+* PDF thumbnail control
+* Zooming
+* Loading PDF from custom sources (any std::istream)
+
+Currently not implemented:
+* Search
+* Printing
+* Text selection
+
 Requirements
 ------------
 * [wxWidgets][1]: 3.0.0  or greater
