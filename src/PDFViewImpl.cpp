@@ -195,6 +195,7 @@ wxPDFViewImpl::wxPDFViewImpl(wxPDFView* ctrl):
 	m_lastVisiblePage = -1;
 	m_currentPage = -1;
 	m_bookmarks = NULL;
+	m_currentFindIndex = -1;
 
 	// PDF SDK structures
 	memset(&m_pdfFileAccess, '\0', sizeof(m_pdfFileAccess));
@@ -274,11 +275,7 @@ void wxPDFViewImpl::AlignPageRects()
 
 void wxPDFViewImpl::OnPageUpdate(wxThreadEvent& event)
 {
-	wxRect updateRect = m_pageRects[event.GetInt()];
-	updateRect = UnscaledToScaled(updateRect);
-	updateRect.SetPosition(m_ctrl->CalcScrolledPosition(updateRect.GetPosition()));
-
-	m_ctrl->RefreshRect(updateRect, true);
+	RefreshPage(event.GetInt());
 }
 
 void wxPDFViewImpl::OnPaint(wxPaintEvent& event)
@@ -305,6 +302,29 @@ void wxPDFViewImpl::OnPaint(wxPaintEvent& event)
 		wxRect pageRect = m_pageRects[pageIndex];
 		if (pageRect.Intersects(rectUpdate))
 			m_pages[pageIndex].Draw(dc, *gc, pageRect);
+	}
+
+	// Draw text selections
+	gc->SetBrush(wxColor(0, 0, 200, 50));
+	gc->SetPen(*wxTRANSPARENT_PEN);
+
+	for (auto it = m_selection.begin(); it != m_selection.end(); ++it)
+	{
+		int pageIndex = it->GetPage()->GetIndex();
+		if (pageIndex >= m_firstVisiblePage && pageIndex <= m_lastVisiblePage)
+		{
+			wxRect pageRect = m_pageRects[pageIndex];
+			if (pageRect.Intersects(rectUpdate))
+			{
+				// Screen rects are relative to the page
+				wxVector<wxRect> screenRects = it->GetScreenRects(m_pageRects[pageIndex]);
+				for (auto sr = screenRects.begin(); sr != screenRects.end(); ++sr)
+				{
+					sr->Offset(m_pageRects[pageIndex].GetPosition());
+					gc->DrawRectangle(sr->x, sr->y, sr->width, sr->height);
+				}
+			}
+		}
 	}
 }
 
@@ -416,9 +436,156 @@ void wxPDFViewImpl::SetZoomType(wxPDFViewZoomType zoomType)
 	m_ctrl->ProcessEvent(wxCommandEvent(wxEVT_PDFVIEW_ZOOM_TYPE_CHANGED));
 }
 
+void wxPDFViewImpl::StopFind()
+{
+	m_selection.clear();
+	m_findResults.clear();
+	m_nextPageToSearch = -1;
+	m_lastPageToSearch = -1;
+	m_lastCharacterIndexToSearch = -1;
+	m_currentFindIndex = -1;
+	m_findText.clear();
+	m_ctrl->Refresh();
+}
+
 long wxPDFViewImpl::Find(const wxString& text, int flags)
 {
-	return wxNOT_FOUND;
+	if (m_pages.empty())
+		return wxNOT_FOUND;
+
+	bool firstSearch = false;
+	int characterToStartSearchingFrom = 0;
+	if (m_findText != text) // First time we search for this text.
+	{  
+		firstSearch = true;
+		wxVector<wxPDFViewTextRange> oldSelection = m_selection;
+		StopFind();
+		m_findText = text;
+
+		if (m_findText.empty())
+			return wxNOT_FOUND;
+
+		if (oldSelection.empty()) {
+			// Start searching from the beginning of the document.
+			m_nextPageToSearch = -1;
+			m_lastPageToSearch = m_pageCount - 1;
+			m_lastCharacterIndexToSearch = -1;
+		} else {
+			// There's a current selection, so start from it.
+			m_nextPageToSearch = oldSelection[0].GetPage()->GetIndex();
+			m_lastCharacterIndexToSearch = oldSelection[0].GetCharIndex();
+			characterToStartSearchingFrom = oldSelection[0].GetCharIndex();
+			m_lastPageToSearch = m_nextPageToSearch;
+		}
+	}
+
+	bool caseSensitive = flags & wxPDFVIEW_FIND_MATCH_CASE;
+	bool forward = (flags & wxPDFVIEW_FIND_BACKWARDS) == 0;
+
+	// Move the find index
+	if (forward)
+		++m_currentFindIndex;
+	else
+		--m_currentFindIndex;
+
+	// Determine if we need more results
+	bool needMoreResults = true;
+	if (m_currentFindIndex == m_findResults.size())
+		m_nextPageToSearch = m_currentPage + 1;
+	else if (m_currentFindIndex < 0)
+		m_nextPageToSearch = m_currentPage - 1;
+	else
+		needMoreResults = false;
+
+	bool endOfSearch = false;
+
+	while (needMoreResults && !endOfSearch)
+	{
+		int resultCount = FindOnPage(m_nextPageToSearch, caseSensitive, firstSearch, characterToStartSearchingFrom);
+		if (resultCount)
+			needMoreResults = false;
+		else if (forward)
+			++m_nextPageToSearch;
+		else
+			--m_nextPageToSearch;
+
+		if (m_nextPageToSearch == m_pageCount)
+			endOfSearch = true;
+	}
+
+	if (endOfSearch || m_findResults.empty())
+		return wxNOT_FOUND;
+
+	//TODO: Wrap find index
+	if (m_currentFindIndex < 0)
+		m_currentFindIndex = m_findResults.size() - 1;
+
+	// Select result
+	m_selection.clear();
+	wxPDFViewTextRange result = m_findResults[m_currentFindIndex];
+	m_selection.push_back(result);
+	int resultPageIndex = result.GetPage()->GetIndex();
+	// Make selection visible
+	if (!m_pages.IsPageVisible(resultPageIndex))
+		SetCurrentPage(resultPageIndex); // TODO: center selection rect
+	else
+		m_ctrl->Refresh();
+
+	return m_findResults.size();
+}
+
+int wxPDFViewImpl::FindOnPage(int pageIndex, bool caseSensitive, bool firstSearch, int characterToStartSearchingFrom)
+{
+	// Find all the matches in the current page.
+	unsigned long flags = caseSensitive ? FPDF_MATCHCASE : 0;
+	FPDF_SCHHANDLE find = FPDFText_FindStart(
+		m_pages[pageIndex].GetTextPage(),
+		reinterpret_cast<const unsigned short*>(m_findText.wc_str()),
+		flags, 0);
+
+	wxPDFViewPage& page = m_pages[pageIndex];
+
+	int resultCount = 0;
+	while (FPDFText_FindNext(find)) 
+	{
+		wxPDFViewTextRange result(&page,
+			FPDFText_GetSchResultIndex(find),
+			FPDFText_GetSchCount(find));
+
+		if (!firstSearch &&
+			m_lastCharacterIndexToSearch != -1 &&
+			result.GetPage()->GetIndex() == m_lastPageToSearch &&
+			result.GetCharIndex() >= m_lastCharacterIndexToSearch)
+		{
+		  break;
+		}
+
+		AddFindResult(result);
+		++resultCount;
+	}
+
+	FPDFText_FindClose(find);
+
+	return resultCount;
+}
+
+void wxPDFViewImpl::AddFindResult(const wxPDFViewTextRange& result)
+{
+	// Figure out where to insert the new location, since we could have
+	// started searching midway and now we wrapped.
+	size_t i;
+	int pageIndex = result.GetPage()->GetIndex();
+	int charIndex = result.GetCharIndex();
+	for (i = 0; i < m_findResults.size(); ++i) 
+	{
+		if (m_findResults[i].GetPage()->GetIndex() > pageIndex ||
+			(m_findResults[i].GetPage()->GetIndex() == pageIndex &&
+			m_findResults[i].GetCharIndex() > charIndex)) 
+		{
+			break;
+		}
+	}
+	m_findResults.insert(m_findResults.begin() + i, result);
 }
 
 bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream)
@@ -730,3 +897,14 @@ wxSize wxPDFViewImpl::GetPageSize(int pageIndex) const
 	return m_pageRects[pageIndex].GetSize();
 }
 
+void wxPDFViewImpl::RefreshPage(int pageIndex)
+{
+	if (m_pages.IsPageVisible(pageIndex))
+	{
+		wxRect updateRect = m_pageRects[pageIndex];
+		updateRect = UnscaledToScaled(updateRect);
+		updateRect.SetPosition(m_ctrl->CalcScrolledPosition(updateRect.GetPosition()));
+
+		m_ctrl->RefreshRect(updateRect, true);
+	}
+}

@@ -4,6 +4,8 @@
 
 #include <wx/rawbmp.h>
 
+#include "fpdftext.h"
+
 wxDEFINE_EVENT(wxEVT_PDFVIEW_PAGE_UPDATED, wxThreadEvent);
 
 //
@@ -13,7 +15,8 @@ wxDEFINE_EVENT(wxEVT_PDFVIEW_PAGE_UPDATED, wxThreadEvent);
 wxPDFViewPage::wxPDFViewPage(wxPDFViewPages* pages, int index):
 	m_pages(pages),
 	m_index(index),
-	m_page(NULL)
+	m_page(NULL),
+	m_textPage(NULL)
 {
 
 }
@@ -30,6 +33,12 @@ void wxPDFViewPage::Unload()
 		FPDF_ClosePage(m_page);
 		m_page = NULL;
 	}
+	if (m_textPage)
+	{
+		FPDFText_ClosePage(m_textPage);
+		m_textPage = NULL;
+	}
+
 	m_bmp = wxNullBitmap;
 }
 
@@ -40,6 +49,26 @@ FPDF_PAGE wxPDFViewPage::GetPage()
 		m_page = FPDF_LoadPage(m_pages->doc(), m_index);
 	}
 	return m_page;
+}
+
+FPDF_TEXTPAGE wxPDFViewPage::GetTextPage()
+{
+	if (!m_textPage)
+	{
+		m_textPage = FPDFText_LoadPage(GetPage());
+	}
+
+	return m_textPage;
+}
+
+wxRect wxPDFViewPage::PageToScreen(const wxRect& pageRect, double left, double top, double right, double bottom)
+{
+
+	int screenLeft, screenTop, screenRight, screenBottom;
+	FPDF_PageToDevice(GetPage(), 0, 0, pageRect.width, pageRect.height, 0, left, top, &screenLeft, &screenTop);
+	FPDF_PageToDevice(GetPage(), 0, 0, pageRect.width, pageRect.height, 0, right, bottom, &screenRight, &screenBottom);
+
+	return wxRect(screenLeft, screenTop, screenRight - screenLeft + 1, screenBottom - screenTop + 1);
 }
 
 void wxPDFViewPage::Draw(wxDC& dc, wxGraphicsContext& gc, const wxRect& rect)
@@ -202,6 +231,11 @@ void wxPDFViewPages::SetVisiblePages(int firstPage, int lastPage)
 
 	m_firstVisiblePage = firstPage;
 	m_lastVisiblePage = lastPage;
+}
+
+bool wxPDFViewPages::IsPageVisible(int pageIndex) const
+{
+	return pageIndex >= m_firstVisiblePage && pageIndex <= m_lastVisiblePage;
 }
 
 void wxPDFViewPages::RequestBitmapUpdate()

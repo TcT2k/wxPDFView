@@ -17,9 +17,13 @@ public:
 
 	~wxPDFViewPage();
 
+	int GetIndex() const { return m_index; };
+
 	void Unload();
 
 	FPDF_PAGE GetPage();
+
+	FPDF_TEXTPAGE GetTextPage();
 
 	void Draw(wxDC& dc, wxGraphicsContext& gc, const wxRect& rect);
 
@@ -29,10 +33,13 @@ public:
 
 	void UpdateBitmap();
 
+	wxRect PageToScreen(const wxRect& pageRect, double left, double top, double right, double bottom);
+
 private:
 	wxPDFViewPages* m_pages;
 	int m_index;
 	FPDF_PAGE m_page;
+	FPDF_TEXTPAGE m_textPage;
 	wxBitmap m_bmp;
 	wxSize m_requiredBmpSize;
 
@@ -49,6 +56,8 @@ public:
 	void SetDocument(FPDF_DOCUMENT doc);
 
 	void SetVisiblePages(int firstPage, int lastPage);
+
+	bool IsPageVisible(int pageIndex) const;
 
 	void RequestBitmapUpdate();
 

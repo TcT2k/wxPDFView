@@ -15,6 +15,7 @@
 #include "PDFView.h"
 #include "PDFViewPages.h"
 #include "PDFViewBookmarks.h"
+#include "PDFViewTextRange.h"
 
 class wxPDFViewImpl
 {
@@ -46,6 +47,8 @@ public:
 	wxPDFViewZoomType GetZoomType() const { return m_zoomType; };
 
 	long Find(const wxString& text, int flags);
+
+	void StopFind();
 
 	bool LoadStream(wxSharedPtr<std::istream> pStream);
 
@@ -91,8 +94,15 @@ private:
 	int m_firstVisiblePage;
 	int m_lastVisiblePage;
 	wxCursor m_handCursor;
+	wxVector<wxPDFViewTextRange> m_selection;
 
-	void Init();
+	// Find information
+	wxString m_findText;
+	wxVector<wxPDFViewTextRange> m_findResults;
+	int m_nextPageToSearch;
+	int m_lastPageToSearch;
+	int m_lastCharacterIndexToSearch;
+	int m_currentFindIndex;
 
 	void UpdateDocumentInfo();
 
@@ -127,6 +137,13 @@ private:
 	void CalcVisiblePages();
 
 	void CalcZoomLevel();
+
+	void AddFindResult(const wxPDFViewTextRange& result);
+
+	int FindOnPage(int pageIndex, bool caseSensitive, bool firstSearch, int characterToStartSearchingFrom);
+
+	// Request redraw for specified page
+	void RefreshPage(int pageIndex);
 };
 
 #endif // PDFVIEW_IMPL_H

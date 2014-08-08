@@ -13,10 +13,10 @@ Currently implemented:
 * PDF bookmarks control
 * PDF thumbnail control
 * Zooming
+* Search
 * Loading PDF from custom sources (any std::istream)
 
 Currently not implemented:
-* Search
 * Printing
 * Text selection
 
