@@ -48,6 +48,10 @@ public:
 
 	long Find(const wxString& text, int flags);
 
+	bool IsPrintAllowed() const;
+
+	wxPrintout* CreatePrintOut() const;
+
 	void StopFind();
 
 	bool LoadStream(wxSharedPtr<std::istream> pStream);

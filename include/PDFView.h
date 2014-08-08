@@ -4,6 +4,7 @@
 #include <wx/wx.h>
 #include <wx/sharedptr.h>
 #include <wx/vector.h>
+#include <wx/print.h>
 #include <istream>
 
 class wxPDFViewImpl;
@@ -77,6 +78,11 @@ public:
 
 	// Scrolls next result into view and returns the number of matches or wxNOT_FOUND
 	long Find(const wxString& text, int flags = wxPDFVIEW_FIND_DEFAULT);
+
+	bool IsPrintAllowed() const;
+
+	// Creates a printout object (returns NULL if printing is not allowed)
+	wxPrintout* CreatePrintOut() const;
 
 	bool LoadFile(const wxString& fileName);
 

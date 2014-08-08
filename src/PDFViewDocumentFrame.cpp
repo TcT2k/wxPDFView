@@ -122,6 +122,7 @@ wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent,
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnZoomPageFitClick, this, ID_ZOOM_PAGE_FIT);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnZoomPageWidthClick, this, ID_ZOOM_PAGE_WIDTH);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnNavigationClick, this, ID_NAVIGATION);
+	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnPrintClicked, this, wxID_PRINT);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnSearchNext, this, ID_FIND_NEXT);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnSearchPrev, this, ID_FIND_PREV);
 
@@ -188,6 +189,7 @@ void wxPDFViewDocumentFrame::OnPDFDocumentReady(wxCommandEvent& event)
 	m_toolBar->EnableTool(ID_ZOOM_OUT, true);
 	m_toolBar->EnableTool(ID_ZOOM_IN, true);
 	m_zoomComboBox->Enable();
+	m_toolBar->EnableTool(wxID_PRINT, m_pdfView->IsPrintAllowed());
 
 	m_pageCountTxtCtrl->SetLabelText(wxString::Format("%d", m_pdfView->GetPageCount()));
 	m_pageTxtCtrl->Enable();
@@ -214,6 +216,11 @@ void wxPDFViewDocumentFrame::OnNavigationClick(wxCommandEvent& event)
 		m_splitter->SplitVertically(m_navPanel, m_docPanel, 180);
 	else
 		m_splitter->Unsplit(m_navPanel);
+}
+
+void wxPDFViewDocumentFrame::OnPrintClicked(wxCommandEvent& event)
+{
+	CallAfter(&wxPDFViewDocumentFrame::StartPrint);
 }
 
 void wxPDFViewDocumentFrame::OnZoomInClick( wxCommandEvent& event )
@@ -298,4 +305,12 @@ void wxPDFViewDocumentFrame::UpdateSearchControls()
 {
 	m_toolBar->EnableTool(ID_FIND_NEXT, !m_searchText.empty());
 	m_toolBar->EnableTool(ID_FIND_PREV, !m_searchText.empty());
+}
+
+void wxPDFViewDocumentFrame::StartPrint()
+{
+	wxPrinter printer;
+	wxSharedPtr<wxPrintout> printout(m_pdfView->CreatePrintOut());
+	if (!printer.Print(this, printout.get()))
+		wxLogError(_("Document printing could not be started"));
 }

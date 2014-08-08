@@ -137,6 +137,22 @@ long wxPDFView::Find(const wxString& text, int flags)
 		return wxNOT_FOUND;
 }
 
+bool wxPDFView::IsPrintAllowed() const
+{
+	if (m_impl)
+		return m_impl->IsPrintAllowed();
+	else
+		return false;
+}
+
+wxPrintout* wxPDFView::CreatePrintOut() const
+{
+	if (m_impl)
+		return m_impl->CreatePrintOut();
+	else
+		return NULL;
+}
+
 bool wxPDFView::LoadFile(const wxString& fileName)
 {
 	wxSharedPtr<std::istream> pStr(new std::ifstream((const char*) fileName.c_str(), std::ios::in | std::ios::binary));

@@ -588,6 +588,16 @@ void wxPDFViewImpl::AddFindResult(const wxPDFViewTextRange& result)
 	m_findResults.insert(m_findResults.begin() + i, result);
 }
 
+bool wxPDFViewImpl::IsPrintAllowed() const
+{
+	return true;
+}
+
+wxPrintout* wxPDFViewImpl::CreatePrintOut() const
+{
+	return NULL;
+}
+
 bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream)
 {
 	CloseDocument();

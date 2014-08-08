@@ -59,6 +59,8 @@ private:
 
 	void OnNavigationClick(wxCommandEvent& event);
 
+	void OnPrintClicked(wxCommandEvent& event);
+
 	void OnPageNextClick( wxCommandEvent& event );
 	void OnPagePrevClick( wxCommandEvent& event );
 
@@ -84,6 +86,8 @@ private:
 
 	void Find(const wxString& text, bool forward);
 	void UpdateSearchControls();
+
+	void StartPrint();
 };
 
 
