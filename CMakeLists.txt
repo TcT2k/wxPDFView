@@ -22,6 +22,7 @@ set(PRIVATE_INCLUDES
 	PDFViewBookmarks.h
 	PDFViewImpl.h
 	PDFViewPages.h
+	PDFViewPrintout.h
 	PDFViewTextRange.h
 	PDFViewThumbnailListBoxImpl.h
 	)
@@ -34,6 +35,7 @@ set(SOURCES
 	PDFViewBookmarksCtrl.cpp
 	PDFViewDocumentFrame.cpp
 	PDFViewPages.cpp
+	PDFViewPrintout.cpp
 	PDFViewTextRange.cpp
 	PDFViewThumbnailListBox.cpp
 	PDFViewThumbnailListBoxImpl.cpp

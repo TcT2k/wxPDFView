@@ -14,10 +14,10 @@ Currently implemented:
 * PDF thumbnail control
 * Zooming
 * Search
+* Printing
 * Loading PDF from custom sources (any std::istream)
 
 Currently not implemented:
-* Printing
 * Text selection
 
 Requirements

@@ -8,6 +8,10 @@
 #include <map>
 #include "fpdfdoc.h"
 
+#ifdef __WXMSW__
+#define wxPDFVIEW_USE_RENDER_TO_DC
+#endif
+
 class wxPDFViewPages;
 
 class wxPDFViewPage
@@ -29,6 +33,8 @@ public:
 
 	void DrawThumbnail(wxDC& dc, const wxRect& rect);
 
+	void DrawPrint(wxDC& dc, const wxRect& rect);
+
 	bool IsBitmapUpdateRequired() const;
 
 	void UpdateBitmap();
@@ -44,6 +50,10 @@ private:
 	wxSize m_requiredBmpSize;
 
 	void CheckBitmap(const wxSize& bmpSize);
+
+#ifndef wxPDFVIEW_USE_RENDER_TO_DC
+	static wxBitmap CreateBitmap(FPDF_PAGE page, const wxSize& bmpSize);
+#endif
 };
 
 class wxPDFViewPages: public std::vector<wxPDFViewPage>, public wxEvtHandler, public wxThreadHelper

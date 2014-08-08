@@ -145,12 +145,21 @@ bool wxPDFView::IsPrintAllowed() const
 		return false;
 }
 
-wxPrintout* wxPDFView::CreatePrintOut() const
+wxPrintout* wxPDFView::CreatePrintout() const
 {
 	if (m_impl)
-		return m_impl->CreatePrintOut();
+		return m_impl->CreatePrintout();
 	else
 		return NULL;
+}
+
+const wxString& wxPDFView::GetDocumentTitle() const
+{
+	static wxString empty;
+	if (m_impl)
+		return m_impl->GetDocumentTitle();
+	else
+		return empty;
 }
 
 bool wxPDFView::LoadFile(const wxString& fileName)

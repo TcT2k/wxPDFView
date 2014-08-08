@@ -82,7 +82,9 @@ public:
 	bool IsPrintAllowed() const;
 
 	// Creates a printout object (returns NULL if printing is not allowed)
-	wxPrintout* CreatePrintOut() const;
+	wxPrintout* CreatePrintout() const;
+
+	const wxString& GetDocumentTitle() const;
 
 	bool LoadFile(const wxString& fileName);
 

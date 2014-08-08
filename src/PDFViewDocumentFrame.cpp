@@ -310,7 +310,7 @@ void wxPDFViewDocumentFrame::UpdateSearchControls()
 void wxPDFViewDocumentFrame::StartPrint()
 {
 	wxPrinter printer;
-	wxSharedPtr<wxPrintout> printout(m_pdfView->CreatePrintOut());
+	wxSharedPtr<wxPrintout> printout(m_pdfView->CreatePrintout());
 	if (!printer.Print(this, printout.get()))
-		wxLogError(_("Document printing could not be started"));
+		wxLogError(_("Document could not be printed"));
 }

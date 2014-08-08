@@ -1,8 +1,8 @@
 #include "private/PDFViewPages.h"
 
-#include <algorithm>
-
+#ifndef wxPDFVIEW_USE_RENDER_TO_DC
 #include <wx/rawbmp.h>
+#endif
 
 #include "fpdftext.h"
 
@@ -107,6 +107,19 @@ void wxPDFViewPage::DrawThumbnail(wxDC& dc, const wxRect& rect)
 	CheckBitmap(rect.GetSize());
 }
 
+void wxPDFViewPage::DrawPrint(wxDC& dc, const wxRect& rect)
+{
+	FPDF_PAGE page = GetPage();
+
+#ifdef wxPDFVIEW_USE_RENDER_TO_DC
+	FPDF_RenderPage(dc.GetHDC(), page, rect.x, rect.y, rect.width, rect.height, 0, 0);
+#else
+	wxBitmap bmp = CreateBitmap(page, rect.GetSize());
+	wxMemoryDC memDC(bmp);
+	dc.Blit(rect.GetPosition(), rect.GetSize(), &memDC, wxPoint(0, 0));
+#endif
+}
+
 void wxPDFViewPage::CheckBitmap(const wxSize& bmpSize)
 {
 	// Request new bitmap if no bitmap is available or it has the wrong size
@@ -130,13 +143,20 @@ void wxPDFViewPage::UpdateBitmap()
 	// Render to bitmap
 	FPDF_PAGE page = GetPage();
 
-#ifdef __WXMSW__
+#ifdef wxPDFVIEW_USE_RENDER_TO_DC
 	wxBitmap bmp(bmpSize, 24);
 	wxMemoryDC memDC(bmp);
 	memDC.SetBackground(*wxWHITE_BRUSH);
 	memDC.Clear();
 	FPDF_RenderPage(memDC.GetHDC(), page, 0, 0, bmpSize.x, bmpSize.y, 0, 2);
 #else
+	m_bmp = CreateBitmap(page, bmpSize);
+#endif
+}
+
+#ifndef wxPDFVIEW_USE_RENDER_TO_DC
+wxBitmap wxPDFViewPage::CreateBitmap(FPDF_PAGE page, const wxSize& bmpSize)
+{
 	FPDF_BITMAP bitmap = FPDFBitmap_Create(bmpSize.x, bmpSize.y, 0);
 	FPDFBitmap_FillRect(bitmap, 0, 0, bmpSize.x, bmpSize.y, 0xFFFFFFFF);
 
@@ -166,10 +186,10 @@ void wxPDFViewPage::UpdateBitmap()
 	}
 
 	FPDFBitmap_Destroy(bitmap);
-#endif
 
-	m_bmp = bmp;
+	return bmp;
 }
+#endif
 
 //
 // wxPDFViewPages

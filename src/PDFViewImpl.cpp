@@ -1,9 +1,17 @@
 #include "private/PDFViewImpl.h"
+#include "private/PDFViewPrintout.h"
 
 #include <wx/dcbuffer.h>
 #include <v8.h>
 #include "fpdf_ext.h"
 #include "fpdftext.h"
+
+// See Table 3.20 in
+// http://www.adobe.com/devnet/acrobat/pdfs/pdf_reference_1-7.pdf
+#define PDF_PERMISSION_PRINT_LOW_QUALITY	1 << 2
+#define PDF_PERMISSION_PRINT_HIGH_QUALITY	1 << 11
+#define PDF_PERMISSION_COPY					1 << 4
+#define PDF_PERMISSION_COPY_ACCESSIBLE		1 << 9
 
 void LogPDFError()
 {
@@ -196,6 +204,7 @@ wxPDFViewImpl::wxPDFViewImpl(wxPDFView* ctrl):
 	m_currentPage = -1;
 	m_bookmarks = NULL;
 	m_currentFindIndex = -1;
+	m_docPermissions = 0;
 
 	// PDF SDK structures
 	memset(&m_pdfFileAccess, '\0', sizeof(m_pdfFileAccess));
@@ -590,12 +599,21 @@ void wxPDFViewImpl::AddFindResult(const wxPDFViewTextRange& result)
 
 bool wxPDFViewImpl::IsPrintAllowed() const
 {
-	return true;
+	return (m_docPermissions & PDF_PERMISSION_PRINT_HIGH_QUALITY) ||
+		(m_docPermissions & PDF_PERMISSION_PRINT_LOW_QUALITY);
 }
 
-wxPrintout* wxPDFViewImpl::CreatePrintOut() const
+wxPrintout* wxPDFViewImpl::CreatePrintout() const
 {
-	return NULL;
+	if (IsPrintAllowed())
+		return new wxPDFViewPrintout(m_ctrl);
+	else
+		return NULL;
+}
+
+const wxString& wxPDFViewImpl::GetDocumentTitle() const
+{
+	return m_documentTitle;
 }
 
 bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream)
@@ -639,8 +657,7 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream)
 		return false;
 	}
 
-	unsigned long docPermissions = FPDF_GetDocPermissions(m_pdfDoc);
-	// TODO: check permissions
+	m_docPermissions = FPDF_GetDocPermissions(m_pdfDoc);
 	(void) FPDFAvail_IsFormAvail(m_pdfAvail, &hints);
 
 	m_pdfForm = FPDFDOC_InitFormFillEnviroument(m_pdfDoc, &form_callbacks);
@@ -718,6 +735,7 @@ void wxPDFViewImpl::CloseDocument()
 	m_pageCount = 0;
 	m_docSize.Set(0, 0);
 	UpdateVirtualSize();
+	m_docPermissions = 0;
 }
 
 void wxPDFViewImpl::HandleScrollWindow(int dx, int dy)

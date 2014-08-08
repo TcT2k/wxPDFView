@@ -50,9 +50,11 @@ public:
 
 	bool IsPrintAllowed() const;
 
-	wxPrintout* CreatePrintOut() const;
+	wxPrintout* CreatePrintout() const;
 
 	void StopFind();
+
+	const wxString& GetDocumentTitle() const;
 
 	bool LoadStream(wxSharedPtr<std::istream> pStream);
 
@@ -85,6 +87,8 @@ private:
 	std::vector<wxRect> m_pageRects;
 	wxPDFViewPages m_pages;
 	wxSize m_docSize;
+	unsigned long m_docPermissions;
+	wxString m_documentTitle;
 
 	// Display settings
 	wxPDFViewZoomType m_zoomType;
@@ -148,6 +152,8 @@ private:
 
 	// Request redraw for specified page
 	void RefreshPage(int pageIndex);
+
+	friend class wxPDFViewPrintout;
 };
 
 #endif // PDFVIEW_IMPL_H
