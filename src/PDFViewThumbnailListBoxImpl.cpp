@@ -48,7 +48,7 @@ void wxPDFViewThumbnailListBoxImpl::DrawPage(wxDC& dc, const wxRect& rect, int p
 	page.DrawThumbnail(dc, pageDrawRect.CenterIn(rect));
 }
 
-void wxPDFViewThumbnailListBoxImpl::HandleScrollWindow(int dx, int dy)
+void wxPDFViewThumbnailListBoxImpl::HandleScrollWindow(int WXUNUSED(dx), int WXUNUSED(dy))
 {
 	UpdateVisiblePages();
 }

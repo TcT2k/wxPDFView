@@ -15,7 +15,7 @@ public:
 		return 1;
 	}
 
-	virtual wxString GetColumnType( unsigned int col ) const
+	virtual wxString GetColumnType( unsigned int WXUNUSED(col) ) const
 	{
 		return wxT("wxDataViewIconText");
 	}
@@ -32,12 +32,12 @@ public:
 		}
 	}
 
-	virtual bool SetValue( const wxVariant &variant, const wxDataViewItem &item, unsigned int col )
+	virtual bool SetValue( const wxVariant &WXUNUSED(variant), const wxDataViewItem &WXUNUSED(item), unsigned int WXUNUSED(col) )
 	{
 		return false;
 	}
 
-	virtual bool IsEnabled( const wxDataViewItem &item, unsigned int col ) const
+	virtual bool IsEnabled( const wxDataViewItem &WXUNUSED(item), unsigned int WXUNUSED(col) ) const
 	{
 		return true;
 	}
@@ -147,6 +147,8 @@ void wxPDFViewBookmarksCtrl::OnSelectionChanged(wxDataViewEvent& event)
 	wxPDFViewBookmark* bm = (wxPDFViewBookmark*) GetSelection().GetID();
 	if (bm)
 		bm->Navigate(m_pdfView);
+
+	event.Skip();
 }
 
 void wxPDFViewBookmarksCtrl::OnPDFDocumentReady(wxCommandEvent& event)

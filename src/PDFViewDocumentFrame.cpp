@@ -176,12 +176,16 @@ void wxPDFViewDocumentFrame::OnPDFZoomChanged(wxCommandEvent& event)
 	m_zoomComboBox->SetLabel(wxString::Format("%.1f%%", m_pdfView->GetZoom() * 100));
 	m_toolBar->EnableTool(ID_ZOOM_IN, m_pdfView->GetZoom() < m_pdfView->GetMaxZoom());
 	m_toolBar->EnableTool(ID_ZOOM_OUT, m_pdfView->GetZoom() > m_pdfView->GetMinZoom());
+
+	event.Skip();
 }
 
 void wxPDFViewDocumentFrame::OnPDFZoomTypeChanged(wxCommandEvent& event)
 {
 	m_toolBar->ToggleTool(ID_ZOOM_PAGE_FIT, m_pdfView->GetZoomType() == wxPDFVIEW_ZOOM_TYPE_FIT_PAGE);
 	m_toolBar->ToggleTool(ID_ZOOM_PAGE_WIDTH, m_pdfView->GetZoomType() == wxPDFVIEW_ZOOM_TYPE_PAGE_WIDTH);
+
+	event.Skip();
 }
 
 void wxPDFViewDocumentFrame::OnPDFDocumentReady(wxCommandEvent& event)
@@ -208,6 +212,8 @@ void wxPDFViewDocumentFrame::OnPDFURLClicked(wxCommandEvent& event)
 {
 	if (!event.GetString().empty())
 		wxLaunchDefaultBrowser(event.GetString());
+
+	event.Skip();
 }
 
 void wxPDFViewDocumentFrame::OnNavigationClick(wxCommandEvent& event)
@@ -216,31 +222,43 @@ void wxPDFViewDocumentFrame::OnNavigationClick(wxCommandEvent& event)
 		m_splitter->SplitVertically(m_navPanel, m_docPanel, 180);
 	else
 		m_splitter->Unsplit(m_navPanel);
+
+	event.Skip();
 }
 
 void wxPDFViewDocumentFrame::OnPrintClicked(wxCommandEvent& event)
 {
 	CallAfter(&wxPDFViewDocumentFrame::StartPrint);
+
+	event.Skip();
 }
 
 void wxPDFViewDocumentFrame::OnZoomInClick( wxCommandEvent& event )
 {
 	m_pdfView->SetZoom(m_pdfView->GetZoom() + 0.1);
+
+	event.Skip();
 }
 
 void wxPDFViewDocumentFrame::OnZoomOutClick( wxCommandEvent& event )
 {
 	m_pdfView->SetZoom(m_pdfView->GetZoom() - 0.1);
+
+	event.Skip();
 }
 
 void wxPDFViewDocumentFrame::OnPageNextClick( wxCommandEvent& event )
 {
 	m_pdfView->NavigateToPage(wxPDFVIEW_PAGE_NAV_NEXT);
+
+	event.Skip();
 }
 
 void wxPDFViewDocumentFrame::OnPagePrevClick( wxCommandEvent& event )
 {
 	m_pdfView->NavigateToPage(wxPDFVIEW_PAGE_NAV_PREV);
+
+	event.Skip();
 }
 
 void wxPDFViewDocumentFrame::OnZoomComboBox( wxCommandEvent& event )
@@ -250,21 +268,29 @@ void wxPDFViewDocumentFrame::OnZoomComboBox( wxCommandEvent& event )
 		double zoom = reinterpret_cast<int>(m_zoomComboBox->GetClientData(m_zoomComboBox->GetSelection())) / (double) 100;
 		m_pdfView->SetZoom(zoom);
 	}
+
+	event.Skip();
 }
 
 void wxPDFViewDocumentFrame::OnZoomPageFitClick( wxCommandEvent& event)
 {
 	m_pdfView->SetZoomType(wxPDFVIEW_ZOOM_TYPE_FIT_PAGE);
+
+	event.Skip();
 }
 
 void wxPDFViewDocumentFrame::OnZoomPageWidthClick( wxCommandEvent& event)
 {
 	m_pdfView->SetZoomType(wxPDFVIEW_ZOOM_TYPE_PAGE_WIDTH);
+
+	event.Skip();
 }
 
 void wxPDFViewDocumentFrame::OnSearchCtrlFind(wxCommandEvent& event)
 {
 	Find(m_searchCtrl->GetValue(), true);
+
+	event.Skip();
 }
 
 void wxPDFViewDocumentFrame::OnSearchCtrlText(wxCommandEvent& event)
@@ -272,21 +298,29 @@ void wxPDFViewDocumentFrame::OnSearchCtrlText(wxCommandEvent& event)
 	m_searchText = m_searchCtrl->GetValue();
 
 	UpdateSearchControls();
+
+	event.Skip();
 }
 
 void wxPDFViewDocumentFrame::OnSearchCtrlCancel(wxCommandEvent& event)
 {
 	Find("", true);
+
+	event.Skip();
 }
 
 void wxPDFViewDocumentFrame::OnSearchNext(wxCommandEvent& event)
 {
 	Find(m_searchText, true);
+
+	event.Skip();
 }
 
 void wxPDFViewDocumentFrame::OnSearchPrev(wxCommandEvent& event)
 {
 	Find(m_searchText, false);
+
+	event.Skip();
 }
 
 void wxPDFViewDocumentFrame::Find(const wxString& text, bool forward)

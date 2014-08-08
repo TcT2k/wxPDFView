@@ -34,7 +34,7 @@ public:
 
 	wxPDFView* GetPDFView() const;
 
-	virtual void ScrollWindow(int dx, int dy, const wxRect *rect = NULL) override;
+	virtual void ScrollWindow(int dx, int dy, const wxRect *rect = NULL);
 
 protected:
 	virtual void OnDrawItem(wxDC& dc, const wxRect& rect, size_t n) const;

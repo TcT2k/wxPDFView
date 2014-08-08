@@ -45,7 +45,7 @@ void LogPDFError()
 		wxLogError("PDF Error: %s", errorMsg);
 }
 
-int Form_Alert(IPDF_JSPLATFORM* pThis, FPDF_WIDESTRING Msg, FPDF_WIDESTRING Title, int Type, int Icon)
+int Form_Alert(IPDF_JSPLATFORM* WXUNUSED(pThis), FPDF_WIDESTRING Msg, FPDF_WIDESTRING Title, int Type, int Icon)
 {
 	wxLogDebug("Form_Alert called.");
 	long msgBoxStyle = wxCENTRE;
@@ -171,12 +171,12 @@ int Get_Block(void* param, unsigned long pos, unsigned char* pBuf,
 		return 0;
 }
 
-bool Is_Data_Avail(FX_FILEAVAIL* pThis, size_t offset, size_t size)
+bool Is_Data_Avail(FX_FILEAVAIL* WXUNUSED(pThis), size_t WXUNUSED(offset), size_t WXUNUSED(size))
 {
   return true;
 }
 
-void Add_Segment(FX_DOWNLOADHINTS* pThis, size_t offset, size_t size)
+void Add_Segment(FX_DOWNLOADHINTS* WXUNUSED(pThis), size_t WXUNUSED(offset), size_t WXUNUSED(size))
 {
 }
 
@@ -269,7 +269,8 @@ void wxPDFViewImpl::UpdateDocumentInfo()
 	UpdateVirtualSize();
 	CalcZoomLevel();
 
-	m_ctrl->ProcessEvent(wxCommandEvent(wxEVT_PDFVIEW_DOCUMENT_READY));
+	wxCommandEvent readyEvent(wxEVT_PDFVIEW_DOCUMENT_READY);
+	m_ctrl->ProcessEvent(readyEvent);
 	wxCommandEvent pgEvent(wxEVT_PDFVIEW_PAGE_CHANGED);
 	pgEvent.SetInt(0);
 	m_ctrl->ProcessEvent(pgEvent);
@@ -287,7 +288,7 @@ void wxPDFViewImpl::OnPageUpdate(wxThreadEvent& event)
 	RefreshPage(event.GetInt());
 }
 
-void wxPDFViewImpl::OnPaint(wxPaintEvent& event)
+void wxPDFViewImpl::OnPaint(wxPaintEvent& WXUNUSED(event))
 {
 	wxAutoBufferedPaintDC dc(m_ctrl);
 	m_ctrl->PrepareDC(dc);
@@ -302,7 +303,6 @@ void wxPDFViewImpl::OnPaint(wxPaintEvent& event)
 	dc.Clear();
 
 	// Draw visible pages
-	bool pageRendered = false;
 	if (m_firstVisiblePage < 0)
 		return;
 
@@ -432,7 +432,8 @@ void wxPDFViewImpl::SetZoom(double zoom)
 	AlignPageRects();
 	CalcVisiblePages();
 	m_ctrl->Refresh();
-	m_ctrl->ProcessEvent(wxCommandEvent(wxEVT_PDFVIEW_ZOOM_CHANGED));
+	wxCommandEvent zoomEvent(wxEVT_PDFVIEW_ZOOM_CHANGED);
+	m_ctrl->ProcessEvent(zoomEvent);
 }
 
 void wxPDFViewImpl::SetZoomType(wxPDFViewZoomType zoomType)
@@ -442,7 +443,8 @@ void wxPDFViewImpl::SetZoomType(wxPDFViewZoomType zoomType)
 
 	m_zoomType = zoomType;
 	CalcZoomLevel();
-	m_ctrl->ProcessEvent(wxCommandEvent(wxEVT_PDFVIEW_ZOOM_TYPE_CHANGED));
+	wxCommandEvent zoomEvent(wxEVT_PDFVIEW_ZOOM_TYPE_CHANGED);
+	m_ctrl->ProcessEvent(zoomEvent);
 }
 
 void wxPDFViewImpl::StopFind()
@@ -499,7 +501,7 @@ long wxPDFViewImpl::Find(const wxString& text, int flags)
 
 	// Determine if we need more results
 	bool needMoreResults = true;
-	if (m_currentFindIndex == m_findResults.size())
+	if (m_currentFindIndex == static_cast<int>(m_findResults.size()))
 		m_nextPageToSearch = m_currentPage + 1;
 	else if (m_currentFindIndex < 0)
 		m_nextPageToSearch = m_currentPage - 1;
@@ -543,7 +545,7 @@ long wxPDFViewImpl::Find(const wxString& text, int flags)
 	return m_findResults.size();
 }
 
-int wxPDFViewImpl::FindOnPage(int pageIndex, bool caseSensitive, bool firstSearch, int characterToStartSearchingFrom)
+int wxPDFViewImpl::FindOnPage(int pageIndex, bool caseSensitive, bool firstSearch, int WXUNUSED(characterToStartSearchingFrom))
 {
 	// Find all the matches in the current page.
 	unsigned long flags = caseSensitive ? FPDF_MATCHCASE : 0;
@@ -738,7 +740,7 @@ void wxPDFViewImpl::CloseDocument()
 	m_docPermissions = 0;
 }
 
-void wxPDFViewImpl::HandleScrollWindow(int dx, int dy)
+void wxPDFViewImpl::HandleScrollWindow(int WXUNUSED(dx), int WXUNUSED(dy))
 {
 	CalcVisiblePages();
 }

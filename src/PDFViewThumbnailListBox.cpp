@@ -61,7 +61,7 @@ void wxPDFViewThumbnailListBox::OnDrawItem(wxDC& dc, const wxRect& rect, size_t 
 		m_impl->DrawPage(dc, pageDrawRect, n);
 }
 
-wxCoord wxPDFViewThumbnailListBox::OnMeasureItem(size_t n) const
+wxCoord wxPDFViewThumbnailListBox::OnMeasureItem(size_t WXUNUSED(n)) const
 {
 	return 128;
 }
