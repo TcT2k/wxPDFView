@@ -651,7 +651,10 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream)
 	(void) FPDFAvail_IsDocAvail(m_pdfAvail, &hints);
 
 	FPDF_BYTESTRING pdfPassword = NULL;
-	m_pdfDoc = FPDFAvail_GetDocument(m_pdfAvail, pdfPassword);
+	if (!FPDFAvail_IsLinearized(m_pdfAvail))
+		m_pdfDoc = FPDF_LoadCustomDocument(&m_pdfFileAccess, pdfPassword);
+	else
+		m_pdfDoc = FPDFAvail_GetDocument(m_pdfAvail, pdfPassword);
 
 	if (!m_pdfDoc)
 	{

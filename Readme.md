@@ -22,8 +22,8 @@ Currently not implemented:
 
 Requirements
 ------------
-* [wxWidgets][1]: 3.0.0  or greater
-* [PDFium][2]: any version?
+* [wxWidgets][1]: 3.0.0  or newer
+* [PDFium][2]: 2118 or newer
 
 Compiling
 ---------
