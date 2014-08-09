@@ -162,17 +162,17 @@ const wxString& wxPDFView::GetDocumentTitle() const
 		return empty;
 }
 
-bool wxPDFView::LoadFile(const wxString& fileName)
+bool wxPDFView::LoadFile(const wxString& fileName, const wxString& password)
 {
 	wxSharedPtr<std::istream> pStr(new std::ifstream((const char*) fileName.c_str(), std::ios::in | std::ios::binary));
-	return LoadStream(pStr);
+	return LoadStream(pStr, password);
 }
 
-bool wxPDFView::LoadStream(wxSharedPtr<std::istream> pStream)
+bool wxPDFView::LoadStream(wxSharedPtr<std::istream> pStream, const wxString& password)
 {
 	if (m_impl)
 	{
-		return m_impl->LoadStream(pStream);
+		return m_impl->LoadStream(pStream, password);
 	} else
 		return false;
 }

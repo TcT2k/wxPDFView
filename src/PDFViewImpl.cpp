@@ -2,6 +2,8 @@
 #include "private/PDFViewPrintout.h"
 
 #include <wx/dcbuffer.h>
+#include <wx/textdlg.h>
+
 #include <v8.h>
 #include "fpdf_ext.h"
 #include "fpdftext.h"
@@ -13,9 +15,8 @@
 #define PDF_PERMISSION_COPY					1 << 4
 #define PDF_PERMISSION_COPY_ACCESSIBLE		1 << 9
 
-void LogPDFError()
+void LogPDFError(unsigned long error)
 {
-	unsigned long error = FPDF_GetLastError();
 	wxString errorMsg;
 	switch (error)
 	{
@@ -618,7 +619,7 @@ const wxString& wxPDFViewImpl::GetDocumentTitle() const
 	return m_documentTitle;
 }
 
-bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream)
+bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream, const wxString& password)
 {
 	CloseDocument();
 
@@ -650,16 +651,35 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream)
 
 	(void) FPDFAvail_IsDocAvail(m_pdfAvail, &hints);
 
-	FPDF_BYTESTRING pdfPassword = NULL;
-	if (!FPDFAvail_IsLinearized(m_pdfAvail))
-		m_pdfDoc = FPDF_LoadCustomDocument(&m_pdfFileAccess, pdfPassword);
-	else
-		m_pdfDoc = FPDFAvail_GetDocument(m_pdfAvail, pdfPassword);
+	bool retryLoad = true;
 
-	if (!m_pdfDoc)
+	wxString loadPassword = password;
+	while (retryLoad)
 	{
-		LogPDFError();
-		return false;
+		FPDF_BYTESTRING pdfPassword = loadPassword.c_str();
+		if (!FPDFAvail_IsLinearized(m_pdfAvail))
+			m_pdfDoc = FPDF_LoadCustomDocument(&m_pdfFileAccess, pdfPassword);
+		else
+			m_pdfDoc = FPDFAvail_GetDocument(m_pdfAvail, pdfPassword);
+
+		if (!m_pdfDoc)
+		{
+			unsigned long error = FPDF_GetLastError();
+			if (error == FPDF_ERR_PASSWORD)
+			{
+				wxPasswordEntryDialog dlg(m_ctrl, _("Password to open the document"));
+				dlg.SetValue(loadPassword);
+				if (dlg.ShowModal() == wxID_OK)
+				{
+					loadPassword = dlg.GetValue();
+					continue;
+				}
+			}
+
+			LogPDFError(error);
+			return false;
+		}
+		retryLoad = false;
 	}
 
 	m_docPermissions = FPDF_GetDocPermissions(m_pdfDoc);
