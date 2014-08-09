@@ -149,6 +149,7 @@ void wxPDFViewPage::UpdateBitmap()
 	memDC.SetBackground(*wxWHITE_BRUSH);
 	memDC.Clear();
 	FPDF_RenderPage(memDC.GetHDC(), page, 0, 0, bmpSize.x, bmpSize.y, 0, 2);
+	m_bmp = bmp;
 #else
 	m_bmp = CreateBitmap(page, bmpSize);
 #endif
