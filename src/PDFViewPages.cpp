@@ -111,10 +111,11 @@ void wxPDFViewPage::DrawPrint(wxDC& dc, const wxRect& rect)
 {
 	FPDF_PAGE page = GetPage();
 
+	int renderFlags = FPDF_ANNOT | FPDF_PRINTING;
 #ifdef wxPDFVIEW_USE_RENDER_TO_DC
-	FPDF_RenderPage(dc.GetHDC(), page, rect.x, rect.y, rect.width, rect.height, 0, 0);
+	FPDF_RenderPage(dc.GetHDC(), page, rect.x, rect.y, rect.width, rect.height, 0, renderFlags);
 #else
-	wxBitmap bmp = CreateBitmap(page, rect.GetSize());
+	wxBitmap bmp = CreateBitmap(page, rect.GetSize(), renderFlags);
 	wxMemoryDC memDC(bmp);
 	dc.Blit(rect.GetPosition(), rect.GetSize(), &memDC, wxPoint(0, 0));
 #endif
@@ -135,7 +136,7 @@ bool wxPDFViewPage::IsBitmapUpdateRequired() const
 	return !m_bmp.IsOk() || m_bmp.GetSize() != m_requiredBmpSize;
 }
 
-void wxPDFViewPage::UpdateBitmap()
+bool wxPDFViewPage::UpdateBitmap()
 {
 	// Check if bitmap has to be rerendered
 	wxSize bmpSize = m_requiredBmpSize;
@@ -144,24 +145,24 @@ void wxPDFViewPage::UpdateBitmap()
 	FPDF_PAGE page = GetPage();
 
 #ifdef wxPDFVIEW_USE_RENDER_TO_DC
-	wxBitmap bmp(bmpSize, 24);
-	wxMemoryDC memDC(bmp);
+	m_bmp.Create(bmpSize, 24);
+	wxMemoryDC memDC(m_bmp);
 	memDC.SetBackground(*wxWHITE_BRUSH);
 	memDC.Clear();
-	FPDF_RenderPage(memDC.GetHDC(), page, 0, 0, bmpSize.x, bmpSize.y, 0, 2);
-	m_bmp = bmp;
+	FPDF_RenderPage(memDC.GetHDC(), page, 0, 0, bmpSize.x, bmpSize.y, 0, FPDF_LCD_TEXT);
 #else
-	m_bmp = CreateBitmap(page, bmpSize);
+	m_bmp = CreateBitmap(page, bmpSize, FPDF_LCD_TEXT);
 #endif
+	return m_bmp.IsOk();
 }
 
 #ifndef wxPDFVIEW_USE_RENDER_TO_DC
-wxBitmap wxPDFViewPage::CreateBitmap(FPDF_PAGE page, const wxSize& bmpSize)
+wxBitmap wxPDFViewPage::CreateBitmap(FPDF_PAGE page, const wxSize& bmpSize, int flags)
 {
 	FPDF_BITMAP bitmap = FPDFBitmap_Create(bmpSize.x, bmpSize.y, 0);
 	FPDFBitmap_FillRect(bitmap, 0, 0, bmpSize.x, bmpSize.y, 0xFFFFFFFF);
 
-	FPDF_RenderPageBitmap(bitmap, page, 0, 0, bmpSize.x, bmpSize.y, 0, 2);
+	FPDF_RenderPageBitmap(bitmap, page, 0, 0, bmpSize.x, bmpSize.y, 0, flags);
 	unsigned char* buffer =
 		reinterpret_cast<unsigned char*>(FPDFBitmap_GetBuffer(bitmap));
 

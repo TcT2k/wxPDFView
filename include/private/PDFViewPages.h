@@ -37,7 +37,7 @@ public:
 
 	bool IsBitmapUpdateRequired() const;
 
-	void UpdateBitmap();
+	bool UpdateBitmap();
 
 	wxRect PageToScreen(const wxRect& pageRect, double left, double top, double right, double bottom);
 
@@ -52,7 +52,7 @@ private:
 	void CheckBitmap(const wxSize& bmpSize);
 
 #ifndef wxPDFVIEW_USE_RENDER_TO_DC
-	static wxBitmap CreateBitmap(FPDF_PAGE page, const wxSize& bmpSize);
+	static wxBitmap CreateBitmap(FPDF_PAGE page, const wxSize& bmpSize, int flags);
 #endif
 };
 
