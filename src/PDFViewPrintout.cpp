@@ -10,9 +10,10 @@
 #include "private/PDFViewPrintout.h"
 #include "private/PDFViewImpl.h"
 
-wxPDFViewPrintout::wxPDFViewPrintout(wxPDFView* pdfView):
+wxPDFViewPrintout::wxPDFViewPrintout(wxPDFView* pdfView, bool forceBitmapPrint):
 	wxPrintout(GetDocTitle(pdfView)),
-	m_ctrl(pdfView)
+	m_ctrl(pdfView),
+	m_forceBitmapPrint(forceBitmapPrint)
 {
 
 }
@@ -75,6 +76,6 @@ void wxPDFViewPrintout::RenderPage(wxDC& dc, int pageIndex)
 	// Draw page content
 	wxRect printRect(0, 0, pageWidth, pageHeight);
 	wxPDFViewPage& page = m_ctrl->GetImpl()->m_pages[pageIndex];
-	page.DrawPrint(dc, printRect);
+	page.DrawPrint(dc, printRect, m_forceBitmapPrint);
 	page.Unload();
 }

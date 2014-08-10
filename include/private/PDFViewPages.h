@@ -42,7 +42,7 @@ public:
 
 	void DrawThumbnail(wxDC& dc, const wxRect& rect);
 
-	void DrawPrint(wxDC& dc, const wxRect& rect);
+	void DrawPrint(wxDC& dc, const wxRect& rect, bool forceBitmap);
 
 	bool IsBitmapUpdateRequired() const;
 
@@ -60,9 +60,7 @@ private:
 
 	void CheckBitmap(const wxSize& bmpSize);
 
-#ifndef wxPDFVIEW_USE_RENDER_TO_DC
 	static wxBitmap CreateBitmap(FPDF_PAGE page, const wxSize& bmpSize, int flags);
-#endif
 };
 
 class wxPDFViewPages: public std::vector<wxPDFViewPage>, public wxEvtHandler, public wxThreadHelper

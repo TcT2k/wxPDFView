@@ -618,7 +618,10 @@ bool wxPDFViewImpl::IsPrintAllowed() const
 wxPrintout* wxPDFViewImpl::CreatePrintout() const
 {
 	if (IsPrintAllowed())
-		return new wxPDFViewPrintout(m_ctrl);
+	{
+		bool forceBitmapPrintout = (m_docPermissions & PDF_PERMISSION_PRINT_HIGH_QUALITY) == 0;
+		return new wxPDFViewPrintout(m_ctrl, forceBitmapPrintout);
+	}
 	else
 		return NULL;
 }

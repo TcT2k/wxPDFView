@@ -16,7 +16,7 @@ class wxPDFView;
 class wxPDFViewPrintout: public wxPrintout
 {
 public:
-	wxPDFViewPrintout(wxPDFView* pdfView);
+	wxPDFViewPrintout(wxPDFView* pdfView, bool forceBitmapPrint);
 
 	bool OnPrintPage(int page);
 	bool HasPage(int page);
@@ -26,6 +26,7 @@ public:
 
 private:
 	wxPDFView* m_ctrl;
+	bool m_forceBitmapPrint;
 
 	void RenderPage(wxDC& dc, int pageIndex);
 
