@@ -116,6 +116,8 @@ class wxPDFViewBookmark: public wxVector< wxSharedPtr<wxPDFViewBookmark> >
 public:
 	virtual wxString GetTitle() const = 0;
 	virtual void Navigate(wxPDFView* pdfView) = 0;
+
+	virtual ~wxPDFViewBookmark() { }
 };
 
 wxDECLARE_EVENT(wxEVT_PDFVIEW_DOCUMENT_READY, wxCommandEvent);
