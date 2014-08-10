@@ -804,6 +804,9 @@ wxRect wxPDFViewImpl::ScaledToUnscaled(const wxRect& rect) const
 
 int wxPDFViewImpl::ClientToPage(const wxPoint& clientPos, wxPoint& pagePos)
 {
+	if (m_pages.empty())
+		return -1;
+
 	wxPoint docPos = m_ctrl->CalcUnscrolledPosition(clientPos);
 	docPos.x /= m_ctrl->GetScaleX();
 	docPos.y /= m_ctrl->GetScaleY();
