@@ -16,8 +16,8 @@ public:
 	wxPDFViewBookmarkImpl(CPDF_BookmarkTree& bmTree, CPDF_Bookmark& bookmark):
 		m_bookmark(bookmark)
 	{
-		CFX_ByteString bookmarkTitleSDK = bookmark.GetTitle().UTF8Encode();
-		m_title = wxString::FromUTF8(bookmarkTitleSDK, bookmarkTitleSDK.GetLength());
+		CFX_WideString sdkTitle = bookmark.GetTitle();
+		m_title.assign((FX_LPCWSTR)sdkTitle, sdkTitle.GetLength());
 		CPDF_Bookmark child = bmTree.GetFirstChild(bookmark);
 		while (child)
 		{
