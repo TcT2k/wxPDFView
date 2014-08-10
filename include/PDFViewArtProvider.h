@@ -1,3 +1,12 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:        include/PDFViewArtProvider.h
+// Purpose:     wxPDFViewArtProvider class
+// Author:      Tobias Taschner
+// Created:     2014-08-07
+// Copyright:   (c) 2014 Tobias Taschner
+// Licence:     wxWindows licence
+/////////////////////////////////////////////////////////////////////////////
+
 #ifndef PDFVIEW_ART_PROVIDER_H
 #define PDFVIEW_ART_PROVIDER_H
 

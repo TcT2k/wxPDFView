@@ -1,3 +1,12 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:        src/PDFViewPrintout.cpp
+// Purpose:     wxPDFViewPrintout implementation
+// Author:      Tobias Taschner
+// Created:     2014-08-07
+// Copyright:   (c) 2014 Tobias Taschner
+// Licence:     wxWindows licence
+/////////////////////////////////////////////////////////////////////////////
+
 #include "private/PDFViewPrintout.h"
 #include "private/PDFViewImpl.h"
 

@@ -1,3 +1,12 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:        src/PDFViewTextRange.cpp
+// Purpose:     wxPDFViewTextRange implementation
+// Author:      Tobias Taschner
+// Created:     2014-08-07
+// Copyright:   (c) 2014 Tobias Taschner
+// Licence:     wxWindows licence
+/////////////////////////////////////////////////////////////////////////////
+
 #include "private/PDFViewTextRange.h"
 
 #include "private/PDFViewPages.h"

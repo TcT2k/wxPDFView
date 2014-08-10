@@ -1,3 +1,12 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:        include/private/PDFViewImpl.h
+// Purpose:     wxPDFViewImpl class
+// Author:      Tobias Taschner
+// Created:     2014-08-07
+// Copyright:   (c) 2014 Tobias Taschner
+// Licence:     wxWindows licence
+/////////////////////////////////////////////////////////////////////////////
+
 #ifndef PDFVIEW_IMPL_H
 #define PDFVIEW_IMPL_H
 

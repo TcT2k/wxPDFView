@@ -1,3 +1,12 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:        include/private/PDFViewThumbnailListBoxImpl.h
+// Purpose:     wxPDFViewThumbnailListBoxImpl class
+// Author:      Tobias Taschner
+// Created:     2014-08-07
+// Copyright:   (c) 2014 Tobias Taschner
+// Licence:     wxWindows licence
+/////////////////////////////////////////////////////////////////////////////
+
 #ifndef PDFVIEW_THUMBNAIL_LISTBOX_IMPL_H
 #define PDFVIEW_THUMBNAIL_LISTBOX_IMPL_H
 

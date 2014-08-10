@@ -1,3 +1,12 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:        src/PDFViewArtProvider.cpp
+// Purpose:     wxPDFViewArtProvider implementation
+// Author:      Tobias Taschner
+// Created:     2014-08-07
+// Copyright:   (c) 2014 Tobias Taschner
+// Licence:     wxWindows licence
+/////////////////////////////////////////////////////////////////////////////
+
 #include "PDFViewArtProvider.h"
 
 #include <wx/mstream.h>

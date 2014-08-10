@@ -1,3 +1,12 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:        include/PDFViewDocumentFrame.h
+// Purpose:     wxPDFViewDocumentFrame class
+// Author:      Tobias Taschner
+// Created:     2014-08-07
+// Copyright:   (c) 2014 Tobias Taschner
+// Licence:     wxWindows licence
+/////////////////////////////////////////////////////////////////////////////
+
 #ifndef PDFVIEW_DOCUMENT_FRAME_H
 #define PDFVIEW_DOCUMENT_FRAME_H
 

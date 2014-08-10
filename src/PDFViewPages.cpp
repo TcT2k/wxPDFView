@@ -1,3 +1,12 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:        src/PDFViewPages.cpp
+// Purpose:     wxPDFViewPages implementation
+// Author:      Tobias Taschner
+// Created:     2014-08-07
+// Copyright:   (c) 2014 Tobias Taschner
+// Licence:     wxWindows licence
+/////////////////////////////////////////////////////////////////////////////
+
 #include "private/PDFViewPages.h"
 
 #ifndef wxPDFVIEW_USE_RENDER_TO_DC

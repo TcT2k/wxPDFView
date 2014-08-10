@@ -1,3 +1,12 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:        samples/simple/Simple.h
+// Purpose:     Simple sample app implementation
+// Author:      Tobias Taschner
+// Created:     2014-08-07
+// Copyright:   (c) 2014 Tobias Taschner
+// Licence:     wxWindows licence
+/////////////////////////////////////////////////////////////////////////////
+
 #include <wx/menu.h>
 #include <wx/msgdlg.h>
 #include <wx/sharedptr.h>

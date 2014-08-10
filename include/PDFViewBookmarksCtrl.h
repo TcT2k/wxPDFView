@@ -1,3 +1,12 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:        include/PDFViewBookmarksCtrl.h
+// Purpose:     wxPDFViewBookmarksCtrl class
+// Author:      Tobias Taschner
+// Created:     2014-08-07
+// Copyright:   (c) 2014 Tobias Taschner
+// Licence:     wxWindows licence
+/////////////////////////////////////////////////////////////////////////////
+
 #ifndef PDFVIEW_BOOKMARKS_CTRL_H
 #define PDFVIEW_BOOKMARKS_CTRL_H
 

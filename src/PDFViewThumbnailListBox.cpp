@@ -1,3 +1,12 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:        src/PDFViewThumbnailListBox.cpp
+// Purpose:     wxPDFViewThumbnailListBox implementation
+// Author:      Tobias Taschner
+// Created:     2014-08-07
+// Copyright:   (c) 2014 Tobias Taschner
+// Licence:     wxWindows licence
+/////////////////////////////////////////////////////////////////////////////
+
 #include "PDFViewThumbnailListBox.h"
 
 #include "private/PDFViewThumbnailListBoxImpl.h"

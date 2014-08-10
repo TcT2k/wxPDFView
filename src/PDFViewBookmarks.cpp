@@ -1,3 +1,12 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:        src/PDFViewBookmarks.cpp
+// Purpose:     wxPDFViewBookmarks implementation
+// Author:      Tobias Taschner
+// Created:     2014-08-07
+// Copyright:   (c) 2014 Tobias Taschner
+// Licence:     wxWindows licence
+/////////////////////////////////////////////////////////////////////////////
+
 #include "private/PDFViewBookmarks.h"
 #include "private/PDFViewImpl.h"
 
