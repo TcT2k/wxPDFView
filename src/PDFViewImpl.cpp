@@ -995,6 +995,5 @@ void wxPDFViewImpl::ReleaseSDK()
 	if (ms_pdfSDKRefCount == 0)
 	{
 		FPDF_DestroyLibrary();
-		v8::V8::ShutdownPlatform();
 	}
 }
