@@ -13,8 +13,7 @@
 #include <wx/wx.h>
 #include <wx/graphics.h>
 #include <wx/thread.h>
-#include <vector>
-#include <map>
+#include <wx/vector.h>
 #include "fpdfdoc.h"
 
 #ifdef __WXMSW__
@@ -63,7 +62,7 @@ private:
 	static wxBitmap CreateBitmap(FPDF_PAGE page, const wxSize& bmpSize, int flags);
 };
 
-class wxPDFViewPages: public std::vector<wxPDFViewPage>, public wxEvtHandler, public wxThreadHelper
+class wxPDFViewPages: public wxVector<wxPDFViewPage>, public wxEvtHandler, public wxThreadHelper
 {
 public:
 	wxPDFViewPages();

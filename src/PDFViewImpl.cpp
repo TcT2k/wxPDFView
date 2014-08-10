@@ -120,7 +120,7 @@ int Form_Alert(IPDF_JSPLATFORM* WXUNUSED(pThis), FPDF_WIDESTRING Msg, FPDF_WIDES
 
 void Unsupported_Handler(UNSUPPORT_INFO*, int type)
 {
-  std::string feature = "Unknown";
+  wxString feature = "Unknown";
   switch (type) {
 	case FPDF_UNSP_DOC_XFAFORM:
 	  feature = "XFA";
@@ -194,10 +194,14 @@ void Add_Segment(FX_DOWNLOADHINTS* WXUNUSED(pThis), size_t WXUNUSED(offset), siz
 // wxPDFViewImpl
 //
 
+wxAtomicInt wxPDFViewImpl::ms_pdfSDKRefCount = 0;
+
 wxPDFViewImpl::wxPDFViewImpl(wxPDFView* ctrl):
 	m_ctrl(ctrl),
 	m_handCursor(wxCURSOR_HAND)
 {
+	AcquireSDK();
+
 	m_zoomType = wxPDFVIEW_ZOOM_TYPE_FREE;
 	m_pagePadding = 16;
 	m_scrollStepX = 20;
@@ -239,20 +243,13 @@ wxPDFViewImpl::wxPDFViewImpl(wxPDFView* ctrl):
 	m_ctrl->Bind(wxEVT_SCROLLWIN_BOTTOM, &wxPDFViewImpl::OnScroll, this);
 
 	m_pages.Bind(wxEVT_PDFVIEW_PAGE_UPDATED, &wxPDFViewImpl::OnPageUpdate, this);
-
-	// Initialize PDF Rendering library
-	v8::V8::InitializeICU();
-
-	FPDF_InitLibrary(NULL);
-
-	FSDK_SetUnSpObjProcessHandler(&g_unsupported_info);
 }
 
 wxPDFViewImpl::~wxPDFViewImpl()
 {
 	CloseDocument();
 
-	FPDF_DestroyLibrary();
+	ReleaseSDK();
 }
 
 void wxPDFViewImpl::NavigateToPage(wxPDFViewPageNavigation pageNavigation)
@@ -974,5 +971,30 @@ void wxPDFViewImpl::RefreshPage(int pageIndex)
 		updateRect.SetPosition(m_ctrl->CalcScrolledPosition(updateRect.GetPosition()));
 
 		m_ctrl->RefreshRect(updateRect, true);
+	}
+}
+
+bool wxPDFViewImpl::AcquireSDK()
+{
+	if (ms_pdfSDKRefCount == 0)
+	{
+		// Initialize PDF Rendering library
+		v8::V8::InitializeICU();
+
+		FPDF_InitLibrary(NULL);
+
+		FSDK_SetUnSpObjProcessHandler(&g_unsupported_info);
+	}
+	wxAtomicInc(ms_pdfSDKRefCount);
+	return true;
+}
+
+void wxPDFViewImpl::ReleaseSDK()
+{
+	wxAtomicDec(ms_pdfSDKRefCount);
+	if (ms_pdfSDKRefCount == 0)
+	{
+		FPDF_DestroyLibrary();
+		v8::V8::ShutdownPlatform();
 	}
 }

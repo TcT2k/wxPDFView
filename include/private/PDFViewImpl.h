@@ -12,8 +12,8 @@
 
 #include <wx/sharedptr.h>
 #include <wx/graphics.h>
-#include <set>
-#include <vector>
+#include <wx/atomic.h>
+#include <wx/vector.h>
 #include <istream>
 
 #include "fpdf_dataavail.h"
@@ -88,12 +88,13 @@ private:
 	FPDF_AVAIL m_pdfAvail;
 
 	// PDF SDK Structures
+	static wxAtomicInt ms_pdfSDKRefCount;
 	FPDF_FILEACCESS m_pdfFileAccess;
 	FX_FILEAVAIL m_pdfFileAvail;
 
 	// Document information
 	int m_pageCount;
-	std::vector<wxRect> m_pageRects;
+	wxVector<wxRect> m_pageRects;
 	wxPDFViewPages m_pages;
 	wxSize m_docSize;
 	unsigned long m_docPermissions;
@@ -161,6 +162,10 @@ private:
 
 	// Request redraw for specified page
 	void RefreshPage(int pageIndex);
+
+	static bool AcquireSDK();
+
+	static void ReleaseSDK();
 
 	friend class wxPDFViewPrintout;
 };
