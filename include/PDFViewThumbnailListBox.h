@@ -39,6 +39,8 @@ public:
 			   long style = 0,
 			   const wxString& name = wxVListBoxNameStr);
 
+	~wxPDFViewThumbnailListBox();
+
 	void SetPDFView(wxPDFView* pdfView);
 
 	wxPDFView* GetPDFView() const;

@@ -26,6 +26,12 @@ bool wxPDFViewThumbnailListBox::Create(wxWindow *parent,
 	return true;
 }
 
+wxPDFViewThumbnailListBox::~wxPDFViewThumbnailListBox()
+{
+	if (m_impl)
+		wxDELETE(m_impl);
+}
+
 void wxPDFViewThumbnailListBox::SetPDFView(wxPDFView* pdfView)
 {
 	if (m_impl)
