@@ -21,8 +21,7 @@ wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent,
 {
 	wxPDFViewArtProvider::Initialize();
 
-	this->SetSizeHints( wxSize( 800,600 ), wxDefaultSize );
-	this->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE ) );
+	SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE ) );
 
 	wxBoxSizer* mainSizer = new wxBoxSizer( wxHORIZONTAL );
 	mainSizer->SetMinSize( wxSize( 800,600 ) ); 
@@ -75,10 +74,10 @@ wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent,
 	m_splitter->SplitVertically( m_navPanel, m_docPanel, 180 );
 	mainSizer->Add( m_splitter, 1, wxEXPAND, 5 );
 
-	this->SetSizer( mainSizer );
-	this->Layout();
-	mainSizer->Fit( this );
-	m_toolBar = this->CreateToolBar( wxTB_FLAT|wxTB_HORIZONTAL, wxID_ANY );
+	SetSizerAndFit( mainSizer );
+
+	// Initialize toolbar
+	m_toolBar = CreateToolBar( wxTB_FLAT|wxTB_HORIZONTAL|wxTB_NODIVIDER);
 
 	// Init search ctrl
 	m_searchCtrl = new wxSearchCtrl(m_toolBar, wxID_ANY, wxString(), wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
@@ -124,6 +123,7 @@ wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent,
 
 	m_toolBar->Realize();
 
+	// Bind toolbar events
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnPageNextClick, this, wxID_FORWARD);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnPagePrevClick, this, wxID_BACKWARD);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnZoomInClick, this, ID_ZOOM_IN);
@@ -137,8 +137,6 @@ wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent,
 
 	Layout();
 
-	this->Centre( wxBOTH );
-
 	// Prepare for display while loading
 	m_toolBar->EnableTool(wxID_FORWARD, false);
 	m_toolBar->EnableTool(wxID_BACKWARD, false);
@@ -151,6 +149,7 @@ wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent,
 
 	m_toolBar->ToggleTool(ID_NAVIGATION, true);
 
+	// Bind PDF events
 	m_pdfView->Bind(wxEVT_PDFVIEW_DOCUMENT_READY, &wxPDFViewDocumentFrame::OnPDFDocumentReady, this);
 	m_pdfView->Bind(wxEVT_PDFVIEW_PAGE_CHANGED, &wxPDFViewDocumentFrame::OnPDFPageChanged, this);
 	m_pdfView->Bind(wxEVT_PDFVIEW_ZOOM_CHANGED, &wxPDFViewDocumentFrame::OnPDFZoomChanged, this);
