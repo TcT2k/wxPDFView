@@ -86,9 +86,9 @@ public:
 
 	const wxString& GetDocumentTitle() const;
 
-	bool LoadFile(const wxString& fileName, const wxString& password = wxEmptyString);
+	bool LoadFile(const wxString& fileName, const wxString& password = wxString());
 
-	bool LoadStream(wxSharedPtr<std::istream> pStream, const wxString& password = wxEmptyString);
+	bool LoadStream(wxSharedPtr<std::istream> pStream, const wxString& password = wxString());
 
 	void CloseDocument();
 

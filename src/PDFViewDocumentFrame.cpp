@@ -72,7 +72,7 @@ wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent,
 	m_toolBar = this->CreateToolBar( wxTB_FLAT|wxTB_HORIZONTAL, wxID_ANY );
 
 	// Init search ctrl
-	m_searchCtrl = new wxSearchCtrl(m_toolBar, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+	m_searchCtrl = new wxSearchCtrl(m_toolBar, wxID_ANY, wxString(), wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
 	m_searchCtrl->SetMinSize(wxSize(80, -1));
 	m_searchCtrl->Bind(wxEVT_COMMAND_SEARCHCTRL_CANCEL_BTN, &wxPDFViewDocumentFrame::OnSearchCtrlCancel, this);
 	m_searchCtrl->Bind(wxEVT_COMMAND_SEARCHCTRL_SEARCH_BTN, &wxPDFViewDocumentFrame::OnSearchCtrlFind, this);
