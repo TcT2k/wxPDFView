@@ -725,6 +725,9 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream, const wxString
 	}
 	m_docSize.SetHeight(pageRect.y - (m_pagePadding / 2));
 
+	if (m_pageCount > 0)
+		GetCachedBitmap(0, m_pageRects[0].GetSize());
+
 	AlignPageRects();
 
 	m_bookmarks = new wxPDFViewBookmarks(m_pdfDoc);
