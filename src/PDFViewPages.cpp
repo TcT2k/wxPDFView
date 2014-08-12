@@ -279,8 +279,6 @@ wxThread::ExitCode wxPDFViewPages::Entry()
 						(!entry.bitmap.IsOk() || entry.requiredSize != entry.bitmap.GetSize()))
 					{
 						entry.bitmap = page.CreateCacheBitmap(entry.requiredSize);
-						if (!entry.bitmap.IsOk())
-							wxLogDebug("Bitmap creation failed for page %d (%dx%d)", pageIndex, entry.requiredSize.x, entry.requiredSize.y);
 
 						// Notify client to use the newly cached bitmap
 						CallAfter(&wxPDFViewPages::NotifyPageUpdate, (*it), pageIndex);

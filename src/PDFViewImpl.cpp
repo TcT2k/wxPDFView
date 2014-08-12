@@ -57,7 +57,6 @@ void LogPDFError(unsigned long error)
 
 int Form_Alert(IPDF_JSPLATFORM* WXUNUSED(pThis), FPDF_WIDESTRING Msg, FPDF_WIDESTRING Title, int Type, int Icon)
 {
-	wxLogDebug("Form_Alert called.");
 	long msgBoxStyle = wxCENTRE;
 	switch (Icon)
 	{
@@ -916,10 +915,7 @@ void wxPDFViewImpl::CalcVisiblePages()
 	}
 
 	if (firstPage != GetFirstVisiblePage() || lastPage != GetLastVisiblePage())
-	{
-		wxLogDebug("Visible pages: %d to %d", firstPage, lastPage);
 		SetVisiblePages(firstPage, lastPage);
-	}
 }
 
 void wxPDFViewImpl::CalcZoomLevel()
