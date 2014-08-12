@@ -202,6 +202,8 @@ wxPDFViewImpl::wxPDFViewImpl(wxPDFView* ctrl):
 {
 	AcquireSDK();
 
+	SetPages(&m_pages);
+
 	m_zoomType = wxPDFVIEW_ZOOM_TYPE_FREE;
 	m_pagePadding = 16;
 	m_scrollStepX = 20;
@@ -213,8 +215,6 @@ wxPDFViewImpl::wxPDFViewImpl(wxPDFView* ctrl):
 	m_pdfDoc = NULL;
 	m_pdfForm = NULL;
 	m_pdfAvail = NULL;
-	m_firstVisiblePage = -1;
-	m_lastVisiblePage = -1;
 	m_currentPage = -1;
 	m_bookmarks = NULL;
 	m_currentFindIndex = -1;
@@ -241,8 +241,6 @@ wxPDFViewImpl::wxPDFViewImpl(wxPDFView* ctrl):
 	m_ctrl->Bind(wxEVT_SCROLLWIN_PAGEDOWN, &wxPDFViewImpl::OnScroll, this);
 	m_ctrl->Bind(wxEVT_SCROLLWIN_TOP, &wxPDFViewImpl::OnScroll, this);
 	m_ctrl->Bind(wxEVT_SCROLLWIN_BOTTOM, &wxPDFViewImpl::OnScroll, this);
-
-	m_pages.Bind(wxEVT_PDFVIEW_PAGE_UPDATED, &wxPDFViewImpl::OnPageUpdate, this);
 }
 
 wxPDFViewImpl::~wxPDFViewImpl()
@@ -290,9 +288,9 @@ void wxPDFViewImpl::AlignPageRects()
 		it->x = (ctrlWidth - it->width) / 2;
 }
 
-void wxPDFViewImpl::OnPageUpdate(wxThreadEvent& event)
+void wxPDFViewImpl::OnPageUpdated(int pageIndex)
 {
-	RefreshPage(event.GetInt());
+	RefreshPage(pageIndex);
 }
 
 void wxPDFViewImpl::OnPaint(wxPaintEvent& WXUNUSED(event))
@@ -310,14 +308,14 @@ void wxPDFViewImpl::OnPaint(wxPaintEvent& WXUNUSED(event))
 	dc.Clear();
 
 	// Draw visible pages
-	if (m_firstVisiblePage < 0)
+	if (GetFirstVisiblePage() < 0)
 		return;
 
-	for (int pageIndex = m_firstVisiblePage; pageIndex <= m_lastVisiblePage; ++pageIndex)
+	for (int pageIndex = GetFirstVisiblePage(); pageIndex <= GetLastVisiblePage(); ++pageIndex)
 	{
 		wxRect pageRect = m_pageRects[pageIndex];
 		if (pageRect.Intersects(rectUpdate))
-			m_pages[pageIndex].Draw(dc, *gc, pageRect);
+			m_pages[pageIndex].Draw(this, dc, *gc, pageRect);
 	}
 
 	// Draw text selections
@@ -327,7 +325,7 @@ void wxPDFViewImpl::OnPaint(wxPaintEvent& WXUNUSED(event))
 	for (auto it = m_selection.begin(); it != m_selection.end(); ++it)
 	{
 		int pageIndex = it->GetPage()->GetIndex();
-		if (pageIndex >= m_firstVisiblePage && pageIndex <= m_lastVisiblePage)
+		if (IsPageVisible(pageIndex))
 		{
 			wxRect pageRect = m_pageRects[pageIndex];
 			if (pageRect.Intersects(rectUpdate))
@@ -544,7 +542,7 @@ long wxPDFViewImpl::Find(const wxString& text, int flags)
 	m_selection.push_back(result);
 	int resultPageIndex = result.GetPage()->GetIndex();
 	// Make selection visible
-	if (!m_pages.IsPageVisible(resultPageIndex))
+	if (!IsPageVisible(resultPageIndex))
 		SetCurrentPage(resultPageIndex); // TODO: center selection rect
 	else
 		m_ctrl->Refresh();
@@ -808,7 +806,7 @@ int wxPDFViewImpl::ClientToPage(const wxPoint& clientPos, wxPoint& pagePos)
 	docPos.x /= m_ctrl->GetScaleX();
 	docPos.y /= m_ctrl->GetScaleY();
 
-	for (int i = m_firstVisiblePage; i <= m_lastVisiblePage; ++i)
+	for (int i = GetFirstVisiblePage(); i <= GetLastVisiblePage(); ++i)
 	{
 		wxRect pageRect = m_pageRects[i];
 
@@ -917,12 +915,10 @@ void wxPDFViewImpl::CalcVisiblePages()
 		m_ctrl->QueueEvent(evt);
 	}
 
-	if (firstPage != m_firstVisiblePage || lastPage != m_lastVisiblePage)
+	if (firstPage != GetFirstVisiblePage() || lastPage != GetLastVisiblePage())
 	{
 		wxLogDebug("Visible pages: %d to %d", firstPage, lastPage);
-		m_firstVisiblePage = firstPage;
-		m_lastVisiblePage = lastPage;
-		m_pages.SetVisiblePages(firstPage, lastPage);
+		SetVisiblePages(firstPage, lastPage);
 	}
 }
 
@@ -964,7 +960,7 @@ wxSize wxPDFViewImpl::GetPageSize(int pageIndex) const
 
 void wxPDFViewImpl::RefreshPage(int pageIndex)
 {
-	if (m_pages.IsPageVisible(pageIndex))
+	if (IsPageVisible(pageIndex))
 	{
 		wxRect updateRect = m_pageRects[pageIndex];
 		updateRect = UnscaledToScaled(updateRect);

@@ -13,7 +13,7 @@
 #include "PDFViewThumbnailListBox.h"
 #include "PDFViewPages.h"
 
-class wxPDFViewThumbnailListBoxImpl
+class wxPDFViewThumbnailListBoxImpl: public wxPDFViewPagesClient
 {
 public:
 	wxPDFViewThumbnailListBoxImpl(wxPDFViewThumbnailListBox* ctrl);
@@ -29,7 +29,6 @@ public:
 private:
 	wxPDFViewThumbnailListBox* m_ctrl;
 	wxPDFView* m_pdfView;
-	wxPDFViewPages m_pages;
 
 	void OnPDFDocumentReady(wxCommandEvent& event);
 
@@ -37,7 +36,7 @@ private:
 
 	void OnSelectionChanged(wxCommandEvent& event);
 
-	void OnPageUpdate(wxThreadEvent& event);
+	virtual void OnPageUpdated(int pageIndex);
 
 	void UpdateVisiblePages();
 };

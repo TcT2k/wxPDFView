@@ -26,7 +26,7 @@
 #include "PDFViewBookmarks.h"
 #include "PDFViewTextRange.h"
 
-class wxPDFViewImpl
+class wxPDFViewImpl: public wxPDFViewPagesClient
 {
 public:
 	wxPDFViewImpl(wxPDFView* ctrl);
@@ -75,6 +75,8 @@ public:
 
 	void* GetDocument() const { return m_pdfDoc; };
 
+	wxPDFViewPages* GetPages() { return &m_pages; };
+
 	wxSize GetPageSize(int pageIndex) const;
 
 private:
@@ -109,8 +111,6 @@ private:
 	double m_maxZoom;
 	double m_minZoom;
 	int m_currentPage;
-	int m_firstVisiblePage;
-	int m_lastVisiblePage;
 	wxCursor m_handCursor;
 	wxVector<wxPDFViewTextRange> m_selection;
 
@@ -126,7 +126,7 @@ private:
 
 	void AlignPageRects();
 
-	void OnPageUpdate(wxThreadEvent& event);
+	virtual void OnPageUpdated(int pageIndex);
 
 	void OnPaint(wxPaintEvent& event);
 

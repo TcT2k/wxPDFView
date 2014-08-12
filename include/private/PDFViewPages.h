@@ -14,6 +14,7 @@
 #include <wx/graphics.h>
 #include <wx/thread.h>
 #include <wx/vector.h>
+#include <map>
 #include "fpdfdoc.h"
 
 #ifdef __WXMSW__
@@ -21,6 +22,7 @@
 #endif
 
 class wxPDFViewPages;
+class wxPDFViewPagesClient;
 
 class wxPDFViewPage
 {
@@ -37,15 +39,13 @@ public:
 
 	FPDF_TEXTPAGE GetTextPage();
 
-	void Draw(wxDC& dc, wxGraphicsContext& gc, const wxRect& rect);
+	void Draw(wxPDFViewPagesClient* client, wxDC& dc, wxGraphicsContext& gc, const wxRect& rect);
 
-	void DrawThumbnail(wxDC& dc, const wxRect& rect);
+	void DrawThumbnail(wxPDFViewPagesClient* client, wxDC& dc, const wxRect& rect);
 
 	void DrawPrint(wxDC& dc, const wxRect& rect, bool forceBitmap);
 
-	bool IsBitmapUpdateRequired() const;
-
-	bool UpdateBitmap();
+	wxBitmap CreateCacheBitmap(const wxSize& bmpSize);
 
 	wxRect PageToScreen(const wxRect& pageRect, double left, double top, double right, double bottom);
 
@@ -54,10 +54,6 @@ private:
 	int m_index;
 	FPDF_PAGE m_page;
 	FPDF_TEXTPAGE m_textPage;
-	wxBitmap m_bmp;
-	wxSize m_requiredBmpSize;
-
-	void CheckBitmap(const wxSize& bmpSize);
 
 	static wxBitmap CreateBitmap(FPDF_PAGE page, const wxSize& bmpSize, int flags);
 };
@@ -71,9 +67,9 @@ public:
 
 	void SetDocument(FPDF_DOCUMENT doc);
 
-	void SetVisiblePages(int firstPage, int lastPage);
+	void RegisterClient(wxPDFViewPagesClient* client);
 
-	bool IsPageVisible(int pageIndex) const;
+	void UnregisterClient(wxPDFViewPagesClient* client);
 
 	void RequestBitmapUpdate();
 
@@ -84,13 +80,51 @@ protected:
 
 private:
 	FPDF_DOCUMENT m_doc;
-	int m_firstVisiblePage;
-	int m_lastVisiblePage;
+	wxVector<wxPDFViewPagesClient*> m_clients;
 
 	bool m_bmpUpdateHandlerActive;
 	wxCondition* m_bmpUpdateHandlerCondition;
+
+	void NotifyPageUpdate(wxPDFViewPagesClient* client, int pageIndex);
 };
 
-wxDECLARE_EVENT(wxEVT_PDFVIEW_PAGE_UPDATED, wxThreadEvent);
+class wxPDFViewPageBitmapCacheEntry
+{
+public:
+	wxSize requiredSize;
+	wxBitmap bitmap;
+};
+
+class wxPDFViewPagesClient
+{
+public:
+	wxPDFViewPagesClient();
+
+	void SetPages(wxPDFViewPages* pages);
+
+	void SetVisiblePages(int firstPage, int lastPage);
+
+	bool IsPageVisible(int pageIndex) const;
+
+	int GetFirstVisiblePage() const { return m_firstVisiblePage; };
+
+	int GetLastVisiblePage() const { return m_lastVisiblePage; };
+
+	wxBitmap GetCachedBitmap(int pageIndex, const wxSize& size);
+
+	void RemoveCachedBitmap(int pageIndex);
+
+protected:
+	wxPDFViewPages* m_pPages;
+
+	virtual void OnPageUpdated(int pageIndex) = 0;
+
+private:
+	int m_firstVisiblePage;
+	int m_lastVisiblePage;
+	std::map<int, wxPDFViewPageBitmapCacheEntry> m_bitmapCache;
+
+	friend class wxPDFViewPages;
+};
 
 #endif // PDFVIEW_PAGES_H

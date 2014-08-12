@@ -17,7 +17,6 @@ wxPDFViewThumbnailListBoxImpl::wxPDFViewThumbnailListBoxImpl(wxPDFViewThumbnailL
 {
 	m_pdfView = NULL;
 	m_ctrl->Bind(wxEVT_COMMAND_LISTBOX_SELECTED, &wxPDFViewThumbnailListBoxImpl::OnSelectionChanged, this);
-	m_pages.Bind(wxEVT_PDFVIEW_PAGE_UPDATED, &wxPDFViewThumbnailListBoxImpl::OnPageUpdate, this);
 }
 
 void wxPDFViewThumbnailListBoxImpl::SetPDFView(wxPDFView* pdfView)
@@ -27,12 +26,14 @@ void wxPDFViewThumbnailListBoxImpl::SetPDFView(wxPDFView* pdfView)
 		// Disconnect events
 		m_pdfView->Unbind(wxEVT_PDFVIEW_DOCUMENT_READY, &wxPDFViewThumbnailListBoxImpl::OnPDFDocumentReady, this);
 		m_pdfView->Unbind(wxEVT_PDFVIEW_PAGE_CHANGED, &wxPDFViewThumbnailListBoxImpl::OnPDFPageChanged, this);
+		SetPages(NULL);
 	}
 
 	m_pdfView = pdfView;
 
 	if (m_pdfView != NULL)
 	{
+		SetPages(m_pdfView->GetImpl()->GetPages());
 		// Connect events
 		m_pdfView->Bind(wxEVT_PDFVIEW_DOCUMENT_READY, &wxPDFViewThumbnailListBoxImpl::OnPDFDocumentReady, this);
 		m_pdfView->Bind(wxEVT_PDFVIEW_PAGE_CHANGED, &wxPDFViewThumbnailListBoxImpl::OnPDFPageChanged, this);
@@ -41,11 +42,11 @@ void wxPDFViewThumbnailListBoxImpl::SetPDFView(wxPDFView* pdfView)
 
 void wxPDFViewThumbnailListBoxImpl::DrawPage(wxDC& dc, const wxRect& rect, int pageIndex)
 {
-	if (m_pages.empty())
+	if (m_pPages && m_pPages->empty())
 		return;
 
 	wxRect pageDrawRect = rect;
-	wxPDFViewPage& page = m_pages[pageIndex];
+	wxPDFViewPage& page = (*m_pPages)[pageIndex];
 	wxRect pageRect(m_pdfView->GetImpl()->GetPageSize(pageIndex));
 	if (pageRect.height >= pageRect.width)
 	{
@@ -54,7 +55,7 @@ void wxPDFViewThumbnailListBoxImpl::DrawPage(wxDC& dc, const wxRect& rect, int p
 		pageDrawRect.height = pageDrawRect.width / ((double) pageRect.width / pageRect.height);
 	}
 
-	page.DrawThumbnail(dc, pageDrawRect.CenterIn(rect));
+	page.DrawThumbnail(this, dc, pageDrawRect.CenterIn(rect));
 }
 
 void wxPDFViewThumbnailListBoxImpl::HandleScrollWindow(int WXUNUSED(dx), int WXUNUSED(dy))
@@ -64,7 +65,6 @@ void wxPDFViewThumbnailListBoxImpl::HandleScrollWindow(int WXUNUSED(dx), int WXU
 
 void wxPDFViewThumbnailListBoxImpl::OnPDFDocumentReady(wxCommandEvent& event)
 {
-	m_pages.SetDocument(m_pdfView->GetImpl()->GetDocument());
 	m_ctrl->SetItemCount(m_pdfView->GetPageCount());
 	UpdateVisiblePages();
 	m_ctrl->Refresh();
@@ -89,12 +89,12 @@ void wxPDFViewThumbnailListBoxImpl::OnSelectionChanged(wxCommandEvent& event)
 	event.Skip();
 }
 
-void wxPDFViewThumbnailListBoxImpl::OnPageUpdate(wxThreadEvent& event)
+void wxPDFViewThumbnailListBoxImpl::OnPageUpdated(int pageIndex)
 {
-	m_ctrl->RefreshRow(event.GetInt());
+	m_ctrl->RefreshRow(pageIndex);
 }
 
 void wxPDFViewThumbnailListBoxImpl::UpdateVisiblePages()
 {
-	m_pages.SetVisiblePages(m_ctrl->GetVisibleBegin(), m_ctrl->GetVisibleEnd());
+	SetVisiblePages(m_ctrl->GetVisibleBegin(), m_ctrl->GetVisibleEnd());
 }

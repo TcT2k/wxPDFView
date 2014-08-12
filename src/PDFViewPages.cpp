@@ -13,7 +13,7 @@
 
 #include "fpdftext.h"
 
-wxDEFINE_EVENT(wxEVT_PDFVIEW_PAGE_UPDATED, wxThreadEvent);
+#include <algorithm>
 
 //
 // wxPDFViewPage
@@ -45,8 +45,6 @@ void wxPDFViewPage::Unload()
 		FPDFText_ClosePage(m_textPage);
 		m_textPage = NULL;
 	}
-
-	m_bmp = wxNullBitmap;
 }
 
 FPDF_PAGE wxPDFViewPage::GetPage()
@@ -78,7 +76,7 @@ wxRect wxPDFViewPage::PageToScreen(const wxRect& pageRect, double left, double t
 	return wxRect(screenLeft, screenTop, screenRight - screenLeft + 1, screenBottom - screenTop + 1);
 }
 
-void wxPDFViewPage::Draw(wxDC& dc, wxGraphicsContext& gc, const wxRect& rect)
+void wxPDFViewPage::Draw(wxPDFViewPagesClient* client, wxDC& dc, wxGraphicsContext& gc, const wxRect& rect)
 {
 	// Draw page background
 	wxRect bgRect = rect.Inflate(2, 2);
@@ -87,9 +85,6 @@ void wxPDFViewPage::Draw(wxDC& dc, wxGraphicsContext& gc, const wxRect& rect)
 	gc.DrawRectangle(bgRect.x, bgRect.y, bgRect.width, bgRect.height);
 
 	// Draw any size bitmap regardless of size (blurry page is better than empty page)
-	if (m_bmp.IsOk())
-		gc.DrawBitmap(m_bmp, rect.x, rect.y, rect.width, rect.height);
-
 	// Calculate the required bitmap size
 	wxSize bmpSize = rect.GetSize();
 	double scaleX, scaleY;
@@ -97,21 +92,22 @@ void wxPDFViewPage::Draw(wxDC& dc, wxGraphicsContext& gc, const wxRect& rect)
 	bmpSize.x *= scaleX;
 	bmpSize.y *= scaleY;
 
-	CheckBitmap(bmpSize);
+	wxBitmap bmp = client->GetCachedBitmap(m_index, bmpSize);
+	if (bmp.IsOk())
+		gc.DrawBitmap(bmp, rect.x, rect.y, rect.width, rect.height);
 }
 
-void wxPDFViewPage::DrawThumbnail(wxDC& dc, const wxRect& rect)
+void wxPDFViewPage::DrawThumbnail(wxPDFViewPagesClient* client, wxDC& dc, const wxRect& rect)
 {
 	dc.SetBackground(*wxTRANSPARENT_BRUSH);
 	dc.SetPen(*wxLIGHT_GREY_PEN);
 	dc.DrawRectangle(rect.Inflate(1, 1));
 
-	if (m_bmp.Ok())
+	wxBitmap bmp = client->GetCachedBitmap(m_index, rect.GetSize());
+	if (bmp.Ok())
 	{
-		dc.DrawBitmap(m_bmp, rect.GetPosition());
+		dc.DrawBitmap(bmp, rect.GetPosition());
 	}
-
-	CheckBitmap(rect.GetSize());
 }
 
 void wxPDFViewPage::DrawPrint(wxDC& dc, const wxRect& rect, bool forceBitmap)
@@ -132,39 +128,21 @@ void wxPDFViewPage::DrawPrint(wxDC& dc, const wxRect& rect, bool forceBitmap)
 	}
 }
 
-void wxPDFViewPage::CheckBitmap(const wxSize& bmpSize)
+wxBitmap wxPDFViewPage::CreateCacheBitmap(const wxSize& bmpSize)
 {
-	// Request new bitmap if no bitmap is available or it has the wrong size
-	if (!m_bmp.IsOk() || m_bmp.GetSize() != bmpSize)
-	{
-		m_requiredBmpSize = bmpSize;
-		m_pages->RequestBitmapUpdate();
-	}
-}
-
-bool wxPDFViewPage::IsBitmapUpdateRequired() const
-{
-	return !m_bmp.IsOk() || m_bmp.GetSize() != m_requiredBmpSize;
-}
-
-bool wxPDFViewPage::UpdateBitmap()
-{
-	// Check if bitmap has to be rerendered
-	wxSize bmpSize = m_requiredBmpSize;
-
 	// Render to bitmap
 	FPDF_PAGE page = GetPage();
 
 #ifdef wxPDFVIEW_USE_RENDER_TO_DC
-	m_bmp.Create(bmpSize, 24);
-	wxMemoryDC memDC(m_bmp);
+	wxBitmap bmp(bmpSize, 24);
+	wxMemoryDC memDC(bmp);
 	memDC.SetBackground(*wxWHITE_BRUSH);
 	memDC.Clear();
 	FPDF_RenderPage(memDC.GetHDC(), page, 0, 0, bmpSize.x, bmpSize.y, 0, FPDF_LCD_TEXT);
+	return bmp;
 #else
-	m_bmp = CreateBitmap(page, bmpSize, FPDF_LCD_TEXT);
+	return CreateBitmap(page, bmpSize, FPDF_LCD_TEXT);
 #endif
-	return m_bmp.IsOk();
 }
 
 wxBitmap wxPDFViewPage::CreateBitmap(FPDF_PAGE page, const wxSize& bmpSize, int flags)
@@ -209,9 +187,6 @@ wxBitmap wxPDFViewPage::CreateBitmap(FPDF_PAGE page, const wxSize& bmpSize, int 
 wxPDFViewPages::wxPDFViewPages():
 	m_doc(NULL)
 {
-	m_firstVisiblePage = -1;
-	m_lastVisiblePage = -1;
-
 	// Init bitmap request handler
 	m_bmpUpdateHandlerActive = true;
 	m_bmpUpdateHandlerCondition = NULL;
@@ -253,26 +228,25 @@ void wxPDFViewPages::SetDocument(FPDF_DOCUMENT doc)
 		push_back(wxPDFViewPage(this, i));
 }
 
-void wxPDFViewPages::SetVisiblePages(int firstPage, int lastPage)
+void wxPDFViewPages::RegisterClient(wxPDFViewPagesClient* client)
 {
-	if (firstPage < 0)
-		firstPage = 0;
-	if (lastPage >= (int) size())
-		lastPage = size() - 1;
-
-	m_firstVisiblePage = firstPage;
-	m_lastVisiblePage = lastPage;
+	m_clients.push_back(client);
 }
 
-bool wxPDFViewPages::IsPageVisible(int pageIndex) const
+void wxPDFViewPages::UnregisterClient(wxPDFViewPagesClient* client)
 {
-	return pageIndex >= m_firstVisiblePage && pageIndex <= m_lastVisiblePage;
+	std::remove(m_clients.begin(), m_clients.end(), client);
 }
 
 void wxPDFViewPages::RequestBitmapUpdate()
 {
 	// Notify render thread
 	m_bmpUpdateHandlerCondition->Broadcast();
+}
+
+void wxPDFViewPages::NotifyPageUpdate(wxPDFViewPagesClient* client, int pageIndex)
+{
+	client->OnPageUpdated(pageIndex);
 }
 
 wxThread::ExitCode wxPDFViewPages::Entry()
@@ -285,30 +259,37 @@ wxThread::ExitCode wxPDFViewPages::Entry()
 	{
 		m_bmpUpdateHandlerCondition->Wait();
 
-		int firstVisiblePage = m_firstVisiblePage;
-		int lastVisiblePage = m_lastVisiblePage;
-
-		// No updates required if no visible pages have been set
-		if (firstVisiblePage < 0)
-			continue;
-
 		// Check all pages for required bitmap updates and unload invisible pages data
 		for (int pageIndex = 0; pageIndex < (int) size() && m_bmpUpdateHandlerActive; ++pageIndex)
 		{
 			wxPDFViewPage& page = (*this)[pageIndex];
-			if (pageIndex >= firstVisiblePage && pageIndex <= lastVisiblePage)
+
+			// Check page visibility and remove bitmap cache for invisible pages
+			bool pageVisible = false;
+			for (auto it = m_clients.begin(); it != m_clients.end(); ++it)
 			{
-				wxLogDebug("Rendering page %d...", pageIndex);
-
-				if (page.IsBitmapUpdateRequired())
+				if ((*it)->IsPageVisible(pageIndex))
 				{
-					page.UpdateBitmap();
+					if (!pageVisible)
+						pageVisible = true;
 
-					wxThreadEvent evt(wxEVT_PDFVIEW_PAGE_UPDATED);
-					evt.SetInt(pageIndex);
-					AddPendingEvent(evt);
-				}
-			} else
+					// Check cache entry
+					wxPDFViewPageBitmapCacheEntry& entry = (*it)->m_bitmapCache[pageIndex];
+					if (entry.requiredSize.x > 0 && entry.requiredSize.y > 0 &&
+						(!entry.bitmap.IsOk() || entry.requiredSize != entry.bitmap.GetSize()))
+					{
+						entry.bitmap = page.CreateCacheBitmap(entry.requiredSize);
+						if (!entry.bitmap.IsOk())
+							wxLogDebug("Bitmap creation failed for page %d (%dx%d)", pageIndex, entry.requiredSize.x, entry.requiredSize.y);
+
+						// Notify client to use the newly cached bitmap
+						CallAfter(&wxPDFViewPages::NotifyPageUpdate, (*it), pageIndex);
+					}
+				} else
+					(*it)->RemoveCachedBitmap(pageIndex);
+			}
+
+			if (!pageVisible)
 				page.Unload();
 		}
 	}
@@ -317,4 +298,59 @@ wxThread::ExitCode wxPDFViewPages::Entry()
 	m_bmpUpdateHandlerCondition = NULL;
 
 	return 0;
+}
+
+//
+// wxPDFViewPageClient
+//
+
+wxPDFViewPagesClient::wxPDFViewPagesClient()
+{
+	m_pPages = NULL;
+	m_firstVisiblePage = -1;
+	m_lastVisiblePage = -1;
+}
+
+void wxPDFViewPagesClient::SetPages(wxPDFViewPages* pages)
+{
+	if (m_pPages)
+		m_pPages->UnregisterClient(this);
+	m_pPages = pages;
+	if (m_pPages)
+		m_pPages->RegisterClient(this);
+}
+
+void wxPDFViewPagesClient::SetVisiblePages(int firstPage, int lastPage)
+{
+	if (!m_pPages)
+		return;
+
+	if (firstPage < 0)
+		firstPage = 0;
+	if (lastPage >= (int) m_pPages->size())
+		lastPage = m_pPages->size() - 1;
+
+	m_firstVisiblePage = firstPage;
+	m_lastVisiblePage = lastPage;
+}
+
+bool wxPDFViewPagesClient::IsPageVisible(int pageIndex) const
+{
+	return pageIndex >= m_firstVisiblePage && pageIndex <= m_lastVisiblePage;
+}
+
+wxBitmap wxPDFViewPagesClient::GetCachedBitmap(int pageIndex, const wxSize& size)
+{
+	if (m_bitmapCache[pageIndex].requiredSize != size)
+	{
+		m_bitmapCache[pageIndex].requiredSize = size;
+		m_pPages->RequestBitmapUpdate();
+		return wxNullBitmap;
+	} else
+		return m_bitmapCache[pageIndex].bitmap;
+}
+
+void wxPDFViewPagesClient::RemoveCachedBitmap(int pageIndex)
+{
+	m_bitmapCache.erase(pageIndex);
 }
