@@ -14,6 +14,16 @@
 
 #include "PDFView.h"
 
+/**
+   Tree control that display the bookmarks defined in a PDF Document.
+
+   The control has the be linked with a wxPDFView by calling SetPDFView().
+
+   This control will automatically navigate to bookmarks if selected and will update 
+   the bookmark list when documents are loaded into the wxPDFView.
+
+   @see wxPDFView
+*/
 class wxPDFViewBookmarksCtrl: public wxDataViewCtrl
 {
 public:
@@ -36,8 +46,16 @@ public:
 			long style = wxDV_ROW_LINES,
 			const wxValidator& validator = wxDefaultValidator);
 
+	/**
+	   Connect this control to a wxPDFView
+
+	   @see wxPDFView
+	*/
 	void SetPDFView(wxPDFView* pdfView);
 
+	/**
+	   @return wxPDFView previously connected with SetPDFView()
+	*/
 	wxPDFView* GetPDFView() const { return m_pdfView; };
 
 protected:

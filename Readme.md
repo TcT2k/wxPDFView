@@ -36,13 +36,13 @@ Using
 Currently includes 3 classes you can include into your own frames
 * wxPDFView Main pdf view
 * wxPDFViewBookmarksCtrl tree control displaying bookmarks contained in the PDF
-* wxPDFViewThumbnailsListBox listbox control for displaying thumbnails
+* wxPDFViewThumbnailListBox listbox control for displaying thumbnails
 
 Or you can base your PDF viewing on a complete PDF viewer frame
 * wxPDFViewDocumentFrame Combining all controls into a PDF viewer window
 
-After initializing an instance of wxPDFView call SetPDFView on wxPDFViewBookmarksCtrl 
-and/or wxPDFViewThumbnailsListBox. Call wxPDFView->LoadDocument to load a PDF into the 
+After initializing an instance of wxPDFView call wxPDFViewBookmarksCtrl::SetPDFView 
+and/or wxPDFViewThumbnailListBox. Call wxPDFView::LoadFile to load a PDF into the 
 view.
 
 

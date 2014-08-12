@@ -18,11 +18,22 @@
 #define wxART_PDFVIEW_ZOOM_IN		wxART_MAKE_ART_ID(wxART_PDFVIEW_ZOOM_IN)
 #define wxART_PDFVIEW_ZOOM_OUT		wxART_MAKE_ART_ID(wxART_PDFVIEW_ZOOM_OUT)
 
+/**
+   wxArtProvider that provies PDF specific toolbar bitmaps
+   
+   Call wxPDFViewArtProvider::Initialize() before using any of the art Ids.
+
+   - @b wxART_PDFVIEW_PAGE_FIT Page fit bitmap
+   - @b wxART_PDFVIEW_PAGE_WIDTH Page width bitmap
+   - @b wxART_PDFVIEW_ZOOM_IN Zoom in bitmap
+   - @b wxART_PDFVIEW_ZOOM_OUT Zoom out bitmap
+*/
 class wxPDFViewArtProvider: public wxArtProvider
 {
 public:
 	wxPDFViewArtProvider();
 
+	/// Registers the art provider
 	static void Initialize();
 
 protected:

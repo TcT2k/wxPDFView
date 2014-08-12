@@ -20,6 +20,22 @@
 #include "PDFViewBookmarksCtrl.h"
 #include "PDFViewThumbnailListBox.h"
 
+/**
+   PDF reader frame combining all controls to a ready built PDF reader
+
+   This frame combines the other controls into a PDF reader frame. It can
+   be a good base for deriving your own frame or directly using it in your
+   application. Simply initiate an instance load a file into it and show it.
+
+   Example:
+   @code
+   wxPDFViewDocumentFrame* docFrame = new wxPDFViewDocumentFrame(this);
+   docFrame->LoadFile("C:\\mydocument.pdf");
+   docFrame->Show();
+   @endcode
+
+   @see wxPDFView, wxPDFViewBookmarksCtrl, wxPDFViewThumbnailListBox
+*/
 class wxPDFViewDocumentFrame: public wxFrame
 {
 public:
@@ -31,6 +47,11 @@ public:
 
 	~wxPDFViewDocumentFrame();
 
+	/**
+	   Load the specified file into the frame
+
+	   @param fileName Fully qualified local file name
+	*/
 	bool LoadFile(const wxString& fileName);
 
 	wxPDFView* GetPDFView() { return m_pdfView; };

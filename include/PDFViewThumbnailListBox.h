@@ -17,6 +17,14 @@
 
 class wxPDFViewThumbnailListBoxImpl;
 
+/**
+   PDF document thumbnails list box
+
+   Has to be connected with a wxPDFView with a call to SetPDFView().
+   It will automatically update from navigation in the wxPDFView.
+
+   @see wxPDFView
+*/
 class wxPDFViewThumbnailListBox: public wxVListBox
 {
 public:
