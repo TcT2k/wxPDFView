@@ -94,6 +94,7 @@ wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent,
 	m_toolBar->AddTool(wxID_BACKWARD, _("Previous Page"), wxArtProvider::GetBitmap(wxART_GO_BACK, wxART_TOOLBAR), _("Show previous page"));
 	m_toolBar->AddTool(wxID_FORWARD, _("Next Page"), wxArtProvider::GetBitmap(wxART_GO_FORWARD, wxART_TOOLBAR), _("Show next page"));
 	m_pageTxtCtrl = new wxTextCtrl(m_toolBar, wxID_ANY, "0", wxDefaultPosition, wxSize(30, -1), wxTE_PROCESS_ENTER | wxTE_CENTRE);
+	m_pageTxtCtrl->Bind(wxEVT_TEXT_ENTER, &wxPDFViewDocumentFrame::OnPageTextEnter, this);
 	m_toolBar->AddControl(m_pageTxtCtrl);
 	wxStaticText* pageCountDivTxt = new wxStaticText(m_toolBar, wxID_ANY, "/", wxDefaultPosition, wxSize(20, -1), wxALIGN_CENTRE_HORIZONTAL);
 	m_toolBar->AddControl(pageCountDivTxt);
@@ -265,6 +266,18 @@ void wxPDFViewDocumentFrame::OnPageNextClick( wxCommandEvent& event )
 void wxPDFViewDocumentFrame::OnPagePrevClick( wxCommandEvent& event )
 {
 	m_pdfView->NavigateToPage(wxPDFVIEW_PAGE_NAV_PREV);
+
+	event.Skip();
+}
+
+void wxPDFViewDocumentFrame::OnPageTextEnter( wxCommandEvent& event )
+{
+	int newPage = wxAtoi(m_pageTxtCtrl->GetValue());
+	if (newPage > 0)
+	{
+		m_pdfView->SetCurrentPage(newPage);
+		m_pdfView->SetFocus();
+	}
 
 	event.Skip();
 }

@@ -72,6 +72,7 @@ private:
 
 	void OnPageNextClick( wxCommandEvent& event );
 	void OnPagePrevClick( wxCommandEvent& event );
+	void OnPageTextEnter( wxCommandEvent& event );
 
 	void OnZoomInClick( wxCommandEvent& event );
 	void OnZoomOutClick( wxCommandEvent& event );
