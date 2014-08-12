@@ -50,7 +50,7 @@ bool wxPDFView::Create(wxWindow *parent,
 		m_impl = new wxPDFViewImpl(this);
 
 		SetBackgroundStyle(wxBG_STYLE_PAINT);
-		SetBackgroundColour(*wxLIGHT_GREY);
+		SetBackgroundColour(wxColour(86, 86, 86));
 	}
 	return res;
 }

@@ -78,12 +78,6 @@ wxRect wxPDFViewPage::PageToScreen(const wxRect& pageRect, double left, double t
 
 void wxPDFViewPage::Draw(wxPDFViewPagesClient* client, wxDC& dc, wxGraphicsContext& gc, const wxRect& rect)
 {
-	// Draw page background
-	wxRect bgRect = rect.Inflate(2, 2);
-	gc.SetBrush(*wxWHITE_BRUSH);
-	gc.SetPen(*wxBLACK_PEN);
-	gc.DrawRectangle(bgRect.x, bgRect.y, bgRect.width, bgRect.height);
-
 	// Calculate the required bitmap size
 	wxSize bmpSize = rect.GetSize();
 	double scaleX, scaleY;
@@ -93,7 +87,14 @@ void wxPDFViewPage::Draw(wxPDFViewPagesClient* client, wxDC& dc, wxGraphicsConte
 
 	wxBitmap bmp = client->GetCachedBitmap(m_index, bmpSize);
 	if (bmp.IsOk())
+	{
 		gc.DrawBitmap(bmp, rect.x, rect.y, rect.width, rect.height);
+	} else {
+		// Draw empty page
+		gc.SetBrush(*wxWHITE_BRUSH);
+		gc.SetPen(wxNullPen);
+		gc.DrawRectangle(rect.x, rect.y, rect.width, rect.height);
+	}
 }
 
 void wxPDFViewPage::DrawThumbnail(wxPDFViewPagesClient* client, wxDC& dc, const wxRect& rect)
