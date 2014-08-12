@@ -107,6 +107,7 @@ wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent,
 	m_zoomComboBox->Append("150%", (void*)150);
 	m_zoomComboBox->Append("200%", (void*)200);
 	m_zoomComboBox->Bind(wxEVT_COMBOBOX, &wxPDFViewDocumentFrame::OnZoomComboBox, this);
+	m_zoomComboBox->Bind(wxEVT_TEXT_ENTER, &wxPDFViewDocumentFrame::OnZoomTextEnter, this);
 
 	m_toolBar->AddSeparator();
 	m_toolBar->AddTool(ID_ZOOM_OUT, _("Zoom Out"), wxArtProvider::GetBitmap(wxART_PDFVIEW_ZOOM_OUT, wxART_TOOLBAR), _("Zoom Out"));
@@ -288,6 +289,20 @@ void wxPDFViewDocumentFrame::OnZoomComboBox( wxCommandEvent& event )
 	{
 		double zoom = reinterpret_cast<int>(m_zoomComboBox->GetClientData(m_zoomComboBox->GetSelection())) / (double) 100;
 		m_pdfView->SetZoom(zoom);
+	}
+
+	event.Skip();
+}
+
+void wxPDFViewDocumentFrame::OnZoomTextEnter( wxCommandEvent& event )
+{
+	wxString zoomStr = m_zoomComboBox->GetValue();
+
+	double newZoom = wxAtof(zoomStr);
+	if (newZoom > 0)
+	{
+		m_pdfView->SetZoom(newZoom / 100);
+		m_pdfView->SetFocus();
 	}
 
 	event.Skip();

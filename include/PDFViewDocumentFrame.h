@@ -76,6 +76,7 @@ private:
 
 	void OnZoomInClick( wxCommandEvent& event );
 	void OnZoomOutClick( wxCommandEvent& event );
+	void OnZoomTextEnter( wxCommandEvent& event );
 
 	void OnZoomComboBox( wxCommandEvent& event );
 
