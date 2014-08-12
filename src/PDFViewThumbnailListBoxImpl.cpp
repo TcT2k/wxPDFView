@@ -89,11 +89,6 @@ void wxPDFViewThumbnailListBoxImpl::OnSelectionChanged(wxCommandEvent& event)
 	event.Skip();
 }
 
-void wxPDFViewThumbnailListBoxImpl::OnPageUpdated(int pageIndex)
-{
-	m_ctrl->RefreshRow(pageIndex);
-}
-
 void wxPDFViewThumbnailListBoxImpl::UpdateVisiblePages()
 {
 	SetVisiblePages(m_ctrl->GetVisibleBegin(), m_ctrl->GetVisibleEnd());

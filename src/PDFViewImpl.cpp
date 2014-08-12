@@ -287,11 +287,6 @@ void wxPDFViewImpl::AlignPageRects()
 		it->x = (ctrlWidth - it->width) / 2;
 }
 
-void wxPDFViewImpl::OnPageUpdated(int pageIndex)
-{
-	RefreshPage(pageIndex);
-}
-
 void wxPDFViewImpl::OnPaint(wxPaintEvent& WXUNUSED(event))
 {
 	wxAutoBufferedPaintDC dc(m_ctrl);

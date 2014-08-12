@@ -36,8 +36,6 @@ private:
 
 	void OnSelectionChanged(wxCommandEvent& event);
 
-	virtual void OnPageUpdated(int pageIndex);
-
 	void UpdateVisiblePages();
 };
 

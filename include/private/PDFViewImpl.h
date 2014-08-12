@@ -126,8 +126,6 @@ private:
 
 	void AlignPageRects();
 
-	virtual void OnPageUpdated(int pageIndex);
-
 	void OnPaint(wxPaintEvent& event);
 
 	void OnSize(wxSizeEvent& event);

@@ -58,7 +58,7 @@ private:
 	static wxBitmap CreateBitmap(FPDF_PAGE page, const wxSize& bmpSize, int flags);
 };
 
-class wxPDFViewPages: public wxVector<wxPDFViewPage>, public wxEvtHandler, public wxThreadHelper
+class wxPDFViewPages: public wxVector<wxPDFViewPage>
 {
 public:
 	wxPDFViewPages();
@@ -71,28 +71,13 @@ public:
 
 	void UnregisterClient(wxPDFViewPagesClient* client);
 
-	void RequestBitmapUpdate();
+	void UnloadInvisiblePages();
 
 	FPDF_DOCUMENT doc() const { return m_doc; };
-
-protected:
-   virtual wxThread::ExitCode Entry();
 
 private:
 	FPDF_DOCUMENT m_doc;
 	wxVector<wxPDFViewPagesClient*> m_clients;
-
-	bool m_bmpUpdateHandlerActive;
-	wxCondition* m_bmpUpdateHandlerCondition;
-
-	void NotifyPageUpdate(wxPDFViewPagesClient* client, int pageIndex);
-};
-
-class wxPDFViewPageBitmapCacheEntry
-{
-public:
-	wxSize requiredSize;
-	wxBitmap bitmap;
 };
 
 class wxPDFViewPagesClient
@@ -117,12 +102,10 @@ public:
 protected:
 	wxPDFViewPages* m_pPages;
 
-	virtual void OnPageUpdated(int pageIndex) = 0;
-
 private:
 	int m_firstVisiblePage;
 	int m_lastVisiblePage;
-	std::map<int, wxPDFViewPageBitmapCacheEntry> m_bitmapCache;
+	std::map<int, wxBitmap> m_bitmapCache;
 
 	friend class wxPDFViewPages;
 };
