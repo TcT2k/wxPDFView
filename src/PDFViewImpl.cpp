@@ -234,12 +234,6 @@ wxPDFViewImpl::wxPDFViewImpl(wxPDFView* ctrl):
 	m_ctrl->Bind(wxEVT_MOUSEWHEEL, &wxPDFViewImpl::OnMouseWheel, this);
 	m_ctrl->Bind(wxEVT_MOTION, &wxPDFViewImpl::OnMouseMotion, this);
 	m_ctrl->Bind(wxEVT_LEFT_UP, &wxPDFViewImpl::OnMouseLeftUp, this);
-	m_ctrl->Bind(wxEVT_SCROLLWIN_LINEUP, &wxPDFViewImpl::OnScroll, this);
-	m_ctrl->Bind(wxEVT_SCROLLWIN_LINEDOWN, &wxPDFViewImpl::OnScroll, this);
-	m_ctrl->Bind(wxEVT_SCROLLWIN_PAGEUP, &wxPDFViewImpl::OnScroll, this);
-	m_ctrl->Bind(wxEVT_SCROLLWIN_PAGEDOWN, &wxPDFViewImpl::OnScroll, this);
-	m_ctrl->Bind(wxEVT_SCROLLWIN_TOP, &wxPDFViewImpl::OnScroll, this);
-	m_ctrl->Bind(wxEVT_SCROLLWIN_BOTTOM, &wxPDFViewImpl::OnScroll, this);
 }
 
 wxPDFViewImpl::~wxPDFViewImpl()
@@ -380,13 +374,6 @@ void wxPDFViewImpl::OnMouseLeftUp(wxMouseEvent& event)
 {
 	if (EvaluateLinkTargetPageAtClientPos(event.GetPosition(), true))
 		m_ctrl->SetCursor(wxCURSOR_ARROW);
-
-	event.Skip();
-}
-
-void wxPDFViewImpl::OnScroll(wxScrollWinEvent& event)
-{
-	// TODO: figure out how to get scroll position in this event on MSW
 
 	event.Skip();
 }

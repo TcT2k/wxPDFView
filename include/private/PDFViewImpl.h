@@ -135,8 +135,6 @@ private:
 
 	void OnMouseLeftUp(wxMouseEvent& event);
 
-	void OnScroll(wxScrollWinEvent& event);
-
 	void UpdateVirtualSize();
 
 	wxRect UnscaledToScaled(const wxRect& rect) const;
