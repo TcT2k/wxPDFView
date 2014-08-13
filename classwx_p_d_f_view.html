@@ -124,10 +124,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a2bcc9b4633e2943fe28b6f8a019bc2f2"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classwx_p_d_f_view_bookmark.html">wxPDFViewBookmark</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwx_p_d_f_view.html#a2bcc9b4633e2943fe28b6f8a019bc2f2">GetRootBookmark</a> () const </td></tr>
 <tr class="memdesc:a2bcc9b4633e2943fe28b6f8a019bc2f2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the root bookmark if the document contains bookmarks.  <a href="#a2bcc9b4633e2943fe28b6f8a019bc2f2">More...</a><br /></td></tr>
 <tr class="separator:a2bcc9b4633e2943fe28b6f8a019bc2f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0803af1eca7c598074d0f3ced01c238d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwx_p_d_f_view.html#a0803af1eca7c598074d0f3ced01c238d">SetCurrentPage</a> (int pageIndex)</td></tr>
-<tr class="separator:a0803af1eca7c598074d0f3ced01c238d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0dc120b13322e27b476871cb2f337847"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwx_p_d_f_view.html#a0dc120b13322e27b476871cb2f337847">GetCurrentPage</a> () const </td></tr>
-<tr class="separator:a0dc120b13322e27b476871cb2f337847"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afee3ba3e002019bee7ba333dece0f24f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwx_p_d_f_view.html#afee3ba3e002019bee7ba333dece0f24f">GoToPage</a> (int pageIndex, const wxRect *centerRect=NULL)</td></tr>
+<tr class="memdesc:afee3ba3e002019bee7ba333dece0f24f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scroll the specified page into the center of the view.  <a href="#afee3ba3e002019bee7ba333dece0f24f">More...</a><br /></td></tr>
+<tr class="separator:afee3ba3e002019bee7ba333dece0f24f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a28afda34a5ad7a9f97b253cfa961eab2"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwx_p_d_f_view.html#a28afda34a5ad7a9f97b253cfa961eab2">GetMostVisiblePage</a> () const </td></tr>
+<tr class="memdesc:a28afda34a5ad7a9f97b253cfa961eab2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The return value is usally used to show a page number in the UI.  <a href="#a28afda34a5ad7a9f97b253cfa961eab2">More...</a><br /></td></tr>
+<tr class="separator:a28afda34a5ad7a9f97b253cfa961eab2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5837ea01e0fbdb021525f5ac5a22ae3b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwx_p_d_f_view.html#a5837ea01e0fbdb021525f5ac5a22ae3b">SetZoom</a> (double zoom)</td></tr>
 <tr class="memdesc:a5837ea01e0fbdb021525f5ac5a22ae3b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the zoom level as float value 1.0 is the original size.  <a href="#a5837ea01e0fbdb021525f5ac5a22ae3b">More...</a><br /></td></tr>
 <tr class="separator:a5837ea01e0fbdb021525f5ac5a22ae3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -376,21 +378,6 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a0dc120b13322e27b476871cb2f337847"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int wxPDFView::GetCurrentPage </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a class="anchor" id="a0e0245ad823a7fb4038739a979251f58"></a>
 <div class="memitem">
 <div class="memproto">
@@ -459,6 +446,24 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a28afda34a5ad7a9f97b253cfa961eab2"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int wxPDFView::GetMostVisiblePage </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The return value is usally used to show a page number in the UI. </p>
+<dl class="section return"><dt>Returns</dt><dd>Page which is currently the most visible depending on zoom and scroll position </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="a47930e7f8e605cfd5a9f2cfe5402d684"></a>
 <div class="memitem">
 <div class="memproto">
@@ -520,6 +525,41 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="afee3ba3e002019bee7ba333dece0f24f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void wxPDFView::GoToPage </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>pageIndex</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const wxRect *&#160;</td>
+          <td class="paramname"><em>centerRect</em> = <code>NULL</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Scroll the specified page into the center of the view. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pageIndex</td><td>Zero based index to page to go to </td></tr>
+    <tr><td class="paramname">centerRect</td><td>Optional rectangle inside the page which the view will be centered on </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -654,22 +694,6 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a0803af1eca7c598074d0f3ced01c238d"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void wxPDFView::SetCurrentPage </td>
-          <td>(</td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>pageIndex</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a class="anchor" id="a5837ea01e0fbdb021525f5ac5a22ae3b"></a>
 <div class="memitem">
 <div class="memproto">
@@ -718,7 +742,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Aug 12 2014 23:15:46 for wxPDFView by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Aug 13 2014 14:48:47 for wxPDFView by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.7
 </small></address>
