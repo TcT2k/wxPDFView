@@ -41,10 +41,12 @@ set(PDFIUM_SEARCH_LIBS fdrm
 	v8_libplatform
 	v8_snapshot)
 	
-set(PDFIUM_SEARCH_LIBS ${PDFIUM_SEARCH_LIBS}
-	icudata
-	icui18n
-	)
+if (NOT WIN32)
+	set(PDFIUM_SEARCH_LIBS ${PDFIUM_SEARCH_LIBS}
+		icudata
+		icui18n
+		)
+endif()
 	
 foreach(LIB ${PDFIUM_SEARCH_LIBS})
 	set(PDFIUM_LIBRARIES ${PDFIUM_LIBRARIES}
