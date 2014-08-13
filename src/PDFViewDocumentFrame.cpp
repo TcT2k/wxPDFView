@@ -294,7 +294,7 @@ void wxPDFViewDocumentFrame::OnPageTextEnter( wxCommandEvent& event )
 	int newPage = wxAtoi(m_pageTxtCtrl->GetValue());
 	if (newPage > 0)
 	{
-		m_pdfView->SetCurrentPage(newPage);
+		m_pdfView->GoToPage(newPage);
 		m_pdfView->SetFocus();
 	}
 

@@ -35,13 +35,13 @@ public:
 
 	void NavigateToPage(wxPDFViewPageNavigation pageNavigation);
 
-	int GetPageCount() const { return m_pageCount; };
+	int GetPageCount() const { return (int) m_pages.size(); };
 
 	const wxPDFViewBookmark* GetRootBookmark() const { return (m_bookmarks) ? m_bookmarks->GetRoot() : NULL; };
 
-	void SetCurrentPage(int pageIndex);
+	void GoToPage(int pageIndex, const wxRect* centerRect = NULL);
 
-	int GetCurrentPage() const;
+	int GetMostVisiblePage() const { return m_mostVisiblePage; };
 
 	void SetZoom(double zoom);
 
@@ -95,7 +95,6 @@ private:
 	FX_FILEAVAIL m_pdfFileAvail;
 
 	// Document information
-	int m_pageCount;
 	wxVector<wxRect> m_pageRects;
 	wxPDFViewPages m_pages;
 	wxSize m_docSize;
@@ -110,7 +109,7 @@ private:
 	double m_zoom;
 	double m_maxZoom;
 	double m_minZoom;
-	int m_currentPage;
+	int m_mostVisiblePage;
 	wxCursor m_handCursor;
 	wxVector<wxPDFViewTextRange> m_selection;
 

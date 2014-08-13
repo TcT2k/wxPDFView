@@ -28,26 +28,26 @@ wxString wxPDFViewPrintout::GetDocTitle(wxPDFView* pdfView)
 
 bool wxPDFViewPrintout::OnPrintPage(int page)
 {
-    wxDC *dc = GetDC();
-    if (dc && dc->IsOk())
-    {
-        if (HasPage(page))
-            RenderPage(*dc, page - 1);
-        return true;
-    }
-    else 
+	wxDC *dc = GetDC();
+	if (dc && dc->IsOk())
+	{
+		if (HasPage(page))
+			RenderPage(*dc, page - 1);
+		return true;
+	}
+	else 
 		return false;
 }
 
 bool wxPDFViewPrintout::HasPage(int page)
 {
-	return page > 0 && page <= m_ctrl->GetImpl()->m_pageCount;
+	return page > 0 && page <= m_ctrl->GetImpl()->GetPageCount();
 }
 
 void wxPDFViewPrintout::GetPageInfo(int *minPage, int *maxPage, int *selPageFrom, int *selPageTo)
 {
 	*minPage = 1;
-	*maxPage = m_ctrl->GetImpl()->m_pageCount - 1;
+	*maxPage = m_ctrl->GetImpl()->GetPageCount() - 1;
 	*selPageFrom = *minPage;
 	*selPageTo = *maxPage;
 }
@@ -68,10 +68,10 @@ void wxPDFViewPrintout::OnPreparePrinting()
 void wxPDFViewPrintout::RenderPage(wxDC& dc, int pageIndex)
 {
 	int pageWidth, pageHeight;
-    GetPageSizePixels(&pageWidth, &pageHeight);
+	GetPageSizePixels(&pageWidth, &pageHeight);
 
 	// Prepare DC
-    dc.SetBackgroundMode(wxTRANSPARENT);
+	dc.SetBackgroundMode(wxTRANSPARENT);
 
 	// Draw page content
 	wxRect printRect(0, 0, pageWidth, pageHeight);

@@ -214,7 +214,7 @@ wxPDFViewImpl::wxPDFViewImpl(wxPDFView* ctrl):
 	m_pdfDoc = NULL;
 	m_pdfForm = NULL;
 	m_pdfAvail = NULL;
-	m_currentPage = -1;
+	m_mostVisiblePage = -1;
 	m_bookmarks = NULL;
 	m_currentFindIndex = -1;
 	m_docPermissions = 0;
@@ -254,16 +254,16 @@ void wxPDFViewImpl::NavigateToPage(wxPDFViewPageNavigation pageNavigation)
 	switch (pageNavigation)
 	{
 		case wxPDFVIEW_PAGE_NAV_NEXT:
-			SetCurrentPage(GetCurrentPage() + 1);
+			GoToPage(GetMostVisiblePage() + 1);
 			break;
 		case wxPDFVIEW_PAGE_NAV_PREV:
-			SetCurrentPage(GetCurrentPage() + 0);
+			GoToPage(GetMostVisiblePage() + 0);
 			break;
 		case wxPDFVIEW_PAGE_NAV_FIRST:
-			SetCurrentPage(0);
+			GoToPage(0);
 			break;
 		case wxPDFVIEW_PAGE_NAV_LAST:
-			SetCurrentPage(GetPageCount() - 1);
+			GoToPage(GetPageCount() - 1);
 			break;
 	}
 }
@@ -391,20 +391,15 @@ void wxPDFViewImpl::OnScroll(wxScrollWinEvent& event)
 	event.Skip();
 }
 
-void wxPDFViewImpl::SetCurrentPage(int pageIndex)
+void wxPDFViewImpl::GoToPage(int pageIndex, const wxRect* centerRect)
 {
 	if (pageIndex < 0)
 		pageIndex = 0;
-	else if (pageIndex >= m_pageCount)
-		pageIndex = m_pageCount -1;
+	else if (pageIndex >= GetPageCount())
+		pageIndex = GetPageCount() -1;
 
 	wxRect pageRect = UnscaledToScaled(m_pageRects[pageIndex]);
 	m_ctrl->Scroll(0, pageRect.GetTop() / m_scrollStepY);
-}
-
-int wxPDFViewImpl::GetCurrentPage() const
-{
-	return m_currentPage;
 }
 
 void wxPDFViewImpl::UpdateVirtualSize()
@@ -478,7 +473,7 @@ long wxPDFViewImpl::Find(const wxString& text, int flags)
 		if (oldSelection.empty()) {
 			// Start searching from the beginning of the document.
 			m_nextPageToSearch = -1;
-			m_lastPageToSearch = m_pageCount - 1;
+			m_lastPageToSearch = GetPageCount() - 1;
 			m_lastCharacterIndexToSearch = -1;
 		} else {
 			// There's a current selection, so start from it.
@@ -501,9 +496,9 @@ long wxPDFViewImpl::Find(const wxString& text, int flags)
 	// Determine if we need more results
 	bool needMoreResults = true;
 	if (m_currentFindIndex == static_cast<int>(m_findResults.size()))
-		m_nextPageToSearch = m_currentPage + 1;
+		m_nextPageToSearch = m_mostVisiblePage + 1;
 	else if (m_currentFindIndex < 0)
-		m_nextPageToSearch = m_currentPage - 1;
+		m_nextPageToSearch = m_mostVisiblePage - 1;
 	else
 		needMoreResults = false;
 
@@ -519,7 +514,7 @@ long wxPDFViewImpl::Find(const wxString& text, int flags)
 		else
 			--m_nextPageToSearch;
 
-		if (m_nextPageToSearch == m_pageCount)
+		if (m_nextPageToSearch == GetPageCount())
 			endOfSearch = true;
 	}
 
@@ -537,7 +532,7 @@ long wxPDFViewImpl::Find(const wxString& text, int flags)
 	int resultPageIndex = result.GetPage()->GetIndex();
 	// Make selection visible
 	if (!IsPageVisible(resultPageIndex))
-		SetCurrentPage(resultPageIndex); // TODO: center selection rect
+		GoToPage(resultPageIndex); // TODO: center selection rect
 	else
 		m_ctrl->Refresh();
 
@@ -694,13 +689,12 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream, const wxString
 	(void) FPDFAvail_IsPageAvail(m_pdfAvail, first_page, &hints);
 
 	m_pages.SetDocument(m_pdfDoc);
-	m_pageCount = m_pages.size();
-	m_pageRects.reserve(m_pageCount);
+	m_pageRects.reserve(GetPageCount());
 
 	m_docSize.Set(0, 0);
 	wxRect pageRect;
 	pageRect.y += m_pagePadding / 2;
-	for (int i = 0; i < m_pageCount; ++i)
+	for (int i = 0; i < GetPageCount(); ++i)
 	{
 		(void) FPDFAvail_IsPageAvail(m_pdfAvail, i, &hints);
 
@@ -719,13 +713,13 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream, const wxString
 			pageRect.y += m_pagePadding;
 		} else {
 			// Document broken?
-			m_pageCount = i;
+			m_pages.erase(m_pages.begin() + i, m_pages.end());
 			break;
 		}
 	}
 	m_docSize.SetHeight(pageRect.y - (m_pagePadding / 2));
 
-	if (m_pageCount > 0)
+	if (GetPageCount() > 0)
 		GetCachedBitmap(0, m_pageRects[0].GetSize());
 
 	AlignPageRects();
@@ -761,7 +755,6 @@ void wxPDFViewImpl::CloseDocument()
 	}
 	wxDELETE(m_bookmarks);
 	m_pageRects.clear();
-	m_pageCount = 0;
 	m_docSize.Set(0, 0);
 	UpdateVirtualSize();
 	m_docPermissions = 0;
@@ -870,7 +863,7 @@ bool wxPDFViewImpl::EvaluateLinkTargetPageAtClientPos(const wxPoint& clientPos, 
 				}
 
 				if (dest)
-					SetCurrentPage(FPDFDest_GetPageIndex(m_pdfDoc, dest));
+					GoToPage(FPDFDest_GetPageIndex(m_pdfDoc, dest));
 			}
 		}
 	}
@@ -901,14 +894,24 @@ void wxPDFViewImpl::CalcVisiblePages()
 			break;
 	}
 
-	//TODO: make page displayed in center current page ?
-	int newCurrentPage = firstPage;
-
-	if (newCurrentPage >= 0 && newCurrentPage != m_currentPage)
+	int newMostVisiblePage = firstPage;
+	// Check if we can see more of the next page than the first one
+	if (newMostVisiblePage >= 0 && 
+		newMostVisiblePage < GetPageCount() - 1 &&
+		newMostVisiblePage < lastPage)
 	{
-		m_currentPage = newCurrentPage;
+		const wxRect cviewRect = viewRect;
+		wxRect firstRect = cviewRect.Intersect(m_pageRects[newMostVisiblePage]);
+		wxRect nextRect = cviewRect.Intersect(m_pageRects[newMostVisiblePage + 1]);
+		if (nextRect.GetHeight() > firstRect.GetHeight())
+			newMostVisiblePage++;
+	}
+
+	if (newMostVisiblePage >= 0 && newMostVisiblePage != m_mostVisiblePage)
+	{
+		m_mostVisiblePage = newMostVisiblePage;
 		wxCommandEvent* evt = new wxCommandEvent(wxEVT_PDFVIEW_PAGE_CHANGED);
-		evt->SetInt(m_currentPage);
+		evt->SetInt(m_mostVisiblePage);
 		m_ctrl->QueueEvent(evt);
 	}
 
@@ -918,11 +921,11 @@ void wxPDFViewImpl::CalcVisiblePages()
 
 void wxPDFViewImpl::CalcZoomLevel()
 {
-	if (m_pages.empty() || m_currentPage < 0)
+	if (m_pages.empty() || m_mostVisiblePage < 0)
 		return;
 
 	wxSize clientSize = m_ctrl->GetClientSize();
-	wxSize pageSize = m_pageRects[m_currentPage].GetSize();
+	wxSize pageSize = m_pageRects[m_mostVisiblePage].GetSize();
 	pageSize.x += 6; // Add padding to page width
 	pageSize.y += m_pagePadding;
 

@@ -84,7 +84,7 @@ void wxPDFViewThumbnailListBoxImpl::OnPDFPageChanged(wxCommandEvent& event)
 
 void wxPDFViewThumbnailListBoxImpl::OnSelectionChanged(wxCommandEvent& event)
 {
-	m_pdfView->SetCurrentPage(m_ctrl->GetSelection());
+	m_pdfView->GoToPage(m_ctrl->GetSelection());
 	UpdateVisiblePages();
 	event.Skip();
 }

@@ -43,7 +43,7 @@ public:
 		}
 
 		if (dest)
-			pdfView->SetCurrentPage(dest.GetPageIndex(doc));
+			pdfView->GoToPage(dest.GetPageIndex(doc));
 	}
 
 private:

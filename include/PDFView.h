@@ -90,9 +90,20 @@ public:
 	*/
 	const wxPDFViewBookmark* GetRootBookmark() const;
 
-	void SetCurrentPage(int pageIndex);
+	/**
+	   Scroll the specified page into the center of the view
 
-	int GetCurrentPage() const;
+	   @param pageIndex Zero based index to page to go to
+	   @param centerRect Optional rectangle inside the page which the view will be centered on
+	*/
+	void GoToPage(int pageIndex, const wxRect* centerRect = NULL);
+
+	/**
+	   The return value is usally used to show a page number in the UI
+
+	   @return Page which is currently the most visible depending on zoom and scroll position
+	*/
+	int GetMostVisiblePage() const;
 
 	/**
 	   Set the zoom level as float value 1.0 is the original size. Setting the 

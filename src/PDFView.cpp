@@ -77,16 +77,16 @@ const wxPDFViewBookmark* wxPDFView::GetRootBookmark() const
 		return 0;
 }
 
-void wxPDFView::SetCurrentPage(int pageIndex)
+void wxPDFView::GoToPage(int pageIndex, const wxRect* centerRect)
 {
 	if (m_impl)
-		m_impl->SetCurrentPage(pageIndex);
+		m_impl->GoToPage(pageIndex, centerRect);
 }
 
-int wxPDFView::GetCurrentPage() const
+int wxPDFView::GetMostVisiblePage() const
 {
 	if (m_impl)
-		return m_impl->GetCurrentPage();
+		return m_impl->GetMostVisiblePage();
 	else
 		return 0;
 }
