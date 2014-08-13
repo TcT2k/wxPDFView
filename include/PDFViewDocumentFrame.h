@@ -96,6 +96,11 @@ protected:
 	wxStaticText* m_pageCountTxtCtrl;
 	wxComboBox* m_zoomComboBox;
 
+	/**
+	   Override this method to customize the printDialogData used when the print button is pressed
+	*/
+	virtual void PreparePrintDialogData(wxPrintDialogData& printDialogData) { }
+
 private:
 	wxString m_searchText;
 

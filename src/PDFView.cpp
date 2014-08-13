@@ -162,6 +162,14 @@ wxPrintout* wxPDFView::CreatePrintout() const
 		return NULL;
 }
 
+wxPrintDialogData wxPDFView::GetPrintDialogData() const
+{
+	if (m_impl)
+		return m_impl->GetPrintDialogData();
+	else
+		return wxPrintDialogData();
+}
+
 const wxString& wxPDFView::GetDocumentTitle() const
 {
 	static wxString empty;

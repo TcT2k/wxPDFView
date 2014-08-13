@@ -61,6 +61,8 @@ public:
 
 	wxPrintout* CreatePrintout() const;
 
+	wxPrintDialogData GetPrintDialogData() const;
+
 	void StopFind();
 
 	const wxString& GetDocumentTitle() const;

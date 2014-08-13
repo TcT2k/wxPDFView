@@ -601,6 +601,17 @@ wxPrintout* wxPDFViewImpl::CreatePrintout() const
 		return NULL;
 }
 
+wxPrintDialogData wxPDFViewImpl::GetPrintDialogData() const
+{
+	wxPrintDialogData printDialogData;
+	printDialogData.SetMinPage(1);
+	printDialogData.SetMaxPage(GetPageCount());
+	printDialogData.SetFromPage(1);
+	printDialogData.SetToPage(GetPageCount());
+	printDialogData.SetAllPages(true);
+	return printDialogData;
+}
+
 const wxString& wxPDFViewImpl::GetDocumentTitle() const
 {
 	return m_documentTitle;

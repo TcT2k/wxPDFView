@@ -397,7 +397,9 @@ void wxPDFViewDocumentFrame::UpdateSearchControls()
 
 void wxPDFViewDocumentFrame::StartPrint()
 {
-	wxPrinter printer;
+	wxPrintDialogData printDialogData = m_pdfView->GetPrintDialogData();
+	PreparePrintDialogData(printDialogData);
+	wxPrinter printer(&printDialogData);
 	wxSharedPtr<wxPrintout> printout(m_pdfView->CreatePrintout());
 	if (!printer.Print(this, printout.get()))
 		wxLogError(_("Document could not be printed"));

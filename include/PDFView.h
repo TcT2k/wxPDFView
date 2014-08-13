@@ -130,13 +130,31 @@ public:
 
 	wxPDFViewZoomType GetZoomType() const;
 
-	// Scrolls next result into view and returns the number of matches or wxNOT_FOUND
+	/** 
+	   Scrolls next result into view and returns the number of matches or wxNOT_FOUND
+
+	   @param text Text to search
+	   @param flags Search direction and case sensitive search
+	*/
 	long Find(const wxString& text, int flags = wxPDFVIEW_FIND_DEFAULT);
 
+	/** 
+		Returns true if the document allows printing
+
+		@see CreatePrintOut()
+	*/
 	bool IsPrintAllowed() const;
 
-	// Creates a printout object (returns NULL if printing is not allowed)
+	/**
+	   Creates a printout object
+
+	   @returns Created wxPrintout instance or NULL if printing is not allowed by the document
+	   @see IsPrintAllowed()
+	*/
 	wxPrintout* CreatePrintout() const;
+
+	/// Returns prepopulated wxPrintDialogData
+	wxPrintDialogData GetPrintDialogData() const;
 
 	const wxString& GetDocumentTitle() const;
 
