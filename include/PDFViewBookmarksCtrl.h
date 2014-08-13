@@ -27,7 +27,7 @@
 class wxPDFViewBookmarksCtrl: public wxDataViewCtrl
 {
 public:
-	wxPDFViewBookmarksCtrl() { };
+	wxPDFViewBookmarksCtrl() { }
 
 	wxPDFViewBookmarksCtrl(wxWindow *parent,
 							wxWindowID id,

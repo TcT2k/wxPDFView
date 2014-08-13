@@ -13,12 +13,28 @@
 #include "PDFViewArtProvider.h"
 
 wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent, 
+	wxWindowID id,
+	const wxString& title,
 	const wxPoint &pos, 
 	const wxSize &size, 
 	long style, 
-	const wxString &name):
-	wxFrame(parent, wxID_ANY, _("PDF Viewer"), pos, size, style, name)
+	const wxString &name)
 {
+	Create(parent, id, title, pos, size, style, name);
+}
+
+bool wxPDFViewDocumentFrame::Create(wxWindow* parent, 
+	wxWindowID id,
+	const wxString& title,
+	const wxPoint &pos, 
+	const wxSize &size,
+	long style,
+	const wxString &name)
+{
+	if (!wxFrame::Create(parent, id, (title.empty()) ? _("PDF Viewer") : title,
+		pos, size, style, name))
+		return false;
+
 	wxPDFViewArtProvider::Initialize();
 
 	SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE ) );
@@ -162,6 +178,8 @@ wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent,
 	m_thumbnailListBox->SetPDFView(m_pdfView);
 
 	UpdateSearchControls();
+
+	return true;
 }
 
 wxPDFViewDocumentFrame::~wxPDFViewDocumentFrame()
