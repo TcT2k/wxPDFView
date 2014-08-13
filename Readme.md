@@ -25,6 +25,7 @@ Currently implemented:
 
 Currently not implemented:
 * Text selection
+* Forms
 
 Requirements
 ------------
