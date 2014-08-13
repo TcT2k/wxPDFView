@@ -257,7 +257,7 @@ void wxPDFViewImpl::NavigateToPage(wxPDFViewPageNavigation pageNavigation)
 			GoToPage(GetMostVisiblePage() + 1);
 			break;
 		case wxPDFVIEW_PAGE_NAV_PREV:
-			GoToPage(GetMostVisiblePage() + 0);
+			GoToPage(GetMostVisiblePage() - 1);
 			break;
 		case wxPDFVIEW_PAGE_NAV_FIRST:
 			GoToPage(0);
@@ -396,16 +396,20 @@ void wxPDFViewImpl::GoToPage(int pageIndex, const wxRect* centerRect)
 	if (pageIndex < 0)
 		pageIndex = 0;
 	else if (pageIndex >= GetPageCount())
-		pageIndex = GetPageCount() -1;
+		pageIndex = GetPageCount() - 1;
 
-	wxRect pageRect = UnscaledToScaled(m_pageRects[pageIndex]);
-	m_ctrl->Scroll(0, pageRect.GetTop() / m_scrollStepY);
+	wxRect pageRect = m_pageRects[pageIndex];
+	int scrollTop = pageRect.GetTop() - m_pagePadding / 2;
+	int pixelsPerUnitY;
+	m_ctrl->GetScrollPixelsPerUnit(NULL, &pixelsPerUnitY);
+	int scrollPosY = (scrollTop * m_ctrl->GetScaleY()) / pixelsPerUnitY;
+	m_ctrl->Scroll(-1, scrollPosY);
 }
 
 void wxPDFViewImpl::UpdateVirtualSize()
 {
 	m_ctrl->SetVirtualSize(m_docSize.x * m_ctrl->GetScaleX(), m_docSize.y * m_ctrl->GetScaleY());
-	m_ctrl->SetScrollRate(m_scrollStepX, m_scrollStepY);
+	m_ctrl->SetScrollRate(wxRound(m_scrollStepX * m_ctrl->GetScaleX()), wxRound(m_scrollStepY * m_ctrl->GetScaleY()));
 }
 
 void wxPDFViewImpl::SetZoom(double zoom)
@@ -693,7 +697,6 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream, const wxString
 
 	m_docSize.Set(0, 0);
 	wxRect pageRect;
-	pageRect.y += m_pagePadding / 2;
 	for (int i = 0; i < GetPageCount(); ++i)
 	{
 		(void) FPDFAvail_IsPageAvail(m_pdfAvail, i, &hints);
@@ -702,6 +705,7 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream, const wxString
 		double height;
 		if (FPDF_GetPageSizeByIndex(m_pdfDoc, i, &width, &height))
 		{
+			pageRect.y += m_pagePadding / 2;
 			pageRect.width = width;
 			pageRect.height = height;
 			m_pageRects.push_back(pageRect);
@@ -710,7 +714,13 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream, const wxString
 				m_docSize.x = width;
 
 			pageRect.y += height;
-			pageRect.y += m_pagePadding;
+			pageRect.y += m_pagePadding / 2;
+
+			// Make sure every page top is pixel exact scrollable
+			int pageDisplayHeight = pageRect.height + m_pagePadding;
+			int scrollMod = pageDisplayHeight % m_scrollStepY;
+			if (scrollMod)
+				pageRect.y += m_scrollStepY - scrollMod;
 		} else {
 			// Document broken?
 			m_pages.erase(m_pages.begin() + i, m_pages.end());
