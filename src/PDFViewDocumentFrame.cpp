@@ -180,6 +180,8 @@ bool wxPDFViewDocumentFrame::Create(wxWindow* parent,
 	m_pdfView->Bind(wxEVT_PDFVIEW_ZOOM_CHANGED, &wxPDFViewDocumentFrame::OnPDFZoomChanged, this);
 	m_pdfView->Bind(wxEVT_PDFVIEW_ZOOM_TYPE_CHANGED, &wxPDFViewDocumentFrame::OnPDFZoomTypeChanged, this);
 	m_pdfView->Bind(wxEVT_PDFVIEW_URL_CLICKED, &wxPDFViewDocumentFrame::OnPDFURLClicked, this);
+	m_pdfView->Bind(wxEVT_PDFVIEW_REMOTE_GOTO, &wxPDFViewDocumentFrame::OnPDFRemoteGoto, this);
+	m_pdfView->Bind(wxEVT_PDFVIEW_LAUNCH, &wxPDFViewDocumentFrame::OnPDFLaunch, this);
 
 	m_pdfViewBookmarksCtrl->SetPDFView(m_pdfView);
 	m_thumbnailListBox->SetPDFView(m_pdfView);
@@ -209,6 +211,7 @@ wxBitmap wxPDFViewDocumentFrame::GetToolbarBitmap(wxArtID id)
 
 bool wxPDFViewDocumentFrame::LoadFile(const wxString& fileName)
 {
+	m_fileName = fileName;
 	return m_pdfView->LoadFile(fileName);
 }
 
@@ -266,6 +269,21 @@ void wxPDFViewDocumentFrame::OnPDFURLClicked(wxCommandEvent& event)
 		wxLaunchDefaultBrowser(event.GetString());
 
 	event.Skip();
+}
+
+void wxPDFViewDocumentFrame::OnPDFRemoteGoto(wxCommandEvent& event)
+{
+	wxFileName targetFileName(m_fileName);
+	targetFileName.SetFullName(event.GetString());
+	// TODO: handle page number
+	LoadFile(targetFileName.GetFullPath());
+}
+
+void wxPDFViewDocumentFrame::OnPDFLaunch(wxCommandEvent& event)
+{
+	wxFileName targetFileName(m_fileName);
+	targetFileName.SetFullName(event.GetString());
+	wxLaunchDefaultApplication(targetFileName.GetFullPath());
 }
 
 void wxPDFViewDocumentFrame::OnNavigationClick(wxCommandEvent& event)

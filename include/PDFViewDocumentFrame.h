@@ -98,6 +98,7 @@ protected:
 	wxTextCtrl* m_pageTxtCtrl;
 	wxStaticText* m_pageCountTxtCtrl;
 	wxComboBox* m_zoomComboBox;
+	wxString m_fileName;
 
 	/**
 	   Override this method to customize the printDialogData used when the print button is pressed
@@ -140,6 +141,8 @@ private:
 	void OnPDFZoomTypeChanged(wxCommandEvent& event);
 	void OnPDFDocumentReady(wxCommandEvent& event);
 	void OnPDFURLClicked(wxCommandEvent& event);
+	void OnPDFRemoteGoto(wxCommandEvent& event);
+	void OnPDFLaunch(wxCommandEvent& event);
 
 	void Find(const wxString& text, bool forward);
 	void UpdateSearchControls();

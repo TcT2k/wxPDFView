@@ -12,6 +12,7 @@
 
 #include <wx/dcbuffer.h>
 #include <wx/textdlg.h>
+#include <wx/filename.h>
 
 #include <v8.h>
 #include "fpdf_ext.h"
@@ -882,6 +883,38 @@ bool wxPDFViewImpl::EvaluateLinkTargetPageAtClientPos(const wxPoint& clientPos, 
 									delete [] uriBuf;
 									break;
 								}
+							case PDFACTION_REMOTEGOTO:
+							{
+								CPDF_Action Action = (CPDF_Dictionary*)action;
+								CFX_WideString sdkPath = Action.GetFilePath();
+								wxString path((FX_LPCWSTR)sdkPath, sdkPath.GetLength());
+								wxCommandEvent gotoEvt(wxEVT_PDFVIEW_REMOTE_GOTO);
+								gotoEvt.SetString(path);
+								// TODO: determine remote goto page by loading remote document
+								m_ctrl->ProcessEvent(gotoEvt);
+								break;
+							}
+							case PDFACTION_LAUNCH:
+							{
+								// The SDK Method FPDFAction_GetFilePath is not available in PDFium (we'll use a level deeper)
+								CPDF_Action Action = (CPDF_Dictionary*)action;
+								CFX_WideString sdkPath = Action.GetFilePath();
+								wxString path((FX_LPCWSTR)sdkPath, sdkPath.GetLength());
+								wxFileName fn(path);
+								if (fn.GetExt().IsSameAs("pdf", false))
+								{
+									// Handle like a remote goto
+									wxCommandEvent gotoEvt(wxEVT_PDFVIEW_REMOTE_GOTO);
+									gotoEvt.SetString(path);
+									m_ctrl->ProcessEvent(gotoEvt);
+								} else {
+									wxCommandEvent gotoEvt(wxEVT_PDFVIEW_LAUNCH);
+									gotoEvt.SetString(path);
+									m_ctrl->ProcessEvent(gotoEvt);
+								}
+								
+								break;
+							}
 						}
 					}
 				}
