@@ -254,7 +254,7 @@ void wxPDFViewDocumentFrame::OnPDFDocumentReady(wxCommandEvent& event)
 	m_pdfView->SetFocus();
 	
 	wxConfigBase* cfg = wxConfig::Get();
-	wxConfigPathChanger pathChanger(cfg, GetName());
+	wxConfigPathChanger pathChanger(cfg, GetName() + "/");
 	m_pdfView->SetZoomType((wxPDFViewZoomType) cfg->ReadLong("ZoomType", wxPDFVIEW_ZOOM_TYPE_FIT_PAGE));
 
 	event.Skip();
@@ -437,6 +437,6 @@ void wxPDFViewDocumentFrame::StartPrint()
 void wxPDFViewDocumentFrame::SaveZoomConfig()
 {
 	wxConfigBase* cfg = wxConfig::Get();
-	wxConfigPathChanger pathChanger(cfg, GetName());
+	wxConfigPathChanger pathChanger(cfg, GetName() + "/");
 	cfg->Write("ZoomType", (int) m_pdfView->GetZoomType());
 }
