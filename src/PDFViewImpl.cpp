@@ -274,6 +274,45 @@ void wxPDFViewImpl::UpdateDocumentInfo()
 	m_ctrl->ProcessEvent(pgEvent);
 }
 
+void wxPDFViewImpl::RecalculatePageRects()
+{
+	m_pageRects.reserve(GetPageCount());
+	
+	m_docSize.Set(0, 0);
+	wxRect pageRect;
+	for (int i = 0; i < GetPageCount(); ++i)
+	{
+		double width;
+		double height;
+		if (FPDF_GetPageSizeByIndex(m_pdfDoc, i, &width, &height))
+		{
+			pageRect.y += m_pagePadding / 2;
+			pageRect.width = width;
+			pageRect.height = height;
+			m_pageRects.push_back(pageRect);
+			
+			if (width > m_docSize.x)
+				m_docSize.x = width;
+			
+			pageRect.y += height;
+			pageRect.y += m_pagePadding / 2;
+			
+			// Make sure every page top is pixel exact scrollable
+			int pageDisplayHeight = pageRect.height + m_pagePadding;
+			int scrollMod = pageDisplayHeight % m_scrollStepY;
+			if (scrollMod)
+				pageRect.y += m_scrollStepY - scrollMod;
+		} else {
+			// Document broken?
+			m_pages.erase(m_pages.begin() + i, m_pages.end());
+			break;
+		}
+	}
+	m_docSize.SetHeight(pageRect.y - (m_pagePadding / 2));
+	
+	AlignPageRects();
+}
+
 void wxPDFViewImpl::AlignPageRects()
 {
 	int ctrlWidth = m_ctrl->GetVirtualSize().GetWidth() / m_ctrl->GetScaleX();
@@ -395,8 +434,15 @@ void wxPDFViewImpl::GoToPage(int pageIndex, const wxRect* centerRect)
 
 void wxPDFViewImpl::UpdateVirtualSize()
 {
-	m_ctrl->SetVirtualSize(m_docSize.x * m_ctrl->GetScaleX(), m_docSize.y * m_ctrl->GetScaleY());
+	int scrollSizeX = m_docSize.x * m_ctrl->GetScaleX();
+	m_ctrl->SetVirtualSize(scrollSizeX, m_docSize.y * m_ctrl->GetScaleY());
 	m_ctrl->SetScrollRate(wxRound(m_scrollStepX * m_ctrl->GetScaleX()), wxRound(m_scrollStepY * m_ctrl->GetScaleY()));
+	int pixelsPerUnitX;
+	m_ctrl->GetScrollPixelsPerUnit(&pixelsPerUnitX, NULL);
+	wxSize clientSize = m_ctrl->GetClientSize();
+	int scrollPosX = (scrollSizeX - clientSize.x) / 2;
+	scrollPosX /= pixelsPerUnitX;
+	m_ctrl->Scroll(scrollPosX, -1);
 }
 
 void wxPDFViewImpl::SetZoom(double zoom)
@@ -692,46 +738,11 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream, const wxString
 	(void) FPDFAvail_IsPageAvail(m_pdfAvail, first_page, &hints);
 
 	m_pages.SetDocument(m_pdfDoc);
-	m_pageRects.reserve(GetPageCount());
-
-	m_docSize.Set(0, 0);
-	wxRect pageRect;
-	for (int i = 0; i < GetPageCount(); ++i)
-	{
-		(void) FPDFAvail_IsPageAvail(m_pdfAvail, i, &hints);
-
-		double width;
-		double height;
-		if (FPDF_GetPageSizeByIndex(m_pdfDoc, i, &width, &height))
-		{
-			pageRect.y += m_pagePadding / 2;
-			pageRect.width = width;
-			pageRect.height = height;
-			m_pageRects.push_back(pageRect);
-
-			if (width > m_docSize.x)
-				m_docSize.x = width;
-
-			pageRect.y += height;
-			pageRect.y += m_pagePadding / 2;
-
-			// Make sure every page top is pixel exact scrollable
-			int pageDisplayHeight = pageRect.height + m_pagePadding;
-			int scrollMod = pageDisplayHeight % m_scrollStepY;
-			if (scrollMod)
-				pageRect.y += m_scrollStepY - scrollMod;
-		} else {
-			// Document broken?
-			m_pages.erase(m_pages.begin() + i, m_pages.end());
-			break;
-		}
-	}
-	m_docSize.SetHeight(pageRect.y - (m_pagePadding / 2));
+	
+	RecalculatePageRects();
 
 	if (GetPageCount() > 0)
 		GetCachedBitmap(0, m_pageRects[0].GetSize());
-
-	AlignPageRects();
 
 	m_bookmarks = new wxPDFViewBookmarks(m_pdfDoc);
 	m_ctrl->Refresh();
@@ -764,7 +775,7 @@ void wxPDFViewImpl::CloseDocument()
 	}
 	wxDELETE(m_bookmarks);
 	m_pageRects.clear();
-	m_docSize.Set(0, 0);
+	m_docSize = wxDefaultSize;
 	UpdateVirtualSize();
 	m_docPermissions = 0;
 }
@@ -952,6 +963,8 @@ void wxPDFViewImpl::CalcZoomLevel()
 			} else {
 				scale = (double) clientSize.y / (double) pageSize.y;
 			}
+			break;
+		case wxPDFVIEW_ZOOM_TYPE_FREE:
 			break;
 	}
 

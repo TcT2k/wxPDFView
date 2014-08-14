@@ -124,6 +124,8 @@ private:
 	int m_currentFindIndex;
 
 	void UpdateDocumentInfo();
+	
+	void RecalculatePageRects();
 
 	void AlignPageRects();
 
