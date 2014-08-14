@@ -17,5 +17,15 @@ add_subdirectory(../.. wxPDFView)
 
 include_directories(${wxPDFView_INCLUDE_DIRS})
 
-add_executable(wxPDFViewSimpleSample WIN32 Simple.cpp Simple.h)
+if(APPLE)
+	set(SRCS ${SRCS} wxmac.icns)
+	SET_SOURCE_FILES_PROPERTIES(
+		wxmac.icns
+		PROPERTIES
+		MACOSX_PACKAGE_LOCATION Resources
+	)
+  set(MACOSX_BUNDLE_ICON_FILE "wxmac.icns")
+endif()
+
+add_executable(wxPDFViewSimpleSample WIN32 MACOSX_BUNDLE Simple.cpp Simple.h ${SRCS})
 target_link_libraries(wxPDFViewSimpleSample ${wxWidgets_LIBRARIES} wxPDFView)

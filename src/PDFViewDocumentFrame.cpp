@@ -45,8 +45,11 @@ bool wxPDFViewDocumentFrame::Create(wxWindow* parent,
 
 	SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE ) );
 
-	wxBoxSizer* mainSizer = new wxBoxSizer( wxHORIZONTAL );
+	wxBoxSizer* mainSizer = new wxBoxSizer( wxVERTICAL );
 	mainSizer->SetMinSize( wxSize( 800,600 ) );
+	
+	m_infoBar = new wxInfoBar(this);
+	mainSizer->Add(m_infoBar, 0, wxEXPAND, 0 );
 
 	m_splitter = new wxSplitterWindow( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_LIVE_UPDATE );
 	m_splitter->SetSashPosition(200);
@@ -183,6 +186,7 @@ bool wxPDFViewDocumentFrame::Create(wxWindow* parent,
 	m_pdfView->Bind(wxEVT_PDFVIEW_URL_CLICKED, &wxPDFViewDocumentFrame::OnPDFURLClicked, this);
 	m_pdfView->Bind(wxEVT_PDFVIEW_REMOTE_GOTO, &wxPDFViewDocumentFrame::OnPDFRemoteGoto, this);
 	m_pdfView->Bind(wxEVT_PDFVIEW_LAUNCH, &wxPDFViewDocumentFrame::OnPDFLaunch, this);
+	m_pdfView->Bind(wxEVT_PDFVIEW_UNSUPPORTED_FEATURE, &wxPDFViewDocumentFrame::OnPDFUnsupportedFeature, this);
 
 	m_pdfViewBookmarksCtrl->SetPDFView(m_pdfView);
 	m_thumbnailListBox->SetPDFView(m_pdfView);
@@ -285,6 +289,11 @@ void wxPDFViewDocumentFrame::OnPDFLaunch(wxCommandEvent& event)
 	wxFileName targetFileName(m_fileName);
 	targetFileName.SetFullName(event.GetString());
 	wxLaunchDefaultApplication(targetFileName.GetFullPath());
+}
+
+void wxPDFViewDocumentFrame::OnPDFUnsupportedFeature(wxCommandEvent& event)
+{
+	m_infoBar->ShowMessage(wxString::Format(_("Unsupported PDF feature: %s"), event.GetString()), wxICON_INFORMATION);
 }
 
 void wxPDFViewDocumentFrame::OnNavigationClick(wxCommandEvent& event)

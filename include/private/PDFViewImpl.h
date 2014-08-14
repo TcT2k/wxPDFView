@@ -81,6 +81,8 @@ public:
 
 	wxSize GetPageSize(int pageIndex) const;
 
+	void HandleUnsupportedFeature(int type);
+	
 private:
 	wxPDFView* m_ctrl;
 	wxPDFViewBookmarks* m_bookmarks;
@@ -161,7 +163,7 @@ private:
 
 	// Request redraw for specified page
 	void RefreshPage(int pageIndex);
-
+	
 	static bool AcquireSDK();
 
 	static void ReleaseSDK();

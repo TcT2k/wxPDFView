@@ -16,6 +16,7 @@
 #include <wx/srchctrl.h>
 #include <wx/timer.h>
 #include <wx/artprov.h>
+#include <wx/infobar.h>
 
 #include "PDFView.h"
 #include "PDFViewBookmarksCtrl.h"
@@ -93,6 +94,7 @@ protected:
 	wxPanel* m_docPanel;
 	wxPDFView* m_pdfView;
 	wxToolBar* m_toolBar;
+	wxInfoBar* m_infoBar;
 
 	wxSearchCtrl* m_searchCtrl;
 	wxTextCtrl* m_pageTxtCtrl;
@@ -143,6 +145,7 @@ private:
 	void OnPDFURLClicked(wxCommandEvent& event);
 	void OnPDFRemoteGoto(wxCommandEvent& event);
 	void OnPDFLaunch(wxCommandEvent& event);
+	void OnPDFUnsupportedFeature(wxCommandEvent& event);
 
 	void Find(const wxString& text, bool forward);
 	void UpdateSearchControls();

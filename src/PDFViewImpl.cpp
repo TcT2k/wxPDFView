@@ -118,49 +118,12 @@ int Form_Alert(IPDF_JSPLATFORM* WXUNUSED(pThis), FPDF_WIDESTRING Msg, FPDF_WIDES
 	return retVal;
 }
 
+wxPDFViewImpl* g_unsupportedHandlerPDFViewImpl = NULL;
+
 void Unsupported_Handler(UNSUPPORT_INFO*, int type)
 {
-  wxString feature = "Unknown";
-  switch (type) {
-	case FPDF_UNSP_DOC_XFAFORM:
-	  feature = "XFA";
-	  break;
-	case FPDF_UNSP_DOC_PORTABLECOLLECTION:
-	  feature = "Portfolios_Packages";
-	  break;
-	case FPDF_UNSP_DOC_ATTACHMENT:
-	case FPDF_UNSP_ANNOT_ATTACHMENT:
-	  feature = "Attachment";
-	  break;
-	case FPDF_UNSP_DOC_SECURITY:
-	  feature = "Rights_Management";
-	  break;
-	case FPDF_UNSP_DOC_SHAREDREVIEW:
-	  feature = "Shared_Review";
-	  break;
-	case FPDF_UNSP_DOC_SHAREDFORM_ACROBAT:
-	case FPDF_UNSP_DOC_SHAREDFORM_FILESYSTEM:
-	case FPDF_UNSP_DOC_SHAREDFORM_EMAIL:
-	  feature = "Shared_Form";
-	  break;
-	case FPDF_UNSP_ANNOT_3DANNOT:
-	  feature = "3D";
-	  break;
-	case FPDF_UNSP_ANNOT_MOVIE:
-	  feature = "Movie";
-	  break;
-	case FPDF_UNSP_ANNOT_SOUND:
-	  feature = "Sound";
-	  break;
-	case FPDF_UNSP_ANNOT_SCREEN_MEDIA:
-	case FPDF_UNSP_ANNOT_SCREEN_RICHMEDIA:
-	  feature = "Screen";
-	  break;
-	case FPDF_UNSP_ANNOT_SIG:
-	  feature = "Digital_Signature";
-	  break;
-  }
-  wxLogError("Unsupported feature: %s.", feature.c_str());
+	if (g_unsupportedHandlerPDFViewImpl)
+		g_unsupportedHandlerPDFViewImpl->HandleUnsupportedFeature(type);
 }
 
 UNSUPPORT_INFO g_unsupported_info = {
@@ -706,11 +669,13 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream, const wxString
 	wxString loadPassword = password;
 	while (retryLoad)
 	{
+		g_unsupportedHandlerPDFViewImpl = this;
 		FPDF_BYTESTRING pdfPassword = loadPassword.c_str();
 		if (!FPDFAvail_IsLinearized(m_pdfAvail))
 			m_pdfDoc = FPDF_LoadCustomDocument(&m_pdfFileAccess, pdfPassword);
 		else
 			m_pdfDoc = FPDFAvail_GetDocument(m_pdfAvail, pdfPassword);
+		g_unsupportedHandlerPDFViewImpl = NULL;
 
 		if (!m_pdfDoc)
 		{
@@ -1026,6 +991,55 @@ void wxPDFViewImpl::RefreshPage(int pageIndex)
 
 		m_ctrl->RefreshRect(updateRect, true);
 	}
+}
+
+void wxPDFViewImpl::HandleUnsupportedFeature(int type)
+{
+	wxString feature = "Unknown";
+	switch (type) {
+		case FPDF_UNSP_DOC_XFAFORM:
+			feature = "XFA";
+			break;
+		case FPDF_UNSP_DOC_PORTABLECOLLECTION:
+			feature = "Portfolios_Packages";
+			break;
+		case FPDF_UNSP_DOC_ATTACHMENT:
+		case FPDF_UNSP_ANNOT_ATTACHMENT:
+			feature = "Attachment";
+			break;
+		case FPDF_UNSP_DOC_SECURITY:
+			feature = "Rights_Management";
+			break;
+		case FPDF_UNSP_DOC_SHAREDREVIEW:
+			feature = "Shared_Review";
+			break;
+		case FPDF_UNSP_DOC_SHAREDFORM_ACROBAT:
+		case FPDF_UNSP_DOC_SHAREDFORM_FILESYSTEM:
+		case FPDF_UNSP_DOC_SHAREDFORM_EMAIL:
+			feature = "Shared_Form";
+			break;
+		case FPDF_UNSP_ANNOT_3DANNOT:
+			feature = "3D";
+			break;
+		case FPDF_UNSP_ANNOT_MOVIE:
+			feature = "Movie";
+			break;
+		case FPDF_UNSP_ANNOT_SOUND:
+			feature = "Sound";
+			break;
+		case FPDF_UNSP_ANNOT_SCREEN_MEDIA:
+		case FPDF_UNSP_ANNOT_SCREEN_RICHMEDIA:
+			feature = "Screen";
+			break;
+		case FPDF_UNSP_ANNOT_SIG:
+			feature = "Digital_Signature";
+			break;
+	}
+	
+	wxCommandEvent unsuppEvent(wxEVT_PDFVIEW_UNSUPPORTED_FEATURE);
+	unsuppEvent.SetString(feature);
+	unsuppEvent.SetInt(type);
+	m_ctrl->ProcessEvent(unsuppEvent);
 }
 
 bool wxPDFViewImpl::AcquireSDK()
