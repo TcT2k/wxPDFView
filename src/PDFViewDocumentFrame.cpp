@@ -8,8 +8,13 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #include "PDFViewDocumentFrame.h"
-#include <cmath>
 #include "PDFViewArtProvider.h"
+
+#include <wx/config.h>
+#include <wx/persist/toplevel.h>
+#include <wx/persist.h>
+
+wxString wxPDFViewDocumentFrame::DefaultName = "wxPDFView Document Frame";
 
 wxPDFViewDocumentFrame::wxPDFViewDocumentFrame(wxWindow* parent, 
 	wxWindowID id,
@@ -33,16 +38,17 @@ bool wxPDFViewDocumentFrame::Create(wxWindow* parent,
 	if (!wxFrame::Create(parent, id, (title.empty()) ? _("PDF Viewer") : title,
 		pos, size, style, name))
 		return false;
-
+	
+	// Set default config group
 	wxPDFViewArtProvider::Initialize();
 
 	SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE ) );
 
 	wxBoxSizer* mainSizer = new wxBoxSizer( wxHORIZONTAL );
-	mainSizer->SetMinSize( wxSize( 800,600 ) ); 
+	mainSizer->SetMinSize( wxSize( 800,600 ) );
 
 	m_splitter = new wxSplitterWindow( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_LIVE_UPDATE );
-	m_splitter->SetSashPosition(180);
+	m_splitter->SetSashPosition(200);
 	m_splitter->SetMinimumPaneSize( 160 );
 
 	m_navPanel = new wxPanel( m_splitter, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
@@ -86,10 +92,12 @@ bool wxPDFViewDocumentFrame::Create(wxWindow* parent,
 	m_docPanel->SetSizer( docPanelSizer );
 	m_docPanel->Layout();
 	docPanelSizer->Fit( m_docPanel );
-	m_splitter->SplitVertically( m_navPanel, m_docPanel, 180 );
+	m_splitter->SplitVertically( m_navPanel, m_docPanel, 220 );
 	mainSizer->Add( m_splitter, 1, wxEXPAND, 5 );
 
 	SetSizerAndFit( mainSizer );
+	SetSize(900, 600);
+	CentreOnScreen();
 
 	// Initialize toolbar
 	m_toolBar = CreateToolBar( wxTB_FLAT|wxTB_HORIZONTAL|wxTB_NODIVIDER);
@@ -108,10 +116,10 @@ bool wxPDFViewDocumentFrame::Create(wxWindow* parent,
 
 	m_toolBar->AddTool(wxID_BACKWARD, _("Previous Page"), GetToolbarBitmap(wxART_GO_BACK), _("Show previous page"));
 	m_toolBar->AddTool(wxID_FORWARD, _("Next Page"), GetToolbarBitmap(wxART_GO_FORWARD), _("Show next page"));
-	m_pageTxtCtrl = new wxTextCtrl(m_toolBar, wxID_ANY, "0", wxDefaultPosition, wxSize(30, -1), wxTE_PROCESS_ENTER | wxTE_CENTRE);
+	m_pageTxtCtrl = new wxTextCtrl(m_toolBar, wxID_ANY, "0", wxDefaultPosition, wxSize(40, -1), wxTE_PROCESS_ENTER | wxTE_CENTRE);
 	m_pageTxtCtrl->Bind(wxEVT_TEXT_ENTER, &wxPDFViewDocumentFrame::OnPageTextEnter, this);
 	m_toolBar->AddControl(m_pageTxtCtrl);
-	wxStaticText* pageCountDivTxt = new wxStaticText(m_toolBar, wxID_ANY, "/", wxDefaultPosition, wxSize(20, -1), wxALIGN_CENTRE_HORIZONTAL);
+	wxStaticText* pageCountDivTxt = new wxStaticText(m_toolBar, wxID_ANY, "/", wxDefaultPosition, wxSize(14, -1), wxALIGN_CENTRE_HORIZONTAL);
 	m_toolBar->AddControl(pageCountDivTxt);
 	m_pageCountTxtCtrl = new wxStaticText(m_toolBar, wxID_ANY, "0", wxDefaultPosition, wxSize(34, -1), wxALIGN_CENTRE_HORIZONTAL);
 	m_toolBar->AddControl(m_pageCountTxtCtrl);
@@ -177,6 +185,8 @@ bool wxPDFViewDocumentFrame::Create(wxWindow* parent,
 	m_thumbnailListBox->SetPDFView(m_pdfView);
 
 	UpdateSearchControls();
+	
+	wxPersistenceManager::Get().RegisterAndRestore(this);
 
 	return true;
 }
@@ -242,6 +252,10 @@ void wxPDFViewDocumentFrame::OnPDFDocumentReady(wxCommandEvent& event)
 		m_docNotebook->RemovePage(0);
 	}
 	m_pdfView->SetFocus();
+	
+	wxConfigBase* cfg = wxConfig::Get();
+	wxConfigPathChanger pathChanger(cfg, GetName());
+	m_pdfView->SetZoomType((wxPDFViewZoomType) cfg->ReadLong("ZoomType", wxPDFVIEW_ZOOM_TYPE_FIT_PAGE));
 
 	event.Skip();
 }
@@ -317,7 +331,9 @@ void wxPDFViewDocumentFrame::OnZoomComboBox( wxCommandEvent& event )
 	{
 		double zoom = reinterpret_cast<int>(m_zoomComboBox->GetClientData(m_zoomComboBox->GetSelection())) / (double) 100;
 		m_pdfView->SetZoom(zoom);
+		m_pdfView->SetFocus();
 	}
+	SaveZoomConfig();
 
 	event.Skip();
 }
@@ -332,6 +348,7 @@ void wxPDFViewDocumentFrame::OnZoomTextEnter( wxCommandEvent& event )
 		m_pdfView->SetZoom(newZoom / 100);
 		m_pdfView->SetFocus();
 	}
+	SaveZoomConfig();
 
 	event.Skip();
 }
@@ -339,6 +356,7 @@ void wxPDFViewDocumentFrame::OnZoomTextEnter( wxCommandEvent& event )
 void wxPDFViewDocumentFrame::OnZoomPageFitClick( wxCommandEvent& event)
 {
 	m_pdfView->SetZoomType(wxPDFVIEW_ZOOM_TYPE_FIT_PAGE);
+	SaveZoomConfig();
 
 	event.Skip();
 }
@@ -346,6 +364,7 @@ void wxPDFViewDocumentFrame::OnZoomPageFitClick( wxCommandEvent& event)
 void wxPDFViewDocumentFrame::OnZoomPageWidthClick( wxCommandEvent& event)
 {
 	m_pdfView->SetZoomType(wxPDFVIEW_ZOOM_TYPE_PAGE_WIDTH);
+	SaveZoomConfig();
 
 	event.Skip();
 }
@@ -413,4 +432,11 @@ void wxPDFViewDocumentFrame::StartPrint()
 	wxSharedPtr<wxPrintout> printout(m_pdfView->CreatePrintout());
 	if (!printer.Print(this, printout.get()))
 		wxLogError(_("Document could not be printed"));
+}
+
+void wxPDFViewDocumentFrame::SaveZoomConfig()
+{
+	wxConfigBase* cfg = wxConfig::Get();
+	wxConfigPathChanger pathChanger(cfg, GetName());
+	cfg->Write("ZoomType", (int) m_pdfView->GetZoomType());
 }

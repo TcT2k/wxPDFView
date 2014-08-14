@@ -40,6 +40,8 @@
 class wxPDFViewDocumentFrame: public wxFrame
 {
 public:
+	static wxString DefaultName;
+	
 	wxPDFViewDocumentFrame() { }
 
 	wxPDFViewDocumentFrame(wxWindow* parent, 
@@ -48,7 +50,7 @@ public:
 		const wxPoint &pos=wxDefaultPosition, 
 		const wxSize &size=wxDefaultSize, 
 		long style=wxDEFAULT_FRAME_STYLE, 
-		const wxString &name=wxFrameNameStr);
+		const wxString &name=DefaultName);
 
 	~wxPDFViewDocumentFrame();
 
@@ -58,7 +60,7 @@ public:
 		const wxPoint &pos=wxDefaultPosition, 
 		const wxSize &size=wxDefaultSize, 
 		long style=wxDEFAULT_FRAME_STYLE, 
-		const wxString &name=wxFrameNameStr);
+		const wxString &name=DefaultName);
 
 	/**
 	   Load the specified file into the frame
@@ -106,7 +108,7 @@ protected:
 	   Returns bitmap for the specified art ID
 	*/
 	virtual wxBitmap GetToolbarBitmap(wxArtID id);
-
+	
 private:
 	wxString m_searchText;
 
@@ -143,6 +145,8 @@ private:
 	void UpdateSearchControls();
 
 	void StartPrint();
+	
+	void SaveZoomConfig();
 };
 
 
