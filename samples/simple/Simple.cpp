@@ -21,6 +21,8 @@
 
 bool SimpleApp::OnInit()
 {
+	wxImage::AddHandler(new wxPNGHandler());
+	
 	SimpleFrame *frame = new SimpleFrame();
 	frame->Show(true);
 
