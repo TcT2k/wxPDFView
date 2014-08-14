@@ -945,18 +945,19 @@ void wxPDFViewImpl::CalcZoomLevel()
 		return;
 
 	wxSize clientSize = m_ctrl->GetClientSize();
-	wxSize pageSize = m_pageRects[m_mostVisiblePage].GetSize();
-	pageSize.x += 6; // Add padding to page width
-	pageSize.y += m_pagePadding;
 
 	double scale = 0;
 
 	switch (m_zoomType)
 	{
 		case wxPDFVIEW_ZOOM_TYPE_PAGE_WIDTH:
-			scale = (double) clientSize.x / (double) pageSize.x;
+			scale = (double) clientSize.x / (double) (m_docSize.x + 6);
 			break;
 		case wxPDFVIEW_ZOOM_TYPE_FIT_PAGE:
+		{
+			wxSize pageSize = m_pageRects[m_mostVisiblePage].GetSize();
+			pageSize.x += 6; // Add padding to page width
+			pageSize.y += m_pagePadding;
 			if (pageSize.x > pageSize.y)
 			{
 				scale = (double) clientSize.x / (double) pageSize.x;
@@ -964,6 +965,7 @@ void wxPDFViewImpl::CalcZoomLevel()
 				scale = (double) clientSize.y / (double) pageSize.y;
 			}
 			break;
+		}
 		case wxPDFVIEW_ZOOM_TYPE_FREE:
 			break;
 	}
