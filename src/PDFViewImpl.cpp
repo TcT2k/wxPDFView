@@ -858,7 +858,7 @@ bool wxPDFViewImpl::EvaluateLinkTargetPageAtClientPos(const wxPoint& clientPos, 
 									int uriSize = FPDFAction_GetURIPath(m_pdfDoc, action, NULL, 0);
 									char* uriBuf = new char[uriSize];
 									FPDFAction_GetURIPath(m_pdfDoc, action, uriBuf, uriSize);
-									wxString uriString(uriBuf, uriSize);
+									wxString uriString(uriBuf, uriSize - 1);
 
 									wxCommandEvent urlEvent(wxEVT_PDFVIEW_URL_CLICKED);
 									urlEvent.SetString(uriString);
