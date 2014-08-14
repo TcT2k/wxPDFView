@@ -77,6 +77,8 @@ public:
 		const wxPDFViewBookmark* bm = (const wxPDFViewBookmark*) parent.GetID();
 		if (!bm && m_rootBookmark)
 			bm = m_rootBookmark;
+		if (!bm)
+			return 0;
 
 		for (auto it = bm->begin(); it != bm->end(); ++it)
 		{

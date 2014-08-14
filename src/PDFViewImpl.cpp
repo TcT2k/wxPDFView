@@ -534,9 +534,10 @@ int wxPDFViewImpl::FindOnPage(int pageIndex, bool caseSensitive, bool firstSearc
 {
 	// Find all the matches in the current page.
 	unsigned long flags = caseSensitive ? FPDF_MATCHCASE : 0;
+	wxMBConvUTF16LE conv;
 	FPDF_SCHHANDLE find = FPDFText_FindStart(
 		m_pages[pageIndex].GetTextPage(),
-		reinterpret_cast<const unsigned short*>(m_findText.wc_str()),
+		reinterpret_cast<FPDF_WIDESTRING>((const char*)m_findText.mb_str(conv)),
 		flags, 0);
 
 	wxPDFViewPage& page = m_pages[pageIndex];
