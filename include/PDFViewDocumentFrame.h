@@ -15,6 +15,7 @@
 #include <wx/notebook.h>
 #include <wx/srchctrl.h>
 #include <wx/timer.h>
+#include <wx/artprov.h>
 
 #include "PDFView.h"
 #include "PDFViewBookmarksCtrl.h"
@@ -100,6 +101,11 @@ protected:
 	   Override this method to customize the printDialogData used when the print button is pressed
 	*/
 	virtual void PreparePrintDialogData(wxPrintDialogData& printDialogData) { }
+	
+	/**
+	   Returns bitmap for the specified art ID
+	*/
+	virtual wxBitmap GetToolbarBitmap(wxArtID id);
 
 private:
 	wxString m_searchText;

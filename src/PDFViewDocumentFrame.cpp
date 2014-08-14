@@ -8,7 +8,6 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #include "PDFViewDocumentFrame.h"
-#include <wx/artprov.h>
 #include <cmath>
 #include "PDFViewArtProvider.h"
 
@@ -103,12 +102,12 @@ bool wxPDFViewDocumentFrame::Create(wxWindow* parent,
 	m_searchCtrl->Bind(wxEVT_COMMAND_TEXT_ENTER, &wxPDFViewDocumentFrame::OnSearchCtrlFind, this);
 	m_searchCtrl->Bind(wxEVT_COMMAND_TEXT_UPDATED, &wxPDFViewDocumentFrame::OnSearchCtrlText, this);
 
-	m_toolBar->AddTool(ID_NAVIGATION, _("Navigation"), wxArtProvider::GetBitmap(wxART_HELP_SIDE_PANEL, wxART_TOOLBAR), _("Show/Hide Navigation"), wxITEM_CHECK);
-	m_toolBar->AddTool(wxID_PRINT, _("Print"), wxArtProvider::GetBitmap(wxART_PRINT, wxART_TOOLBAR), _("Print Document"));
+	m_toolBar->AddTool(ID_NAVIGATION, _("Navigation"), GetToolbarBitmap(wxART_HELP_SIDE_PANEL), _("Show/Hide Navigation"), wxITEM_CHECK);
+	m_toolBar->AddTool(wxID_PRINT, _("Print"), GetToolbarBitmap(wxART_PRINT), _("Print Document"));
 	m_toolBar->AddSeparator();
 
-	m_toolBar->AddTool(wxID_BACKWARD, _("Previous Page"), wxArtProvider::GetBitmap(wxART_GO_BACK, wxART_TOOLBAR), _("Show previous page"));
-	m_toolBar->AddTool(wxID_FORWARD, _("Next Page"), wxArtProvider::GetBitmap(wxART_GO_FORWARD, wxART_TOOLBAR), _("Show next page"));
+	m_toolBar->AddTool(wxID_BACKWARD, _("Previous Page"), GetToolbarBitmap(wxART_GO_BACK), _("Show previous page"));
+	m_toolBar->AddTool(wxID_FORWARD, _("Next Page"), GetToolbarBitmap(wxART_GO_FORWARD), _("Show next page"));
 	m_pageTxtCtrl = new wxTextCtrl(m_toolBar, wxID_ANY, "0", wxDefaultPosition, wxSize(30, -1), wxTE_PROCESS_ENTER | wxTE_CENTRE);
 	m_pageTxtCtrl->Bind(wxEVT_TEXT_ENTER, &wxPDFViewDocumentFrame::OnPageTextEnter, this);
 	m_toolBar->AddControl(m_pageTxtCtrl);
@@ -126,18 +125,18 @@ bool wxPDFViewDocumentFrame::Create(wxWindow* parent,
 	m_zoomComboBox->Bind(wxEVT_TEXT_ENTER, &wxPDFViewDocumentFrame::OnZoomTextEnter, this);
 
 	m_toolBar->AddSeparator();
-	m_toolBar->AddTool(ID_ZOOM_OUT, _("Zoom Out"), wxArtProvider::GetBitmap(wxART_PDFVIEW_ZOOM_OUT, wxART_TOOLBAR), _("Zoom Out"));
-	m_toolBar->AddTool(ID_ZOOM_IN, _("Zoom In"), wxArtProvider::GetBitmap(wxART_PDFVIEW_ZOOM_IN, wxART_TOOLBAR), _("Zoom In"));
+	m_toolBar->AddTool(ID_ZOOM_OUT, _("Zoom Out"), GetToolbarBitmap(wxART_PDFVIEW_ZOOM_OUT), _("Zoom Out"));
+	m_toolBar->AddTool(ID_ZOOM_IN, _("Zoom In"), GetToolbarBitmap(wxART_PDFVIEW_ZOOM_IN), _("Zoom In"));
 	m_toolBar->AddControl(m_zoomComboBox);
 
 	m_toolBar->AddSeparator();
-	m_toolBar->AddTool(ID_ZOOM_PAGE_FIT, _("Page Fit"), wxArtProvider::GetBitmap(wxART_PDFVIEW_PAGE_FIT, wxART_TOOLBAR), _("Fit one full page to window"), wxITEM_CHECK);
-	m_toolBar->AddTool(ID_ZOOM_PAGE_WIDTH, _("Fit Width"), wxArtProvider::GetBitmap(wxART_PDFVIEW_PAGE_WIDTH, wxART_TOOLBAR), _("Fit to window width"), wxITEM_CHECK);
+	m_toolBar->AddTool(ID_ZOOM_PAGE_FIT, _("Page Fit"), GetToolbarBitmap(wxART_PDFVIEW_PAGE_FIT), _("Fit one full page to window"), wxITEM_CHECK);
+	m_toolBar->AddTool(ID_ZOOM_PAGE_WIDTH, _("Fit Width"), GetToolbarBitmap(wxART_PDFVIEW_PAGE_WIDTH), _("Fit to window width"), wxITEM_CHECK);
 
 	m_toolBar->AddStretchableSpace();
 	m_toolBar->AddControl(m_searchCtrl);
-	m_toolBar->AddTool(ID_FIND_NEXT, _("Next"), wxArtProvider::GetBitmap(wxART_GO_DOWN, wxART_TOOLBAR), _("Find next"));
-	m_toolBar->AddTool(ID_FIND_PREV, _("Previous"), wxArtProvider::GetBitmap(wxART_GO_UP, wxART_TOOLBAR), _("Find previous"));
+	m_toolBar->AddTool(ID_FIND_NEXT, _("Next"), GetToolbarBitmap(wxART_GO_DOWN), _("Find next"));
+	m_toolBar->AddTool(ID_FIND_PREV, _("Previous"), GetToolbarBitmap(wxART_GO_UP), _("Find previous"));
 
 	m_toolBar->Realize();
 
@@ -185,6 +184,17 @@ bool wxPDFViewDocumentFrame::Create(wxWindow* parent,
 wxPDFViewDocumentFrame::~wxPDFViewDocumentFrame()
 {
 
+}
+
+wxBitmap wxPDFViewDocumentFrame::GetToolbarBitmap(wxArtID id)
+{
+	wxSize toolBarBmpSize = wxDefaultSize;
+#if __WXOSX__
+	// Tango icons are only available in 16x16 and 24x24, set size here to prevent scaling
+	if (id != wxART_HELP_SIDE_PANEL)
+		toolBarBmpSize = wxSize(24, 24);
+#endif
+	return wxArtProvider::GetBitmap(id, wxART_TOOLBAR, toolBarBmpSize);
 }
 
 bool wxPDFViewDocumentFrame::LoadFile(const wxString& fileName)
