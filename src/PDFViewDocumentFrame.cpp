@@ -199,10 +199,12 @@ bool wxPDFViewDocumentFrame::Create(wxWindow* parent,
 	wxPersistenceManager::Get().RegisterAndRestore(this);
 	
 	// Init activity panel
+	m_activityActive = false;
 	m_activityPanel = new wxPDFViewActivityPanel(this);
 	wxSizeEvent sizeEvent;
 	OnFrameSize(sizeEvent);
 	Bind(wxEVT_SIZE, &wxPDFViewDocumentFrame::OnFrameSize, this);
+	Bind(wxEVT_CLOSE_WINDOW, &wxPDFViewDocumentFrame::OnCloseWindow, this);
 	m_activityPanel->Hide();
 
 	return true;
@@ -211,6 +213,14 @@ bool wxPDFViewDocumentFrame::Create(wxWindow* parent,
 wxPDFViewDocumentFrame::~wxPDFViewDocumentFrame()
 {
 
+}
+
+void wxPDFViewDocumentFrame::OnFrameClose(wxCloseEvent& event)
+{
+	if (m_activityActive)
+		event.Veto();
+	else
+		event.Skip();
 }
 
 void wxPDFViewDocumentFrame::OnFrameSize(wxSizeEvent& event)
@@ -324,21 +334,36 @@ void wxPDFViewDocumentFrame::OnPDFUnsupportedFeature(wxCommandEvent& event)
 	m_infoBar->ShowMessage(wxString::Format(_("Unsupported PDF feature: %s"), event.GetString()), wxICON_INFORMATION);
 }
 
+void wxPDFViewDocumentFrame::StartActivity(const wxString& description)
+{
+	m_activityActive = true;
+	wxBeginBusyCursor();
+	UpdateActivity(description);
+}
+
+void wxPDFViewDocumentFrame::UpdateActivity(const wxString& description)
+{
+	m_activityPanel->SetText(description);
+	wxSizeEvent sizeEvt;
+	OnFrameSize(sizeEvt);
+	m_activityPanel->Show();
+}
+
+void wxPDFViewDocumentFrame::EndActivity()
+{
+	m_activityActive = false;
+	m_activityPanel->Hide();
+	if (wxIsBusy())
+		wxEndBusyCursor();
+}
+
 void wxPDFViewDocumentFrame::OnPDFActivity(wxCommandEvent& event)
 {
 	wxString desc = event.GetString();
 	if (!desc.empty())
-	{
-		m_activityPanel->SetText(desc);
-		wxSizeEvent sizeEvt;
-		OnFrameSize(sizeEvt);
-		m_activityPanel->Show();
-		wxBeginBusyCursor();
-	} else {
-		m_activityPanel->Hide();
-		if (wxIsBusy())
-			wxEndBusyCursor();
-	}
+		StartActivity(desc);
+	else
+		EndActivity();
 }
 
 void wxPDFViewDocumentFrame::ShowNavigationPane(bool show)

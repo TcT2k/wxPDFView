@@ -114,11 +114,19 @@ protected:
 	*/
 	virtual wxBitmap GetToolbarBitmap(wxArtID id);
 	
+	void StartActivity(const wxString& description);
+	
+	void UpdateActivity(const wxString& description);
+	
+	void EndActivity();
+	
 private:
 	wxString m_searchText;
 	wxPDFViewActivityPanel* m_activityPanel;
+	bool m_activityActive;
 	
 	void OnFrameSize(wxSizeEvent& event);
+	void OnFrameClose(wxCloseEvent& event);
 
 	void OnNavigationClick(wxCommandEvent& event);
 
