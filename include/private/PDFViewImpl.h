@@ -83,6 +83,8 @@ public:
 
 	void HandleUnsupportedFeature(int type);
 	
+	void SendActivity(const wxString& description);
+	
 private:
 	wxPDFView* m_ctrl;
 	wxPDFViewBookmarks* m_bookmarks;

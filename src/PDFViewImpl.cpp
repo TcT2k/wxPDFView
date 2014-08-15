@@ -154,6 +154,27 @@ void Add_Segment(FX_DOWNLOADHINTS* WXUNUSED(pThis), size_t WXUNUSED(offset), siz
 }
 
 //
+// wxPDFViewActivity
+//
+class wxPDFViewActivity
+{
+public:
+	wxPDFViewActivity(wxPDFViewImpl* pdfViewImpl, const wxString& description):
+		m_impl(pdfViewImpl)
+	{
+		m_impl->SendActivity(description);
+	}
+	
+	~wxPDFViewActivity()
+	{
+		m_impl->SendActivity("");
+	}
+	
+private:
+	wxPDFViewImpl* m_impl;
+};
+
+//
 // wxPDFViewImpl
 //
 
@@ -1040,6 +1061,13 @@ void wxPDFViewImpl::HandleUnsupportedFeature(int type)
 	unsuppEvent.SetString(feature);
 	unsuppEvent.SetInt(type);
 	m_ctrl->ProcessEvent(unsuppEvent);
+}
+
+void wxPDFViewImpl::SendActivity(const wxString& description)
+{
+	wxCommandEvent evt(wxEVT_PDFVIEW_ACTIVITY);
+	evt.SetString(description);
+	m_ctrl->ProcessEvent(evt);
 }
 
 bool wxPDFViewImpl::AcquireSDK()

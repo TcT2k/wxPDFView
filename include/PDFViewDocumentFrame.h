@@ -22,6 +22,8 @@
 #include "PDFViewBookmarksCtrl.h"
 #include "PDFViewThumbnailListBox.h"
 
+class wxPDFViewActivityPanel;
+
 /**
    PDF reader frame combining all controls to a ready built PDF reader
 
@@ -114,6 +116,9 @@ protected:
 	
 private:
 	wxString m_searchText;
+	wxPDFViewActivityPanel* m_activityPanel;
+	
+	void OnFrameSize(wxSizeEvent& event);
 
 	void OnNavigationClick(wxCommandEvent& event);
 
@@ -146,6 +151,7 @@ private:
 	void OnPDFRemoteGoto(wxCommandEvent& event);
 	void OnPDFLaunch(wxCommandEvent& event);
 	void OnPDFUnsupportedFeature(wxCommandEvent& event);
+	void OnPDFActivity(wxCommandEvent& event);
 
 	void Find(const wxString& text, bool forward);
 	void UpdateSearchControls();
@@ -153,6 +159,8 @@ private:
 	void StartPrint();
 	
 	void SaveZoomConfig();
+	
+	void ShowNavigationPane(bool show);
 };
 
 

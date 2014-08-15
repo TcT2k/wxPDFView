@@ -9,6 +9,7 @@
 
 #include "PDFViewDocumentFrame.h"
 #include "PDFViewArtProvider.h"
+#include "private/PDFViewActivityPanel.h"
 
 #include <wx/config.h>
 #include <wx/persist/toplevel.h>
@@ -175,8 +176,7 @@ bool wxPDFViewDocumentFrame::Create(wxWindow* parent,
 	m_toolBar->EnableTool(ID_ZOOM_IN, false);
 	m_zoomComboBox->Disable();
 	m_searchCtrl->Disable();
-
-	m_toolBar->ToggleTool(ID_NAVIGATION, true);
+	m_toolBar->EnableTool(ID_NAVIGATION, false);
 
 	// Bind PDF events
 	m_pdfView->Bind(wxEVT_PDFVIEW_DOCUMENT_READY, &wxPDFViewDocumentFrame::OnPDFDocumentReady, this);
@@ -187,13 +187,23 @@ bool wxPDFViewDocumentFrame::Create(wxWindow* parent,
 	m_pdfView->Bind(wxEVT_PDFVIEW_REMOTE_GOTO, &wxPDFViewDocumentFrame::OnPDFRemoteGoto, this);
 	m_pdfView->Bind(wxEVT_PDFVIEW_LAUNCH, &wxPDFViewDocumentFrame::OnPDFLaunch, this);
 	m_pdfView->Bind(wxEVT_PDFVIEW_UNSUPPORTED_FEATURE, &wxPDFViewDocumentFrame::OnPDFUnsupportedFeature, this);
+	m_pdfView->Bind(wxEVT_PDFVIEW_ACTIVITY, &wxPDFViewDocumentFrame::OnPDFActivity, this);
 
 	m_pdfViewBookmarksCtrl->SetPDFView(m_pdfView);
 	m_thumbnailListBox->SetPDFView(m_pdfView);
 
 	UpdateSearchControls();
 	
+	ShowNavigationPane(false);
+	
 	wxPersistenceManager::Get().RegisterAndRestore(this);
+	
+	// Init activity panel
+	m_activityPanel = new wxPDFViewActivityPanel(this);
+	wxSizeEvent sizeEvent;
+	OnFrameSize(sizeEvent);
+	Bind(wxEVT_SIZE, &wxPDFViewDocumentFrame::OnFrameSize, this);
+	m_activityPanel->Hide();
 
 	return true;
 }
@@ -201,6 +211,18 @@ bool wxPDFViewDocumentFrame::Create(wxWindow* parent,
 wxPDFViewDocumentFrame::~wxPDFViewDocumentFrame()
 {
 
+}
+
+void wxPDFViewDocumentFrame::OnFrameSize(wxSizeEvent& event)
+{
+	wxSize clientSize = GetClientSize();
+	wxSize panelSize = m_activityPanel->GetSize();
+	
+	int margin = 32;
+	
+	m_activityPanel->SetPosition(wxPoint(clientSize.x - panelSize.x - margin, clientSize.y - panelSize.y - margin));
+	
+	event.Skip();
 }
 
 wxBitmap wxPDFViewDocumentFrame::GetToolbarBitmap(wxArtID id)
@@ -246,8 +268,12 @@ void wxPDFViewDocumentFrame::OnPDFZoomTypeChanged(wxCommandEvent& event)
 
 void wxPDFViewDocumentFrame::OnPDFDocumentReady(wxCommandEvent& event)
 {
+	wxConfigBase* cfg = wxConfig::Get();
+	wxConfigPathChanger pathChanger(cfg, GetName() + "/");
+	
 	m_toolBar->EnableTool(ID_ZOOM_OUT, true);
 	m_toolBar->EnableTool(ID_ZOOM_IN, true);
+	m_toolBar->EnableTool(ID_NAVIGATION, true);
 	m_zoomComboBox->Enable();
 	m_toolBar->EnableTool(wxID_PRINT, m_pdfView->IsPrintAllowed());
 
@@ -259,10 +285,12 @@ void wxPDFViewDocumentFrame::OnPDFDocumentReady(wxCommandEvent& event)
 	{
 		m_docNotebook->RemovePage(0);
 	}
+	
+	bool showNavPane = cfg->ReadBool("ShowNavigation", m_pdfView->GetRootBookmark() != NULL);
+	ShowNavigationPane(showNavPane);
+	
 	m_pdfView->SetFocus();
 	
-	wxConfigBase* cfg = wxConfig::Get();
-	wxConfigPathChanger pathChanger(cfg, GetName() + "/");
 	m_pdfView->SetZoomType((wxPDFViewZoomType) cfg->ReadLong("ZoomType", wxPDFVIEW_ZOOM_TYPE_FIT_PAGE));
 
 	event.Skip();
@@ -296,13 +324,41 @@ void wxPDFViewDocumentFrame::OnPDFUnsupportedFeature(wxCommandEvent& event)
 	m_infoBar->ShowMessage(wxString::Format(_("Unsupported PDF feature: %s"), event.GetString()), wxICON_INFORMATION);
 }
 
-void wxPDFViewDocumentFrame::OnNavigationClick(wxCommandEvent& event)
+void wxPDFViewDocumentFrame::OnPDFActivity(wxCommandEvent& event)
 {
-	if (m_toolBar->GetToolState(ID_NAVIGATION))
-		m_splitter->SplitVertically(m_navPanel, m_docPanel, 180);
+	wxString desc = event.GetString();
+	if (!desc.empty())
+	{
+		m_activityPanel->SetText(desc);
+		wxSizeEvent sizeEvt;
+		OnFrameSize(sizeEvt);
+		m_activityPanel->Show();
+		wxBeginBusyCursor();
+	} else {
+		m_activityPanel->Hide();
+		if (wxIsBusy())
+			wxEndBusyCursor();
+	}
+}
+
+void wxPDFViewDocumentFrame::ShowNavigationPane(bool show)
+{
+	if (show)
+		m_splitter->SplitVertically(m_navPanel, m_docPanel, 200);
 	else
 		m_splitter->Unsplit(m_navPanel);
+	m_toolBar->ToggleTool(ID_NAVIGATION, show);
+}
 
+void wxPDFViewDocumentFrame::OnNavigationClick(wxCommandEvent& event)
+{
+	bool showNavigation = m_toolBar->GetToolState(ID_NAVIGATION);
+	ShowNavigationPane(showNavigation);
+	
+	wxConfigBase* cfg = wxConfig::Get();
+	wxConfigPathChanger pathChanger(cfg, GetName() + "/");
+	cfg->Write("ShowNavigation", showNavigation);
+	
 	event.Skip();
 }
 
