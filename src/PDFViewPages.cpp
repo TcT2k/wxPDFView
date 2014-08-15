@@ -123,8 +123,7 @@ void wxPDFViewPage::DrawPrint(wxDC& dc, const wxRect& rect, bool forceBitmap)
 #endif
 	{
 		wxBitmap bmp = CreateBitmap(page, rect.GetSize(), renderFlags);
-		wxMemoryDC memDC(bmp);
-		dc.Blit(rect.GetPosition(), rect.GetSize(), &memDC, wxPoint(0, 0));
+		dc.DrawBitmap(bmp, wxPoint(0, 0));
 	}
 }
 
