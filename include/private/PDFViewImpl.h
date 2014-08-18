@@ -99,6 +99,7 @@ private:
 	static wxAtomicInt ms_pdfSDKRefCount;
 	FPDF_FILEACCESS m_pdfFileAccess;
 	FX_FILEAVAIL m_pdfFileAvail;
+	FX_DOWNLOADHINTS m_hints;
 
 	// Document information
 	wxVector<wxRect> m_pageRects;
@@ -106,6 +107,7 @@ private:
 	wxSize m_docSize;
 	unsigned long m_docPermissions;
 	wxString m_documentTitle;
+	bool m_linearized;
 
 	// Display settings
 	wxPDFViewZoomType m_zoomType;

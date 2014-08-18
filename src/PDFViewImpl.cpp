@@ -203,6 +203,7 @@ wxPDFViewImpl::wxPDFViewImpl(wxPDFView* ctrl):
 	m_bookmarks = NULL;
 	m_currentFindIndex = -1;
 	m_docPermissions = 0;
+	m_linearized = false;
 
 	// PDF SDK structures
 	memset(&m_pdfFileAccess, '\0', sizeof(m_pdfFileAccess));
@@ -213,6 +214,10 @@ wxPDFViewImpl::wxPDFViewImpl(wxPDFView* ctrl):
 	memset(&m_pdfFileAvail, '\0', sizeof(m_pdfFileAvail));
 	m_pdfFileAvail.version = 1;
 	m_pdfFileAvail.IsDataAvail = Is_Data_Avail;
+	
+	memset(&m_hints, '\0', sizeof(m_hints));
+	m_hints.version = 1;
+	m_hints.AddSegment = Add_Segment;
 
 	m_ctrl->Bind(wxEVT_PAINT, &wxPDFViewImpl::OnPaint, this);
 	m_ctrl->Bind(wxEVT_SIZE, &wxPDFViewImpl::OnSize, this);
@@ -263,35 +268,40 @@ void wxPDFViewImpl::RecalculatePageRects()
 {
 	m_pageRects.reserve(GetPageCount());
 	
+	wxSize defaultPageSize = wxDefaultSize;
+	
 	m_docSize.Set(0, 0);
 	wxRect pageRect;
 	for (int i = 0; i < GetPageCount(); ++i)
 	{
+		bool pageAvail = !m_linearized || FPDFAvail_IsPageAvail(m_pdfAvail, i, &m_hints) != 0;
+		
+		wxSize pageSize;
 		double width;
 		double height;
-		if (FPDF_GetPageSizeByIndex(m_pdfDoc, i, &width, &height))
+		if (pageAvail && FPDF_GetPageSizeByIndex(m_pdfDoc, i, &width, &height))
 		{
-			pageRect.y += m_pagePadding / 2;
-			pageRect.width = width;
-			pageRect.height = height;
-			m_pageRects.push_back(pageRect);
-			
-			if (width > m_docSize.x)
-				m_docSize.x = width;
-			
-			pageRect.y += height;
-			pageRect.y += m_pagePadding / 2;
-			
-			// Make sure every page top is pixel exact scrollable
-			int pageDisplayHeight = pageRect.height + m_pagePadding;
-			int scrollMod = pageDisplayHeight % m_scrollStepY;
-			if (scrollMod)
-				pageRect.y += m_scrollStepY - scrollMod;
-		} else {
-			// Document broken?
-			m_pages.erase(m_pages.begin() + i, m_pages.end());
-			break;
-		}
+			pageSize = wxSize(width, height);
+			if (!defaultPageSize.IsFullySpecified())
+				defaultPageSize = pageSize;
+		} else
+			pageSize = defaultPageSize;
+		
+		pageRect.y += m_pagePadding / 2;
+		pageRect.SetSize(pageSize);
+		m_pageRects.push_back(pageRect);
+		
+		if (pageSize.x > m_docSize.x)
+			m_docSize.x = pageSize.x;
+		
+		pageRect.y += pageSize.y;
+		pageRect.y += m_pagePadding / 2;
+		
+		// Make sure every page top is pixel exact scrollable
+		int pageDisplayHeight = pageRect.height + m_pagePadding;
+		int scrollMod = pageDisplayHeight % m_scrollStepY;
+		if (scrollMod)
+			pageRect.y += m_scrollStepY - scrollMod;
 	}
 	m_docSize.SetHeight(pageRect.y - (m_pagePadding / 2));
 	
@@ -676,14 +686,9 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream, const wxString
 
 	m_pdfFileAccess.m_FileLen = docFileSize;
 
-	FX_DOWNLOADHINTS hints;
-	memset(&hints, '\0', sizeof(hints));
-	hints.version = 1;
-	hints.AddSegment = Add_Segment;
-
 	m_pdfAvail = FPDFAvail_Create(&m_pdfFileAvail, &m_pdfFileAccess);
 
-	(void) FPDFAvail_IsDocAvail(m_pdfAvail, &hints);
+	(void) FPDFAvail_IsDocAvail(m_pdfAvail, &m_hints);
 
 	bool retryLoad = true;
 
@@ -692,7 +697,8 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream, const wxString
 	{
 		g_unsupportedHandlerPDFViewImpl = this;
 		FPDF_BYTESTRING pdfPassword = loadPassword.c_str();
-		if (!FPDFAvail_IsLinearized(m_pdfAvail))
+		m_linearized = FPDFAvail_IsLinearized(m_pdfAvail);
+		if (!m_linearized)
 			m_pdfDoc = FPDF_LoadCustomDocument(&m_pdfFileAccess, pdfPassword);
 		else
 			m_pdfDoc = FPDFAvail_GetDocument(m_pdfAvail, pdfPassword);
@@ -719,14 +725,14 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream, const wxString
 	}
 
 	m_docPermissions = FPDF_GetDocPermissions(m_pdfDoc);
-	(void) FPDFAvail_IsFormAvail(m_pdfAvail, &hints);
+	(void) FPDFAvail_IsFormAvail(m_pdfAvail, &m_hints);
 
 	m_pdfForm = FPDFDOC_InitFormFillEnviroument(m_pdfDoc, &form_callbacks);
 	FPDF_SetFormFieldHighlightColor(m_pdfForm, 0, 0xFFE4DD);
 	FPDF_SetFormFieldHighlightAlpha(m_pdfForm, 100);
 
 	int first_page = FPDFAvail_GetFirstPageNum(m_pdfDoc);
-	(void) FPDFAvail_IsPageAvail(m_pdfAvail, first_page, &hints);
+	(void) FPDFAvail_IsPageAvail(m_pdfAvail, first_page, &m_hints);
 
 	m_pages.SetDocument(m_pdfDoc);
 	
