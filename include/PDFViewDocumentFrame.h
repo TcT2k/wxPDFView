@@ -77,7 +77,7 @@ public:
 protected:
 	enum
 	{
-		ID_ZOOM_IN = 1500,
+		ID_ZOOM_IN = 1600,
 		ID_ZOOM_OUT,
 		ID_NAVIGATION,
 		ID_ZOOM_PAGE_FIT,
