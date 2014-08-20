@@ -534,7 +534,7 @@ long wxPDFViewImpl::Find(const wxString& text, int flags)
 	else
 		needMoreResults = false;
 
-	bool endOfSearch = m_nextPageToSearch == GetPageCount();
+	bool endOfSearch = false;
 
 	while (needMoreResults && !endOfSearch)
 	{
@@ -546,16 +546,19 @@ long wxPDFViewImpl::Find(const wxString& text, int flags)
 		else
 			--m_nextPageToSearch;
 
-		if (m_nextPageToSearch == GetPageCount())
+		if ((forward && m_nextPageToSearch == GetPageCount()) ||
+			(!forward && m_nextPageToSearch == 0))
 			endOfSearch = true;
 	}
 
-	if (endOfSearch || m_findResults.empty())
+	if (m_findResults.empty())
 		return wxNOT_FOUND;
 
-	//TODO: Wrap find index
+	// Wrap find index
 	if (m_currentFindIndex < 0)
 		m_currentFindIndex = m_findResults.size() - 1;
+	else if (m_currentFindIndex >= m_findResults.size())
+		m_currentFindIndex = 0;
 
 	// Select result
 	m_selection.clear();
