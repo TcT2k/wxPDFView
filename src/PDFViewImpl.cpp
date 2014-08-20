@@ -534,7 +534,7 @@ long wxPDFViewImpl::Find(const wxString& text, int flags)
 	else
 		needMoreResults = false;
 
-	bool endOfSearch = false;
+	bool endOfSearch = m_nextPageToSearch == GetPageCount();
 
 	while (needMoreResults && !endOfSearch)
 	{
