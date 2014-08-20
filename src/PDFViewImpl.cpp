@@ -528,15 +528,15 @@ long wxPDFViewImpl::Find(const wxString& text, int flags)
 	// Determine if we need more results
 	bool needMoreResults = true;
 	if (m_currentFindIndex == static_cast<int>(m_findResults.size()))
-		m_nextPageToSearch = m_mostVisiblePage + 1;
+		m_nextPageToSearch++;
 	else if (m_currentFindIndex < 0)
-		m_nextPageToSearch = m_mostVisiblePage - 1;
+		m_nextPageToSearch--;
 	else
 		needMoreResults = false;
 
-	bool endOfSearch = false;
-
-	while (needMoreResults && !endOfSearch)
+	while (needMoreResults 
+		&& m_nextPageToSearch < GetPageCount()
+		&& m_nextPageToSearch >= 0)
 	{
 		int resultCount = FindOnPage(m_nextPageToSearch, caseSensitive, firstSearch, characterToStartSearchingFrom);
 		if (resultCount)
@@ -545,10 +545,6 @@ long wxPDFViewImpl::Find(const wxString& text, int flags)
 			++m_nextPageToSearch;
 		else
 			--m_nextPageToSearch;
-
-		if ((forward && m_nextPageToSearch == GetPageCount()) ||
-			(!forward && m_nextPageToSearch == 0))
-			endOfSearch = true;
 	}
 
 	if (m_findResults.empty())
@@ -557,7 +553,7 @@ long wxPDFViewImpl::Find(const wxString& text, int flags)
 	// Wrap find index
 	if (m_currentFindIndex < 0)
 		m_currentFindIndex = m_findResults.size() - 1;
-	else if (m_currentFindIndex >= m_findResults.size())
+	else if (m_currentFindIndex >= (int) m_findResults.size())
 		m_currentFindIndex = 0;
 
 	// Select result
@@ -700,7 +696,7 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream, const wxString
 	{
 		g_unsupportedHandlerPDFViewImpl = this;
 		FPDF_BYTESTRING pdfPassword = loadPassword.c_str();
-		m_linearized = FPDFAvail_IsLinearized(m_pdfAvail);
+		m_linearized = FPDFAvail_IsLinearized(m_pdfAvail) != 0;
 		if (!m_linearized)
 			m_pdfDoc = FPDF_LoadCustomDocument(&m_pdfFileAccess, pdfPassword);
 		else
