@@ -47,7 +47,7 @@ bool wxPDFViewPrintout::HasPage(int page)
 void wxPDFViewPrintout::GetPageInfo(int *minPage, int *maxPage, int *selPageFrom, int *selPageTo)
 {
 	*minPage = 1;
-	*maxPage = m_ctrl->GetImpl()->GetPageCount() - 1;
+	*maxPage = m_ctrl->GetImpl()->GetPageCount();
 	*selPageFrom = *minPage;
 	*selPageTo = *maxPage;
 }
