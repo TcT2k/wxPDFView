@@ -631,8 +631,9 @@ void wxPDFViewImpl::AddFindResult(const wxPDFViewTextRange& result)
 
 bool wxPDFViewImpl::IsPrintAllowed() const
 {
-	return (m_docPermissions & PDF_PERMISSION_PRINT_HIGH_QUALITY) ||
-		(m_docPermissions & PDF_PERMISSION_PRINT_LOW_QUALITY);
+	return (m_docPermissions & PDF_PERMISSION_PRINT_LOW_QUALITY) ||
+		((m_docPermissions & PDF_PERMISSION_PRINT_HIGH_QUALITY) &&
+		(m_docPermissions & PDF_PERMISSION_PRINT_LOW_QUALITY));
 }
 
 wxPrintout* wxPDFViewImpl::CreatePrintout() const
