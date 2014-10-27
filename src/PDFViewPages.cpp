@@ -85,6 +85,10 @@ void wxPDFViewPage::Draw(wxPDFViewPagesClient* client, wxDC& dc, wxGraphicsConte
 	bmpSize.x *= scaleX;
 	bmpSize.y *= scaleY;
 
+	double screenScale = dc.GetContentScaleFactor();
+	bmpSize.x *= screenScale;
+	bmpSize.y *= screenScale;
+
 	wxBitmap bmp = client->GetCachedBitmap(m_index, bmpSize);
 	if (bmp.IsOk())
 	{
