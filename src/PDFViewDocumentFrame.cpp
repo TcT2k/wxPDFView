@@ -47,20 +47,20 @@ bool wxPDFViewDocumentFrame::Create(wxWindow* parent,
 	SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE ) );
 
 	wxBoxSizer* mainSizer = new wxBoxSizer( wxVERTICAL );
-	mainSizer->SetMinSize( wxSize( 800,600 ) );
+	mainSizer->SetMinSize( wxDLG_UNIT(this, wxSize( 400,300 )) );
 	
 	m_infoBar = new wxInfoBar(this);
 	mainSizer->Add(m_infoBar, 0, wxEXPAND, 0 );
 
 	m_splitter = new wxSplitterWindow( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_LIVE_UPDATE );
-	m_splitter->SetSashPosition(200);
-	m_splitter->SetMinimumPaneSize( 160 );
+	m_splitter->SetSashPosition(wxDLG_UNIT(this, wxSize(160, -1)).GetWidth());
+    m_splitter->SetMinimumPaneSize(wxDLG_UNIT(this, wxSize(160, -1)).GetWidth());
 
 	m_navPanel = new wxPanel( m_splitter, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* navPanelSizer = new wxBoxSizer( wxVERTICAL );
 
 	m_docNotebook = new wxNotebook( m_navPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
-	m_docNotebook->SetMinSize( wxSize( 180,-1 ) );
+    m_docNotebook->SetMinSize(wxDLG_UNIT(this, wxSize(80, -1)));
 
 	m_bookmarkPanel = new wxPanel( m_docNotebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bookmarkPanelSizer = new wxBoxSizer( wxVERTICAL );
@@ -108,8 +108,8 @@ bool wxPDFViewDocumentFrame::Create(wxWindow* parent,
 	m_toolBar = CreateToolBar( wxTB_FLAT|wxTB_HORIZONTAL|wxTB_NODIVIDER);
 
 	// Init search ctrl
-	m_searchCtrl = new wxSearchCtrl(m_toolBar, wxID_ANY, wxString(), wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
-	m_searchCtrl->SetMinSize(wxSize(80, -1));
+    m_searchCtrl = new wxSearchCtrl(m_toolBar, wxID_ANY, wxString(), wxDefaultPosition, wxDLG_UNIT(this, wxSize(100, -1)), wxTE_PROCESS_ENTER);
+    m_searchCtrl->SetMinSize(wxDLG_UNIT(this, wxSize(100, -1)));
 	m_searchCtrl->Bind(wxEVT_COMMAND_SEARCHCTRL_CANCEL_BTN, &wxPDFViewDocumentFrame::OnSearchCtrlCancel, this);
 	m_searchCtrl->Bind(wxEVT_COMMAND_SEARCHCTRL_SEARCH_BTN, &wxPDFViewDocumentFrame::OnSearchCtrlFind, this);
 	m_searchCtrl->Bind(wxEVT_COMMAND_TEXT_ENTER, &wxPDFViewDocumentFrame::OnSearchCtrlFind, this);
@@ -121,15 +121,15 @@ bool wxPDFViewDocumentFrame::Create(wxWindow* parent,
 
 	m_toolBar->AddTool(wxID_BACKWARD, _("Previous Page"), GetToolbarBitmap(wxART_GO_BACK), _("Show previous page"));
 	m_toolBar->AddTool(wxID_FORWARD, _("Next Page"), GetToolbarBitmap(wxART_GO_FORWARD), _("Show next page"));
-	m_pageTxtCtrl = new wxTextCtrl(m_toolBar, wxID_ANY, "0", wxDefaultPosition, wxSize(40, -1), wxTE_PROCESS_ENTER | wxTE_CENTRE);
+	m_pageTxtCtrl = new wxTextCtrl(m_toolBar, wxID_ANY, "0", wxDefaultPosition, wxDLG_UNIT(this, wxSize(24, -1)), wxTE_PROCESS_ENTER | wxTE_RIGHT);
 	m_pageTxtCtrl->Bind(wxEVT_TEXT_ENTER, &wxPDFViewDocumentFrame::OnPageTextEnter, this);
 	m_toolBar->AddControl(m_pageTxtCtrl);
-	wxStaticText* pageCountDivTxt = new wxStaticText(m_toolBar, wxID_ANY, "/", wxDefaultPosition, wxSize(14, -1), wxALIGN_CENTRE_HORIZONTAL);
+    wxStaticText* pageCountDivTxt = new wxStaticText(m_toolBar, wxID_ANY, "/", wxDefaultPosition, wxDLG_UNIT(this, wxSize(8, -1)), wxALIGN_CENTRE_HORIZONTAL);
 	m_toolBar->AddControl(pageCountDivTxt);
-	m_pageCountTxtCtrl = new wxStaticText(m_toolBar, wxID_ANY, "0", wxDefaultPosition, wxSize(34, -1), wxALIGN_CENTRE_HORIZONTAL);
+    m_pageCountTxtCtrl = new wxStaticText(m_toolBar, wxID_ANY, "0", wxDefaultPosition, wxDLG_UNIT(this, wxSize(24, -1)), wxALIGN_LEFT);
 	m_toolBar->AddControl(m_pageCountTxtCtrl);
 
-	m_zoomComboBox = new wxComboBox(m_toolBar, wxID_ANY, "100%", wxDefaultPosition, wxSize(80, -1), 0, NULL, wxTE_PROCESS_ENTER);
+    m_zoomComboBox = new wxComboBox(m_toolBar, wxID_ANY, "100%", wxDefaultPosition, wxDLG_UNIT(this, wxSize(52, -1)), 0, NULL, wxTE_PROCESS_ENTER);
 	m_zoomComboBox->Append("50%", (void*)50);
 	m_zoomComboBox->Append("100%", (void*)100);
 	m_zoomComboBox->Append("150%", (void*)150);
@@ -369,7 +369,7 @@ void wxPDFViewDocumentFrame::OnPDFActivity(wxCommandEvent& event)
 void wxPDFViewDocumentFrame::ShowNavigationPane(bool show)
 {
 	if (show)
-		m_splitter->SplitVertically(m_navPanel, m_docPanel, 200);
+        m_splitter->SplitVertically(m_navPanel, m_docPanel, wxDLG_UNIT(this, wxSize(160, -1)).x);
 	else
 		m_splitter->Unsplit(m_navPanel);
 	m_toolBar->ToggleTool(ID_NAVIGATION, show);

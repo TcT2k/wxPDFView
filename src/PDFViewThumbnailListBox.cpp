@@ -78,7 +78,7 @@ void wxPDFViewThumbnailListBox::OnDrawItem(wxDC& dc, const wxRect& rect, size_t 
 
 wxCoord wxPDFViewThumbnailListBox::OnMeasureItem(size_t WXUNUSED(n)) const
 {
-	return 128;
+	return wxDLG_UNIT(this, wxSize(-1, 72)).GetHeight();
 }
 
 void wxPDFViewThumbnailListBox::ScrollWindow(int dx, int dy, const wxRect *rect)
