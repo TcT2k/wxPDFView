@@ -22,6 +22,7 @@ set(INCLUDES
 	PDFViewArtProvider.h
 	PDFViewBookmarksCtrl.h
 	PDFViewDocumentFrame.h
+	PDFViewDocumentPanel.h
 	PDFViewThumbnailListBox.h
 	)
 	
@@ -43,6 +44,7 @@ set(SOURCES
 	PDFViewBookmarks.cpp
 	PDFViewBookmarksCtrl.cpp
 	PDFViewDocumentFrame.cpp
+	PDFViewDocumentPanel.cpp
 	PDFViewPages.cpp
 	PDFViewPrintout.cpp
 	PDFViewTextRange.cpp
