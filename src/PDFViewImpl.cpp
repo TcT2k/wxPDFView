@@ -753,6 +753,9 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream, const wxString
 
 void wxPDFViewImpl::CloseDocument()
 {
+	wxCommandEvent readyEvent(wxEVT_PDFVIEW_DOCUMENT_CLOSED);
+	m_ctrl->ProcessEvent(readyEvent);
+
 	m_pages.SetDocument(NULL);
 	if (m_pdfForm)
 	{

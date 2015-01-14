@@ -65,6 +65,8 @@ private:
 
 	void OnPDFDocumentReady(wxCommandEvent& event);
 
+	void OnPDFDocumentClosed(wxCommandEvent& event);
+
 	void OnSelectionChanged(wxDataViewEvent& event);
 
 	void OnSize(wxSizeEvent& event);

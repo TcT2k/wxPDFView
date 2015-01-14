@@ -142,6 +142,7 @@ void wxPDFViewBookmarksCtrl::SetPDFView(wxPDFView* pdfView)
 	{
 		// Disconnect events
 		m_pdfView->Unbind(wxEVT_PDFVIEW_DOCUMENT_READY, &wxPDFViewBookmarksCtrl::OnPDFDocumentReady, this);
+		m_pdfView->Unbind(wxEVT_PDFVIEW_DOCUMENT_CLOSED, &wxPDFViewBookmarksCtrl::OnPDFDocumentClosed, this);
 	}
 
 	m_pdfView = pdfView;
@@ -150,6 +151,7 @@ void wxPDFViewBookmarksCtrl::SetPDFView(wxPDFView* pdfView)
 	{
 		// Connect events
 		m_pdfView->Bind(wxEVT_PDFVIEW_DOCUMENT_READY, &wxPDFViewBookmarksCtrl::OnPDFDocumentReady, this);
+		m_pdfView->Bind(wxEVT_PDFVIEW_DOCUMENT_CLOSED, &wxPDFViewBookmarksCtrl::OnPDFDocumentClosed, this);
 	}
 }
 
@@ -158,6 +160,14 @@ void wxPDFViewBookmarksCtrl::OnSelectionChanged(wxDataViewEvent& event)
 	wxPDFViewBookmark* bm = (wxPDFViewBookmark*) GetSelection().GetID();
 	if (bm)
 		bm->Navigate(m_pdfView);
+
+	event.Skip();
+}
+
+void wxPDFViewBookmarksCtrl::OnPDFDocumentClosed(wxCommandEvent& event)
+{
+	wxObjectDataPtr<wxPDFViewBookmarksModel> treeModel(new wxPDFViewBookmarksModel(NULL));
+	AssociateModel(treeModel.get());
 
 	event.Skip();
 }

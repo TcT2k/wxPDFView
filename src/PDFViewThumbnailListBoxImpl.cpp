@@ -25,6 +25,7 @@ void wxPDFViewThumbnailListBoxImpl::SetPDFView(wxPDFView* pdfView)
 	{
 		// Disconnect events
 		m_pdfView->Unbind(wxEVT_PDFVIEW_DOCUMENT_READY, &wxPDFViewThumbnailListBoxImpl::OnPDFDocumentReady, this);
+		m_pdfView->Unbind(wxEVT_PDFVIEW_DOCUMENT_CLOSED, &wxPDFViewThumbnailListBoxImpl::OnPDFDocumentClosed, this);
 		m_pdfView->Unbind(wxEVT_PDFVIEW_PAGE_CHANGED, &wxPDFViewThumbnailListBoxImpl::OnPDFPageChanged, this);
 		SetPages(NULL);
 	}
@@ -36,6 +37,7 @@ void wxPDFViewThumbnailListBoxImpl::SetPDFView(wxPDFView* pdfView)
 		SetPages(m_pdfView->GetImpl()->GetPages());
 		// Connect events
 		m_pdfView->Bind(wxEVT_PDFVIEW_DOCUMENT_READY, &wxPDFViewThumbnailListBoxImpl::OnPDFDocumentReady, this);
+		m_pdfView->Bind(wxEVT_PDFVIEW_DOCUMENT_CLOSED, &wxPDFViewThumbnailListBoxImpl::OnPDFDocumentClosed, this);
 		m_pdfView->Bind(wxEVT_PDFVIEW_PAGE_CHANGED, &wxPDFViewThumbnailListBoxImpl::OnPDFPageChanged, this);
 	}
 }
@@ -66,6 +68,15 @@ void wxPDFViewThumbnailListBoxImpl::HandleScrollWindow(int WXUNUSED(dx), int WXU
 void wxPDFViewThumbnailListBoxImpl::OnPDFDocumentReady(wxCommandEvent& event)
 {
 	m_ctrl->SetItemCount(m_pdfView->GetPageCount());
+	UpdateVisiblePages();
+	m_ctrl->Refresh();
+
+	event.Skip();
+}
+
+void wxPDFViewThumbnailListBoxImpl::OnPDFDocumentClosed(wxCommandEvent& event)
+{
+	m_ctrl->SetItemCount(0);
 	UpdateVisiblePages();
 	m_ctrl->Refresh();
 
