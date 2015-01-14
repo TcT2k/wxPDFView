@@ -166,8 +166,13 @@ void wxPDFViewBookmarksCtrl::OnSelectionChanged(wxDataViewEvent& event)
 
 void wxPDFViewBookmarksCtrl::OnPDFDocumentClosed(wxCommandEvent& event)
 {
+#ifdef __WXOSX__
+	AssociateModel(NULL);
+#else
+	// Workaround for potential bug in generic dataview impl
 	wxObjectDataPtr<wxPDFViewBookmarksModel> treeModel(new wxPDFViewBookmarksModel(NULL));
 	AssociateModel(treeModel.get());
+#endif
 
 	event.Skip();
 }
