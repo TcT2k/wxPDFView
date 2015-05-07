@@ -516,6 +516,9 @@ long wxPDFViewImpl::Find(const wxString& text, int flags)
 		}
 	}
 
+	if (m_findText.empty())
+		return wxNOT_FOUND;
+
 	bool caseSensitive = flags & wxPDFVIEW_FIND_MATCH_CASE;
 	bool forward = (flags & wxPDFVIEW_FIND_BACKWARDS) == 0;
 
