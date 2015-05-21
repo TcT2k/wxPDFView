@@ -102,6 +102,8 @@ public:
 protected:
 	wxPDFViewPages* m_pPages;
 
+	void ClearBitmapCache();
+
 private:
 	int m_firstVisiblePage;
 	int m_lastVisiblePage;

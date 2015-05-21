@@ -781,6 +781,8 @@ void wxPDFViewImpl::CloseDocument()
 	m_docSize = wxDefaultSize;
 	UpdateVirtualSize();
 	m_docPermissions = 0;
+
+	ClearBitmapCache();
 }
 
 void wxPDFViewImpl::HandleScrollWindow(int WXUNUSED(dx), int WXUNUSED(dy))

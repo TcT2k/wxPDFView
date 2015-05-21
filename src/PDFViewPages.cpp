@@ -295,3 +295,8 @@ void wxPDFViewPagesClient::RemoveCachedBitmap(int pageIndex)
 {
 	m_bitmapCache.erase(pageIndex);
 }
+
+void wxPDFViewPagesClient::ClearBitmapCache()
+{
+	m_bitmapCache.clear();
+}
