@@ -540,7 +540,10 @@ void wxPDFViewDocumentFrame::StartPrint()
 	wxPrinter printer(&printDialogData);
 	wxSharedPtr<wxPrintout> printout(m_pdfView->CreatePrintout());
 	if (!printer.Print(this, printout.get()))
-		wxLogError(_("Document could not be printed"));
+	{
+		if (printer.GetLastError() == wxPRINTER_ERROR)
+			wxLogError(_("Document could not be printed"));
+	}
 }
 
 void wxPDFViewDocumentFrame::SaveZoomConfig()
