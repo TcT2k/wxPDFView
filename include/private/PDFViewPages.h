@@ -15,7 +15,7 @@
 #include <wx/thread.h>
 #include <wx/vector.h>
 #include <map>
-#include "fpdfdoc.h"
+#include "fpdf_doc.h"
 
 #ifdef __WXMSW__
 #define wxPDFVIEW_USE_RENDER_TO_DC

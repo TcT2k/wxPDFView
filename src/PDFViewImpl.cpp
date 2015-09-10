@@ -16,7 +16,7 @@
 
 #include <v8.h>
 #include "fpdf_ext.h"
-#include "fpdftext.h"
+#include "fpdf_text.h"
 
 // See Table 3.20 in
 // http://www.adobe.com/devnet/acrobat/pdfs/pdf_reference_1-7.pdf
@@ -144,7 +144,7 @@ int Get_Block(void* param, unsigned long pos, unsigned char* pBuf,
 		return 0;
 }
 
-bool Is_Data_Avail(FX_FILEAVAIL* WXUNUSED(pThis), size_t WXUNUSED(offset), size_t WXUNUSED(size))
+FPDF_BOOL Is_Data_Avail(_FX_FILEAVAIL* WXUNUSED(pThis), size_t WXUNUSED(offset), size_t WXUNUSED(size))
 {
   return true;
 }
@@ -730,7 +730,7 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream, const wxString
 	m_docPermissions = FPDF_GetDocPermissions(m_pdfDoc);
 	(void) FPDFAvail_IsFormAvail(m_pdfAvail, &m_hints);
 
-	m_pdfForm = FPDFDOC_InitFormFillEnviroument(m_pdfDoc, &form_callbacks);
+	m_pdfForm = FPDFDOC_InitFormFillEnvironment(m_pdfDoc, &form_callbacks);
 	FPDF_SetFormFieldHighlightColor(m_pdfForm, 0, 0xFFE4DD);
 	FPDF_SetFormFieldHighlightAlpha(m_pdfForm, 100);
 
@@ -763,7 +763,7 @@ void wxPDFViewImpl::CloseDocument()
 	if (m_pdfForm)
 	{
 		FORM_DoDocumentAAction(m_pdfForm, FPDFDOC_AACTION_WC);
-		FPDFDOC_ExitFormFillEnviroument(m_pdfForm);
+		FPDFDOC_ExitFormFillEnvironment(m_pdfForm);
 		m_pdfForm = NULL;
 	}
 	if (m_pdfDoc)
@@ -885,9 +885,9 @@ bool wxPDFViewImpl::EvaluateLinkTargetPageAtClientPos(const wxPoint& clientPos, 
 								}
 							case PDFACTION_REMOTEGOTO:
 							{
-								CPDF_Action Action = (CPDF_Dictionary*)action;
-								CFX_WideString sdkPath = Action.GetFilePath();
-								wxString path((FX_LPCWSTR)sdkPath, sdkPath.GetLength());
+								CPDF_Action *Action = (CPDF_Action *)action;
+								CFX_WideString sdkPath = Action->GetFilePath();
+								wxString path(sdkPath, sdkPath.GetLength());
 								wxCommandEvent gotoEvt(wxEVT_PDFVIEW_REMOTE_GOTO);
 								gotoEvt.SetString(path);
 								// TODO: determine remote goto page by loading remote document
@@ -897,9 +897,9 @@ bool wxPDFViewImpl::EvaluateLinkTargetPageAtClientPos(const wxPoint& clientPos, 
 							case PDFACTION_LAUNCH:
 							{
 								// The SDK Method FPDFAction_GetFilePath is not available in PDFium (we'll use a level deeper)
-								CPDF_Action Action = (CPDF_Dictionary*)action;
-								CFX_WideString sdkPath = Action.GetFilePath();
-								wxString path((FX_LPCWSTR)sdkPath, sdkPath.GetLength());
+								CPDF_Action *Action = (CPDF_Action*)action;
+								CFX_WideString sdkPath = Action->GetFilePath();
+								wxString path(sdkPath, sdkPath.GetLength());
 								wxFileName fn(path);
 								if (fn.GetExt().IsSameAs("pdf", false))
 								{
@@ -1091,7 +1091,7 @@ bool wxPDFViewImpl::AcquireSDK()
 		// Initialize PDF Rendering library
 		v8::V8::InitializeICU();
 
-		FPDF_InitLibrary(NULL);
+		FPDF_InitLibrary();
 
 		FSDK_SetUnSpObjProcessHandler(&g_unsupported_info);
 	}

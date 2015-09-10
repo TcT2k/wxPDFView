@@ -11,7 +11,7 @@
 
 #include <wx/rawbmp.h>
 
-#include "fpdftext.h"
+#include "fpdf_text.h"
 
 #include <algorithm>
 

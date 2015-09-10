@@ -11,7 +11,7 @@
 #define PDFVIEW_BOOKMARKS_H
 
 #include "PDFView.h"
-#include "fpdfdoc.h"
+#include "fpdf_doc.h"
 #include "fpdfdoc/fpdf_doc.h"
 
 class wxPDFViewBookmarks

@@ -8,10 +8,9 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #include "private/PDFViewTextRange.h"
-
 #include "private/PDFViewPages.h"
 
-#include "fpdftext.h"
+#include "fpdf_text.h"
 
 wxPDFViewTextRange::wxPDFViewTextRange(wxPDFViewPage* page, int charIndex, int charCount)
 {

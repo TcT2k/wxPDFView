@@ -18,8 +18,8 @@
 
 #include "fpdf_dataavail.h"
 #include "fpdfview.h"
-#include "fpdfdoc.h"
-#include "fpdfformfill.h"
+#include "fpdf_doc.h"
+#include "fpdf_formfill.h"
 
 #include "PDFView.h"
 #include "PDFViewPages.h"

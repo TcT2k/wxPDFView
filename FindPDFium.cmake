@@ -19,6 +19,7 @@ set(PDFIUM_INCLUDE_DIRS
 	${PDFIUM_ROOT_DIR}/fpdfsdk/include
 	${PDFIUM_ROOT_DIR}/core/include
 	${PDFIUM_ROOT_DIR}/v8/include
+	${PDFIUM_ROOT_DIR}/public
 	)
 	
 set(PDFIUM_SEARCH_LIBS fdrm
@@ -30,13 +31,23 @@ set(PDFIUM_SEARCH_LIBS fdrm
 	fxcrt
 	fxedit
 	fxge
+	fx_agg
+	fx_freetype
+	fx_lcms2
+	fx_libjpeg
+	fx_libopenjpeg
+	fx_lpng
+	fx_zlib
 	icui18n
 	icuuc
 	javascript
 	jsapi
 	pdfium
 	pdfwindow
-	v8_base
+	v8_base_0
+	v8_base_1
+	v8_base_2
+	v8_base_3
 	v8_libbase
 	v8_libplatform
 	v8_snapshot)
