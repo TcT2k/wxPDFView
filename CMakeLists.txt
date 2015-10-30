@@ -68,6 +68,10 @@ set(wxPDFView_INCLUDE_DIRS ${wxPDFView_INCLUDE_DIRS}
 	${PROJECT_SOURCE_DIR}/include/
 	)
 
+if (NOT MSVC)
+	set(CMAKE_CXX_FLAGS "-std=c++11")
+endif()
+
 include_directories(${wxPDFView_INCLUDE_DIRS} ${PDFIUM_INCLUDE_DIRS})
 add_library(wxPDFView STATIC ${SRCS})
 target_link_libraries(wxPDFView ${wxWidgets_LIBRARIES} ${PDFIUM_LIBRARIES})

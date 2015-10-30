@@ -41,21 +41,24 @@ set(PDFIUM_SEARCH_LIBS fdrm
 	icui18n
 	icuuc
 	javascript
-	jsapi
 	pdfium
 	pdfwindow
-	v8_base_0
-	v8_base_1
-	v8_base_2
-	v8_base_3
 	v8_libbase
 	v8_libplatform
 	v8_snapshot)
 	
 if (NOT WIN32)
 	set(PDFIUM_SEARCH_LIBS ${PDFIUM_SEARCH_LIBS}
+		v8_base
 		icudata
 		icui18n
+		)
+else()
+	set(PDFIUM_SEARCH_LIBS ${PDFIUM_SEARCH_LIBS}
+		v8_base_0
+		v8_base_1
+		v8_base_2
+		v8_base_3
 		)
 endif()
 	
