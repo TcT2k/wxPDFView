@@ -30,11 +30,11 @@ Currently not implemented:
 Requirements
 ------------
 * [wxWidgets][1]: 3.0.0  or newer
-* [PDFium][2]: 2118 or newer
+* [PDFium][2]: 2550 (d78704258f04d947d4f5fc2a7f8b44b57d456597) or newer
 
 Compiling
 ---------
-* Build PDFium per instructions in the projects [wiki][3].
+* Build PDFium per instructions on the [PDFium page][2].
 * Use [CMake][4] to build the samples/simple project
 * Or use the  included CMake file in your project and link wxPDFView lib (will link the required pdfium libs)
 
@@ -54,6 +54,5 @@ view.
 
 
 [1]: http://www.wxwidgets.org
-[2]: https://code.google.com/p/pdfium/
-[3]: https://code.google.com/p/pdfium/wiki/Build
+[2]: https://pdfium.googlesource.com/pdfium/
 [4]: http://cmake.org/
