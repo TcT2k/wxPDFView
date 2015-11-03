@@ -904,9 +904,9 @@ bool wxPDFViewImpl::EvaluateLinkTargetPageAtClientPos(const wxPoint& clientPos, 
 								}
 							case PDFACTION_REMOTEGOTO:
 							{
-								CPDF_Action *Action = (CPDF_Action *)action;
-								CFX_WideString sdkPath = Action->GetFilePath();
-								wxString path(sdkPath, sdkPath.GetLength());
+								char cpath[512];
+								FPDFAction_GetFilePath(action, cpath, 512);
+								wxString path = wxString::FromUTF8(cpath);
 								wxCommandEvent gotoEvt(wxEVT_PDFVIEW_REMOTE_GOTO);
 								gotoEvt.SetString(path);
 								// TODO: determine remote goto page by loading remote document
@@ -915,10 +915,10 @@ bool wxPDFViewImpl::EvaluateLinkTargetPageAtClientPos(const wxPoint& clientPos, 
 							}
 							case PDFACTION_LAUNCH:
 							{
-								// The SDK Method FPDFAction_GetFilePath is not available in PDFium (we'll use a level deeper)
-								CPDF_Action *Action = (CPDF_Action*)action;
-								CFX_WideString sdkPath = Action->GetFilePath();
-								wxString path(sdkPath, sdkPath.GetLength());
+								char cpath[512];
+								FPDFAction_GetFilePath(action, cpath, 512);
+								wxString path = wxString::FromUTF8(cpath);
+								path.Replace(":", "/");
 								wxFileName fn(path);
 								if (fn.GetExt().IsSameAs("pdf", false))
 								{
