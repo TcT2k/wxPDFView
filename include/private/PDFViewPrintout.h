@@ -27,6 +27,7 @@ public:
 private:
 	wxPDFView* m_ctrl;
 	bool m_forceBitmapPrint;
+	bool m_printValidated;
 
 	void RenderPage(wxDC& dc, int pageIndex);
 

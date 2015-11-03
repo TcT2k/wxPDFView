@@ -85,9 +85,20 @@ public:
 	
 	void SendActivity(const wxString& description);
 	
+	void SetPrintValidator(wxPDFViewPrintValidator* validator)
+	{
+		m_printValidator = validator;
+	}
+	
+	wxPDFViewPrintValidator* GetPrintValidator() const
+	{
+		return m_printValidator;
+	}
+	
 private:
 	wxPDFView* m_ctrl;
 	wxPDFViewBookmarks* m_bookmarks;
+	wxPDFViewPrintValidator* m_printValidator;
 
 	// Data source
 	wxSharedPtr<std::istream> m_pDataStream;

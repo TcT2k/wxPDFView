@@ -213,3 +213,16 @@ void wxPDFView::ScrollWindow(int dx, int dy, const wxRect *rect)
 		m_impl->HandleScrollWindow(dx, dy);
 }
 
+void wxPDFView::SetPrintValidator(wxPDFViewPrintValidator* validator)
+{
+	m_impl->SetPrintValidator(validator);
+}
+
+wxPDFViewPrintValidator* wxPDFView::GetPrintValidator() const
+{
+	if (m_impl)
+		return m_impl->GetPrintValidator();
+	else
+		return NULL;
+}
+

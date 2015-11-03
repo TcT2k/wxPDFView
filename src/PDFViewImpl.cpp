@@ -188,6 +188,8 @@ wxPDFViewImpl::wxPDFViewImpl(wxPDFView* ctrl):
 
 	SetPages(&m_pages);
 
+	m_printValidator = NULL;
+	
 	m_zoomType = wxPDFVIEW_ZOOM_TYPE_FREE;
 	m_pagePadding = 16;
 	m_scrollStepX = 20;
@@ -634,9 +636,22 @@ void wxPDFViewImpl::AddFindResult(const wxPDFViewTextRange& result)
 
 bool wxPDFViewImpl::IsPrintAllowed() const
 {
+	if (m_printValidator)
+	{
+		switch (m_printValidator->GetPrintPermission())
+		{
+			case wxPDFViewPrintValidator::Print_Allow:
+				return true;
+			case wxPDFViewPrintValidator::Print_Deny:
+				return false;
+			default:
+				break;
+		}
+	}
+	
 	return (m_docPermissions & PDF_PERMISSION_PRINT_LOW_QUALITY) ||
 		((m_docPermissions & PDF_PERMISSION_PRINT_HIGH_QUALITY) &&
-		(m_docPermissions & PDF_PERMISSION_PRINT_LOW_QUALITY));
+		 (m_docPermissions & PDF_PERMISSION_PRINT_LOW_QUALITY));
 }
 
 wxPrintout* wxPDFViewImpl::CreatePrintout() const
@@ -658,6 +673,10 @@ wxPrintDialogData wxPDFViewImpl::GetPrintDialogData() const
 	printDialogData.SetFromPage(1);
 	printDialogData.SetToPage(GetPageCount());
 	printDialogData.SetAllPages(true);
+	
+	if (m_printValidator)
+		m_printValidator->PreparePrintDialogData(printDialogData);
+	
 	return printDialogData;
 }
 

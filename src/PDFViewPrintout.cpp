@@ -13,7 +13,8 @@
 wxPDFViewPrintout::wxPDFViewPrintout(wxPDFView* pdfView, bool forceBitmapPrint):
 	wxPrintout(GetDocTitle(pdfView)),
 	m_ctrl(pdfView),
-	m_forceBitmapPrint(forceBitmapPrint)
+	m_forceBitmapPrint(forceBitmapPrint),
+	m_printValidated(true)
 {
 
 }
@@ -32,8 +33,12 @@ bool wxPDFViewPrintout::OnPrintPage(int page)
 	if (dc && dc->IsOk())
 	{
 		if (HasPage(page))
+		{
 			RenderPage(*dc, page - 1);
-		return true;
+			return true;
+		}
+		else
+			return false;
 	}
 	else 
 		return false;
@@ -41,7 +46,7 @@ bool wxPDFViewPrintout::OnPrintPage(int page)
 
 bool wxPDFViewPrintout::HasPage(int page)
 {
-	return page > 0 && page <= m_ctrl->GetImpl()->GetPageCount();
+	return m_printValidated && page > 0 && page <= m_ctrl->GetImpl()->GetPageCount();
 }
 
 void wxPDFViewPrintout::GetPageInfo(int *minPage, int *maxPage, int *selPageFrom, int *selPageTo)
@@ -54,9 +59,15 @@ void wxPDFViewPrintout::GetPageInfo(int *minPage, int *maxPage, int *selPageFrom
 
 bool wxPDFViewPrintout::OnBeginDocument(int startPage, int endPage)
 {
+	m_printValidated = false;
 	if (!wxPrintout::OnBeginDocument(startPage, endPage))
 		return false;
+	
+	wxPDFViewPrintValidator* validator = m_ctrl->GetPrintValidator();
+	if (validator && !validator->OnBeginPrint(startPage, endPage))
+		return false;
 
+	m_printValidated = true;
 	return true;
 }
 

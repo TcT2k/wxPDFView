@@ -45,6 +45,7 @@ enum wxPDFViewFindFlags
 };
 
 class wxPDFViewBookmark;
+class wxPDFViewPrintValidator;
 
 /**
    This control encapsulates display an loading of a PDF document. Use LoadFile
@@ -185,6 +186,10 @@ public:
 
 	virtual void ScrollWindow(int dx, int dy, const wxRect *rect = NULL);
 
+	void SetPrintValidator(wxPDFViewPrintValidator* validator);
+
+	wxPDFViewPrintValidator* GetPrintValidator() const;
+
 private:
 	wxPDFViewImpl* m_impl;
 
@@ -216,6 +221,33 @@ public:
 	virtual void Navigate(wxPDFView* pdfView) = 0;
 
 	virtual ~wxPDFViewBookmark() { }
+};
+
+class wxPDFViewPrintValidator
+{
+public:
+	enum PrintPermission
+	{
+		Print_Default,
+		Print_Allow,
+		Print_Deny
+	};
+	
+	/**
+		Allow printing (may override permissions in PDF document)
+	 */
+	virtual PrintPermission GetPrintPermission() const = 0;
+	
+	/**
+		Validate or modify print dialog data before dialog is shown.
+		Printing will be canceled if false is returned
+	 */
+	virtual void PreparePrintDialogData(wxPrintDialogData& printDialogData) = 0;
+	
+	/**
+		Validate print dialog data after the print dialog has been shown.
+	 */
+	virtual bool OnBeginPrint(int startPage, int endPage) = 0;
 };
 
 wxDECLARE_EVENT(wxEVT_PDFVIEW_DOCUMENT_READY, wxCommandEvent);
