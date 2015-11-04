@@ -93,8 +93,9 @@ int Form_Alert(IPDF_JSPLATFORM* WXUNUSED(pThis), FPDF_WIDESTRING Msg, FPDF_WIDES
 			break;
 	}
 
-	wxString msgTitle = (wchar_t*) Title;
-	wxString msgMsg = (wchar_t*) Msg;
+	wxMBConvUTF16 conv;
+	wxString msgTitle = conv.cMB2WC((char*) Title);
+	wxString msgMsg = conv.cMB2WC((char*) Msg);
 
 	int msgBoxRes = wxMessageBox(msgMsg, msgTitle, msgBoxStyle);
 
