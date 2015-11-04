@@ -18,10 +18,6 @@
 #include "fpdf_doc.h"
 #include "fpdf_formfill.h"
 
-#ifdef __WXMSW__
-#define wxPDFVIEW_USE_RENDER_TO_DC
-#endif
-
 class wxPDFViewPages;
 class wxPDFViewPagesClient;
 
