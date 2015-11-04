@@ -138,6 +138,7 @@ private:
 	wxString m_documentTitle;
 	bool m_linearized;
 	int m_backPage;
+	wxString m_prevLoadPassword;
 
 	// Display settings
 	wxPDFViewZoomType m_zoomType;

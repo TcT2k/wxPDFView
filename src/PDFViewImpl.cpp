@@ -929,7 +929,7 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream, const wxString
 
 	bool retryLoad = true;
 
-	wxString loadPassword = password;
+	wxString loadPassword = (password.empty()) ? m_prevLoadPassword : password;
 	while (retryLoad)
 	{
 		g_unsupportedHandlerPDFViewImpl = this;
@@ -951,6 +951,7 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream, const wxString
 				if (dlg.ShowModal() == wxID_OK)
 				{
 					loadPassword = dlg.GetValue();
+					m_prevLoadPassword = loadPassword;
 					continue;
 				}
 			}
