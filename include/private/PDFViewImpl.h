@@ -14,6 +14,7 @@
 #include <wx/graphics.h>
 #include <wx/atomic.h>
 #include <wx/vector.h>
+#include <wx/event.h>
 #include <istream>
 
 #include "fpdf_dataavail.h"
@@ -26,7 +27,7 @@
 #include "PDFViewBookmarks.h"
 #include "PDFViewTextRange.h"
 
-class wxPDFViewImpl: public wxPDFViewPagesClient
+class wxPDFViewImpl: public wxPDFViewPagesClient, public wxEvtHandler
 {
 public:
 	wxPDFViewImpl(wxPDFView* ctrl);
@@ -39,7 +40,9 @@ public:
 
 	const wxPDFViewBookmark* GetRootBookmark() const { return (m_bookmarks) ? m_bookmarks->GetRoot() : NULL; };
 
-	void GoToPage(int pageIndex, const wxRect* centerRect = NULL);
+	void GoToPage(int pageIndex, const wxRect* centerRect);
+	
+	void GoToPage(int pageIndex);
 
 	int GetMostVisiblePage() const { return m_mostVisiblePage; };
 
@@ -62,6 +65,8 @@ public:
 	wxPrintout* CreatePrintout() const;
 
 	wxPrintDialogData GetPrintDialogData() const;
+
+	void Print();
 
 	void StopFind();
 
@@ -95,6 +100,16 @@ public:
 		return m_printValidator;
 	}
 	
+	void DoGoToAction(int pageIndex);
+
+	void InvalidatePage(int pageIndex, const wxRect* rect = NULL);
+
+	void SetDefaultCursor(wxStockCursor cursor);
+
+	wxPDFView* GetCtrl() const { return m_ctrl; }
+
+	void ExecuteNamedAction(const wxString& action);
+
 private:
 	wxPDFView* m_ctrl;
 	wxPDFViewBookmarks* m_bookmarks;
@@ -105,9 +120,12 @@ private:
 	FPDF_DOCUMENT m_pdfDoc;
 	FPDF_FORMHANDLE m_pdfForm;
 	FPDF_AVAIL m_pdfAvail;
+	IPDF_JSPLATFORM m_platformCallbacks;
+	FPDF_FORMFILLINFO m_formCallbacks;
 
 	// PDF SDK Structures
 	static wxAtomicInt ms_pdfSDKRefCount;
+	static bool ms_v8initialized;
 	FPDF_FILEACCESS m_pdfFileAccess;
 	FX_FILEAVAIL m_pdfFileAvail;
 	FX_DOWNLOADHINTS m_hints;
@@ -119,6 +137,7 @@ private:
 	unsigned long m_docPermissions;
 	wxString m_documentTitle;
 	bool m_linearized;
+	int m_backPage;
 
 	// Display settings
 	wxPDFViewZoomType m_zoomType;
@@ -130,6 +149,7 @@ private:
 	double m_minZoom;
 	int m_mostVisiblePage;
 	wxCursor m_handCursor;
+	wxStockCursor m_defaultCursor;
 	wxVector<wxPDFViewTextRange> m_selection;
 
 	// Find information
@@ -154,7 +174,15 @@ private:
 
 	void OnMouseMotion(wxMouseEvent& event);
 
+	void OnMouseLeftDown(wxMouseEvent& event);
+
 	void OnMouseLeftUp(wxMouseEvent& event);
+
+	void OnKeyUp(wxKeyEvent& event);
+
+	void OnKeyDown(wxKeyEvent& event);
+
+	void OnKeyChar(wxKeyEvent& event);
 
 	void UpdateVirtualSize();
 
@@ -166,7 +194,7 @@ private:
 
 	// Returns true if a link is found at the specified position. 
 	// If performAction is true the link action will be performed
-	bool EvaluateLinkTargetPageAtClientPos(const wxPoint& clientPos, bool performAction);
+	bool EvaluateLinkTargetPageAtClientPos(const wxPoint& clientPos, int evtType);
 
 	void CalcVisiblePages();
 

@@ -19,6 +19,7 @@ set(PDFIUM_INCLUDE_DIRS
 	${PDFIUM_ROOT_DIR}/fpdfsdk/include
 	${PDFIUM_ROOT_DIR}/core/include
 	${PDFIUM_ROOT_DIR}/v8/include
+	${PDFIUM_ROOT_DIR}/v8
 	${PDFIUM_ROOT_DIR}/public
 	)
 	

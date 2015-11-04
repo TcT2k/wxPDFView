@@ -16,6 +16,7 @@
 #include <wx/vector.h>
 #include <map>
 #include "fpdf_doc.h"
+#include "fpdf_formfill.h"
 
 #ifdef __WXMSW__
 #define wxPDFVIEW_USE_RENDER_TO_DC
@@ -55,7 +56,7 @@ private:
 	FPDF_PAGE m_page;
 	FPDF_TEXTPAGE m_textPage;
 
-	static wxBitmap CreateBitmap(FPDF_PAGE page, const wxSize& bmpSize, int flags);
+	static wxBitmap CreateBitmap(FPDF_PAGE page, FPDF_FORMHANDLE form, const wxSize& bmpSize, int flags);
 };
 
 class wxPDFViewPages: public wxVector<wxPDFViewPage>
@@ -75,8 +76,13 @@ public:
 
 	FPDF_DOCUMENT doc() const { return m_doc; };
 
+	void SetForm(FPDF_FORMHANDLE form) { m_pdfForm = form; }
+
+	FPDF_FORMHANDLE form() const { return m_pdfForm; }
+
 private:
 	FPDF_DOCUMENT m_doc;
+	FPDF_FORMHANDLE m_pdfForm;
 	wxVector<wxPDFViewPagesClient*> m_clients;
 };
 

@@ -12,6 +12,7 @@
 #include <wx/rawbmp.h>
 
 #include "fpdf_text.h"
+#include "fpdf_formfill.h"
 
 #include <algorithm>
 
@@ -38,6 +39,8 @@ void wxPDFViewPage::Unload()
 	if (m_page)
 	{
 		FPDF_ClosePage(m_page);
+		if (m_pages->form())
+			FORM_OnBeforeClosePage(m_page, m_pages->form());
 		m_page = NULL;
 	}
 	if (m_textPage)
@@ -52,6 +55,8 @@ FPDF_PAGE wxPDFViewPage::GetPage()
 	if (!m_page)
 	{
 		m_page = FPDF_LoadPage(m_pages->doc(), m_index);
+		if (m_pages->form())
+			FORM_OnAfterLoadPage(m_page, m_pages->form());
 	}
 	return m_page;
 }
@@ -126,7 +131,7 @@ void wxPDFViewPage::DrawPrint(wxDC& dc, const wxRect& rect, bool forceBitmap)
 	} else
 #endif
 	{
-		wxBitmap bmp = CreateBitmap(page, rect.GetSize(), renderFlags);
+		wxBitmap bmp = CreateBitmap(page, m_pages->form(), rect.GetSize(), renderFlags);
 		dc.DrawBitmap(bmp, wxPoint(0, 0));
 	}
 }
@@ -144,11 +149,11 @@ wxBitmap wxPDFViewPage::CreateCacheBitmap(const wxSize& bmpSize)
 	FPDF_RenderPage(memDC.GetHDC(), page, 0, 0, bmpSize.x, bmpSize.y, 0, FPDF_LCD_TEXT);
 	return bmp;
 #else
-	return CreateBitmap(page, bmpSize, FPDF_LCD_TEXT);
+	return CreateBitmap(page, m_pages->form(), bmpSize, FPDF_LCD_TEXT);
 #endif
 }
 
-wxBitmap wxPDFViewPage::CreateBitmap(FPDF_PAGE page, const wxSize& bmpSize, int flags)
+wxBitmap wxPDFViewPage::CreateBitmap(FPDF_PAGE page, FPDF_FORMHANDLE form, const wxSize& bmpSize, int flags)
 {
 	FPDF_BITMAP bitmap = FPDFBitmap_Create(bmpSize.x, bmpSize.y, 0);
 	FPDFBitmap_FillRect(bitmap, 0, 0, bmpSize.x, bmpSize.y, 0xFFFFFFFF);
@@ -156,6 +161,9 @@ wxBitmap wxPDFViewPage::CreateBitmap(FPDF_PAGE page, const wxSize& bmpSize, int 
 	FPDF_RenderPageBitmap(bitmap, page, 0, 0, bmpSize.x, bmpSize.y, 0, flags);
 	unsigned char* buffer =
 		reinterpret_cast<unsigned char*>(FPDFBitmap_GetBuffer(bitmap));
+
+	if (form)
+		FPDF_FFLDraw(form, bitmap, page, 0, 0, bmpSize.x, bmpSize.y, 0, flags);
 
 	// Convert BGRA image data from PDF SDK to RGB image data
 	wxBitmap bmp(bmpSize, 24);

@@ -13,10 +13,18 @@
 #include <wx/dcbuffer.h>
 #include <wx/textdlg.h>
 #include <wx/filename.h>
+#include <wx/filedlg.h>
+#include <map>
 
 #include <v8.h>
 #include "fpdf_ext.h"
 #include "fpdf_text.h"
+
+#define PDF_ENABLE_V8
+
+#ifdef PDF_ENABLE_V8
+#include "libplatform/libplatform.h"
+#endif
 
 // See Table 3.20 in
 // http://www.adobe.com/devnet/acrobat/pdfs/pdf_reference_1-7.pdf
@@ -24,6 +32,8 @@
 #define PDF_PERMISSION_PRINT_HIGH_QUALITY	1 << 11
 #define PDF_PERMISSION_COPY					1 << 4
 #define PDF_PERMISSION_COPY_ACCESSIBLE		1 << 9
+
+std::map<FPDF_FORMFILLINFO*, wxPDFViewImpl*> g_pdfFormMap;
 
 void LogPDFError(unsigned long error)
 {
@@ -119,6 +129,57 @@ int Form_Alert(IPDF_JSPLATFORM* WXUNUSED(pThis), FPDF_WIDESTRING Msg, FPDF_WIDES
 	return retVal;
 }
 
+void Form_GotoPage(IPDF_JSPLATFORM* pThis, int pageNumber)
+{
+	wxPDFViewImpl* impl = g_pdfFormMap[(FPDF_FORMFILLINFO*) pThis->m_pFormfillinfo];
+	if (!impl)
+		return;
+
+	impl->GoToPage(pageNumber);
+}
+
+void Form_Print(IPDF_JSPLATFORM* pThis,
+				  FPDF_BOOL bUI,
+				  int nStart,
+				  int nEnd,
+				  FPDF_BOOL bSilent,
+				  FPDF_BOOL bShrinkToFit,
+				  FPDF_BOOL bPrintAsImage,
+				  FPDF_BOOL bReverse,
+				  FPDF_BOOL bAnnotations)
+{
+	wxPDFViewImpl* impl = g_pdfFormMap[(FPDF_FORMFILLINFO*) pThis->m_pFormfillinfo];
+	if (!impl)
+		return;
+
+	// TODO: use parameters
+	impl->Print();
+}
+
+wxString g_formSelectedFilePath;
+
+int Form_Browse(IPDF_JSPLATFORM* pThis,
+					void* filePath,
+					int length)
+{
+	if (length == 0)
+	{
+		wxFileDialog dlg(NULL, _("Open File"), "", "", "All Files|*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+		if (dlg.ShowModal() == wxID_OK)
+		{
+			g_formSelectedFilePath = dlg.GetPath();
+			return g_formSelectedFilePath.length();
+		}
+	}
+	else if (filePath != NULL)
+	{
+		memcpy(filePath, g_formSelectedFilePath.utf8_str(), g_formSelectedFilePath.length());
+		return g_formSelectedFilePath.length();
+	}
+
+	return 0;
+}
+
 wxPDFViewImpl* g_unsupportedHandlerPDFViewImpl = NULL;
 
 void Unsupported_Handler(UNSUPPORT_INFO*, int type)
@@ -154,6 +215,95 @@ void Add_Segment(FX_DOWNLOADHINTS* WXUNUSED(pThis), size_t WXUNUSED(offset), siz
 {
 }
 
+void FFI_SetCursor(FPDF_FORMFILLINFO* pThis, int nCursorType)
+{
+	wxPDFViewImpl* impl = g_pdfFormMap[pThis];
+	if (!impl)
+		return;
+
+	wxStockCursor cursorType = wxCURSOR_ARROW;
+
+	switch (nCursorType) {
+		case FXCT_NESW:
+			cursorType = wxCURSOR_SIZENESW;
+			break;
+		case FXCT_NWSE:
+			cursorType = wxCURSOR_SIZENWSE;
+			break;
+		case FXCT_VBEAM:
+		case FXCT_HBEAM:
+			cursorType = wxCURSOR_CHAR;
+			break;
+		case FXCT_HAND:
+			cursorType = wxCURSOR_HAND;
+			break;
+	}
+
+	wxLogDebug("FFI_SetCursor: %d", nCursorType);
+	impl->SetDefaultCursor(cursorType);
+}
+
+void FFI_Invalidate(FPDF_FORMFILLINFO* pThis,
+					   FPDF_PAGE page,
+					   double left,
+					   double top,
+					   double right,
+					   double bottom)
+{
+	wxPDFViewImpl* impl = g_pdfFormMap[pThis];
+	if (impl)
+	{
+		int mostVisible = impl->GetMostVisiblePage();
+		if (mostVisible >= 0 && (*impl->GetPages())[mostVisible].GetPage() == page)
+		{
+			wxRect rect(left, top, 0, 0);
+			rect.SetBottom(bottom);
+			rect.SetRight(right);
+			impl->InvalidatePage(mostVisible, &rect);
+		}
+	}
+}
+
+FPDF_PAGE FFI_GetPage(FPDF_FORMFILLINFO* pThis, FPDF_DOCUMENT document, int nPageIndex)
+{
+	wxPDFViewImpl* impl = g_pdfFormMap[pThis];
+	if (impl)
+		return (*impl->GetPages())[nPageIndex].GetPage();
+	return NULL;
+}
+
+FPDF_PAGE FFI_GetCurrentPage(FPDF_FORMFILLINFO* pThis, FPDF_DOCUMENT document)
+{
+	wxPDFViewImpl* impl = g_pdfFormMap[pThis];
+	if (impl)
+	{
+		int mostVisible = impl->GetMostVisiblePage();
+		if (mostVisible >= 0)
+			return (*impl->GetPages())[mostVisible].GetPage();
+	}
+	return NULL;
+}
+
+void FFI_DoGoToAction(FPDF_FORMFILLINFO* pThis,
+						 int nPageIndex,
+						 int zoomMode,
+						 float* fPosArray,
+						 int sizeofArray)
+{
+	wxPDFViewImpl* impl = g_pdfFormMap[pThis];
+	if (impl)
+		impl->DoGoToAction(nPageIndex);
+}
+
+void FFI_ExecuteNamedAction(FPDF_FORMFILLINFO* pThis,
+							   FPDF_BYTESTRING namedAction)
+{
+	wxString action(namedAction);
+	wxPDFViewImpl* impl = g_pdfFormMap[pThis];
+	if (impl)
+		impl->ExecuteNamedAction(action);
+}
+
 //
 // wxPDFViewActivity
 //
@@ -180,10 +330,12 @@ private:
 //
 
 wxAtomicInt wxPDFViewImpl::ms_pdfSDKRefCount = 0;
+bool wxPDFViewImpl::ms_v8initialized = false;
 
 wxPDFViewImpl::wxPDFViewImpl(wxPDFView* ctrl):
 	m_ctrl(ctrl),
-	m_handCursor(wxCURSOR_HAND)
+	m_handCursor(wxCURSOR_HAND),
+	m_defaultCursor(wxCURSOR_ARROW)
 {
 	AcquireSDK();
 
@@ -207,6 +359,7 @@ wxPDFViewImpl::wxPDFViewImpl(wxPDFView* ctrl):
 	m_currentFindIndex = -1;
 	m_docPermissions = 0;
 	m_linearized = false;
+	m_backPage = -1;
 
 	// PDF SDK structures
 	memset(&m_pdfFileAccess, '\0', sizeof(m_pdfFileAccess));
@@ -227,6 +380,10 @@ wxPDFViewImpl::wxPDFViewImpl(wxPDFView* ctrl):
 	m_ctrl->Bind(wxEVT_MOUSEWHEEL, &wxPDFViewImpl::OnMouseWheel, this);
 	m_ctrl->Bind(wxEVT_MOTION, &wxPDFViewImpl::OnMouseMotion, this);
 	m_ctrl->Bind(wxEVT_LEFT_UP, &wxPDFViewImpl::OnMouseLeftUp, this);
+	m_ctrl->Bind(wxEVT_LEFT_DOWN, &wxPDFViewImpl::OnMouseLeftDown, this);
+	m_ctrl->Bind(wxEVT_KEY_DOWN, &wxPDFViewImpl::OnKeyDown, this);
+	m_ctrl->Bind(wxEVT_KEY_UP, &wxPDFViewImpl::OnKeyUp, this);
+	m_ctrl->Bind(wxEVT_CHAR, &wxPDFViewImpl::OnKeyChar, this);
 }
 
 wxPDFViewImpl::~wxPDFViewImpl()
@@ -399,19 +556,44 @@ void wxPDFViewImpl::OnMouseWheel(wxMouseEvent& event)
 
 void wxPDFViewImpl::OnMouseMotion(wxMouseEvent& event)
 {
-	if (EvaluateLinkTargetPageAtClientPos(event.GetPosition(), false))
+	if (EvaluateLinkTargetPageAtClientPos(event.GetPosition(), event.GetEventType()))
 		m_ctrl->SetCursor(m_handCursor);
 	else
-		m_ctrl->SetCursor(wxCURSOR_ARROW);
+		m_ctrl->SetCursor(m_defaultCursor);
+
+	event.Skip();
+}
+
+void wxPDFViewImpl::OnMouseLeftDown(wxMouseEvent& event)
+{
+	EvaluateLinkTargetPageAtClientPos(event.GetPosition(), event.GetEventType());
 
 	event.Skip();
 }
 
 void wxPDFViewImpl::OnMouseLeftUp(wxMouseEvent& event)
 {
-	if (EvaluateLinkTargetPageAtClientPos(event.GetPosition(), true))
-		m_ctrl->SetCursor(wxCURSOR_ARROW);
+	if (EvaluateLinkTargetPageAtClientPos(event.GetPosition(), event.GetEventType()))
+		m_ctrl->SetCursor(m_defaultCursor);
 
+	event.Skip();
+}
+
+void wxPDFViewImpl::OnKeyUp(wxKeyEvent& event)
+{
+	FORM_OnKeyUp(m_pdfForm, m_pages[GetMostVisiblePage()].GetPage(), event.GetKeyCode(), 0);
+	event.Skip();
+}
+
+void wxPDFViewImpl::OnKeyDown(wxKeyEvent& event)
+{
+	FORM_OnKeyDown(m_pdfForm, m_pages[GetMostVisiblePage()].GetPage(), event.GetKeyCode(), 0);
+	event.Skip();
+}
+
+void wxPDFViewImpl::OnKeyChar(wxKeyEvent& event)
+{
+	FORM_OnChar(m_pdfForm, m_pages[GetMostVisiblePage()].GetPage(), event.GetKeyCode(), 0);
 	event.Skip();
 }
 
@@ -422,12 +604,24 @@ void wxPDFViewImpl::GoToPage(int pageIndex, const wxRect* centerRect)
 	else if (pageIndex >= GetPageCount())
 		pageIndex = GetPageCount() - 1;
 
+	m_backPage = GetMostVisiblePage();
+
 	wxRect pageRect = m_pageRects[pageIndex];
 	int scrollTop = pageRect.GetTop() - m_pagePadding / 2;
 	int pixelsPerUnitY;
 	m_ctrl->GetScrollPixelsPerUnit(NULL, &pixelsPerUnitY);
 	int scrollPosY = (scrollTop * m_ctrl->GetScaleY()) / pixelsPerUnitY;
 	m_ctrl->Scroll(-1, scrollPosY);
+}
+
+void wxPDFViewImpl::GoToPage(int pageIndex)
+{
+	GoToPage(pageIndex, NULL);
+}
+
+void wxPDFViewImpl::DoGoToAction(int pageIndex)
+{
+	CallAfter(&wxPDFViewImpl::GoToPage, pageIndex);
 }
 
 void wxPDFViewImpl::UpdateVirtualSize()
@@ -681,6 +875,18 @@ wxPrintDialogData wxPDFViewImpl::GetPrintDialogData() const
 	return printDialogData;
 }
 
+void wxPDFViewImpl::Print()
+{
+	wxPrintDialogData printDialogData = GetPrintDialogData();
+	wxPrinter printer(&printDialogData);
+	wxSharedPtr<wxPrintout> printout(CreatePrintout());
+	if (!printer.Print(GetCtrl(), printout.get()))
+	{
+		if (printer.GetLastError() == wxPRINTER_ERROR)
+			wxLogError(_("Document could not be printed"));
+	}
+}
+
 const wxString& wxPDFViewImpl::GetDocumentTitle() const
 {
 	return m_documentTitle;
@@ -697,15 +903,23 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream, const wxString
 	unsigned long docFileSize = pStream->tellg();
 	pStream->seekg(0);
 
-	IPDF_JSPLATFORM platform_callbacks;
-	memset(&platform_callbacks, '\0', sizeof(platform_callbacks));
-	platform_callbacks.version = 1;
-	platform_callbacks.app_alert = Form_Alert;
+	memset(&m_platformCallbacks, '\0', sizeof(m_platformCallbacks));
+	m_platformCallbacks.version = 3;
+	m_platformCallbacks.app_alert = &Form_Alert;
+	m_platformCallbacks.Doc_gotoPage = &Form_GotoPage;
+	m_platformCallbacks.Doc_print = &Form_Print;
+	m_platformCallbacks.Field_browse = &Form_Browse;
+	m_platformCallbacks.m_pFormfillinfo = &m_formCallbacks;
 
-	FPDF_FORMFILLINFO form_callbacks;
-	memset(&form_callbacks, '\0', sizeof(form_callbacks));
-	form_callbacks.version = 1;
-	form_callbacks.m_pJsPlatform = &platform_callbacks;
+	memset(&m_formCallbacks, '\0', sizeof(m_formCallbacks));
+	m_formCallbacks.version = 1;
+	m_formCallbacks.FFI_SetCursor = &FFI_SetCursor;
+	m_formCallbacks.FFI_Invalidate = &FFI_Invalidate;
+	m_formCallbacks.FFI_GetCurrentPage = &FFI_GetCurrentPage;
+	m_formCallbacks.FFI_GetPage = &FFI_GetPage;
+	m_formCallbacks.FFI_DoGoToAction = &FFI_DoGoToAction;
+	m_formCallbacks.FFI_ExecuteNamedAction = &FFI_ExecuteNamedAction;
+	m_formCallbacks.m_pJsPlatform = &m_platformCallbacks;
 
 	m_pdfFileAccess.m_FileLen = docFileSize;
 
@@ -750,14 +964,15 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream, const wxString
 	m_docPermissions = FPDF_GetDocPermissions(m_pdfDoc);
 	(void) FPDFAvail_IsFormAvail(m_pdfAvail, &m_hints);
 
-	m_pdfForm = FPDFDOC_InitFormFillEnvironment(m_pdfDoc, &form_callbacks);
-	FPDF_SetFormFieldHighlightColor(m_pdfForm, 0, 0xFFE4DD);
-	FPDF_SetFormFieldHighlightAlpha(m_pdfForm, 100);
+	m_pdfForm = FPDFDOC_InitFormFillEnvironment(m_pdfDoc, &m_formCallbacks);
+	
+	g_pdfFormMap[&m_formCallbacks] = this;
 
 	int first_page = FPDFAvail_GetFirstPageNum(m_pdfDoc);
 	(void) FPDFAvail_IsPageAvail(m_pdfAvail, first_page, &m_hints);
 
 	m_pages.SetDocument(m_pdfDoc);
+	m_pages.SetForm(m_pdfForm);
 	
 	RecalculatePageRects();
 
@@ -858,7 +1073,7 @@ int wxPDFViewImpl::ClientToPage(const wxPoint& clientPos, wxPoint& pagePos)
 	return -1;
 }
 
-bool wxPDFViewImpl::EvaluateLinkTargetPageAtClientPos(const wxPoint& clientPos, bool performAction)
+bool wxPDFViewImpl::EvaluateLinkTargetPageAtClientPos(const wxPoint& clientPos, int evtType)
 {
 	bool foundLink = false;
 
@@ -875,7 +1090,7 @@ bool wxPDFViewImpl::EvaluateLinkTargetPageAtClientPos(const wxPoint& clientPos, 
 		if (link)
 		{
 			foundLink = true;
-			if (performAction)
+			if (evtType == wxEVT_LEFT_UP)
 			{
 				FPDF_DEST dest = FPDFLink_GetDest(m_pdfDoc, link);
 				if (!dest)
@@ -943,6 +1158,15 @@ bool wxPDFViewImpl::EvaluateLinkTargetPageAtClientPos(const wxPoint& clientPos, 
 					GoToPage(FPDFDest_GetPageIndex(m_pdfDoc, dest));
 			}
 		}
+		else
+		{
+			if (evtType == wxEVT_LEFT_UP)
+				FORM_OnLButtonUp(m_pdfForm, page, 0, page_x, page_y);
+			else if (evtType == wxEVT_LEFT_DOWN)
+				FORM_OnLButtonDown(m_pdfForm, page, 0, page_x, page_y);
+			if (evtType == wxEVT_MOTION)
+				FORM_OnMouseMove(m_pdfForm, page, 0, page_x, page_y);
+		}
 	}
 
 	return foundLink;
@@ -986,7 +1210,12 @@ void wxPDFViewImpl::CalcVisiblePages()
 
 	if (newMostVisiblePage >= 0 && newMostVisiblePage != m_mostVisiblePage)
 	{
+		if (m_mostVisiblePage >= 0)
+			FORM_DoPageAAction(m_pages[m_mostVisiblePage].GetPage(), m_pdfForm, FPDFPAGE_AACTION_CLOSE);
+
 		m_mostVisiblePage = newMostVisiblePage;
+		FORM_DoPageAAction(m_pages[m_mostVisiblePage].GetPage(), m_pdfForm, FPDFPAGE_AACTION_OPEN);
+
 		wxCommandEvent* evt = new wxCommandEvent(wxEVT_PDFVIEW_PAGE_CHANGED);
 		evt->SetInt(m_mostVisiblePage);
 		m_ctrl->QueueEvent(evt);
@@ -1046,6 +1275,46 @@ void wxPDFViewImpl::RefreshPage(int pageIndex)
 
 		m_ctrl->RefreshRect(updateRect, true);
 	}
+}
+
+void wxPDFViewImpl::InvalidatePage(int pageIndex, const wxRect* WXUNUSED(rect))
+{
+	RemoveCachedBitmap(pageIndex);
+	RefreshPage(pageIndex);
+}
+
+void wxPDFViewImpl::SetDefaultCursor(wxStockCursor cursor)
+{
+	m_defaultCursor = cursor;
+	m_ctrl->SetCursor(m_defaultCursor);
+}
+
+void wxPDFViewImpl::ExecuteNamedAction(const wxString& action)
+{
+	if (action.IsSameAs("Print", false))
+	{
+		if (IsPrintAllowed())
+			CallAfter(&wxPDFViewImpl::Print);
+	}
+	else if (action.IsSameAs("NextPage", false))
+	{
+		CallAfter(&wxPDFViewImpl::NavigateToPage, wxPDFVIEW_PAGE_NAV_NEXT);
+	}
+	else if (action.IsSameAs("PrevPage", false))
+	{
+		CallAfter(&wxPDFViewImpl::NavigateToPage, wxPDFVIEW_PAGE_NAV_PREV);
+	}
+	else if (action.IsSameAs("GoBack", false))
+	{
+		if (m_backPage >= 0)
+			CallAfter(&wxPDFViewImpl::GoToPage, m_backPage);
+	}
+	else if (action.IsSameAs("FirstPage", false))
+	{
+		CallAfter(&wxPDFViewImpl::GoToPage, 0);
+	}
+	else
+		wxLogDebug("Unimplemented action: %s", action);
 }
 
 void wxPDFViewImpl::HandleUnsupportedFeature(int type)
@@ -1109,9 +1378,28 @@ bool wxPDFViewImpl::AcquireSDK()
 	if (ms_pdfSDKRefCount == 0)
 	{
 		// Initialize PDF Rendering library
-		v8::V8::InitializeICU();
-
-		FPDF_InitLibrary();
+		if (!ms_v8initialized)
+		{
+			v8::V8::InitializeICU();
+			
+			v8::Platform* platform = v8::platform::CreateDefaultPlatform();
+			v8::V8::InitializePlatform(platform);
+			v8::V8::Initialize();
+			
+			// By enabling predictable mode, V8 won't post any background tasks.
+			const char predictable_flag[] = "--predictable";
+			v8::V8::SetFlagsFromString(predictable_flag,
+									   static_cast<int>(strlen(predictable_flag)));
+			
+			ms_v8initialized = true;
+		}
+		
+		FPDF_LIBRARY_CONFIG config;
+		config.version = 2;
+		config.m_pUserFontPaths = NULL;
+		config.m_pIsolate = NULL;
+		config.m_v8EmbedderSlot = 0;
+		FPDF_InitLibraryWithConfig(&config);
 
 		FSDK_SetUnSpObjProcessHandler(&g_unsupported_info);
 	}

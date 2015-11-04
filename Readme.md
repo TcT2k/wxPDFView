@@ -21,11 +21,11 @@ Currently implemented:
 * Zooming
 * Search
 * Printing
+* Forms
 * Loading PDF from custom sources (any std::istream)
 
 Currently not implemented:
 * Text selection
-* Forms
 
 Requirements
 ------------
