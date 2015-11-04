@@ -1017,6 +1017,7 @@ void wxPDFViewImpl::CloseDocument()
 	m_docSize = wxDefaultSize;
 	UpdateVirtualSize();
 	m_docPermissions = 0;
+	m_mostVisiblePage = -1;
 
 	ClearBitmapCache();
 }
