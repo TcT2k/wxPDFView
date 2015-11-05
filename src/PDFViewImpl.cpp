@@ -1314,6 +1314,11 @@ void wxPDFViewImpl::SetDefaultCursor(wxStockCursor cursor)
 
 void wxPDFViewImpl::ExecuteNamedAction(const wxString& action)
 {
+	wxCommandEvent evt(wxEVT_PDFVIEW_NAMED_ACTION);
+	evt.SetString(action);
+	if (m_ctrl->ProcessEvent(evt))
+		return;
+
 	if (action.IsSameAs("Print", false))
 	{
 		if (IsPrintAllowed())
@@ -1337,7 +1342,7 @@ void wxPDFViewImpl::ExecuteNamedAction(const wxString& action)
 		CallAfter(&wxPDFViewImpl::GoToPage, 0);
 	}
 	else
-		wxLogDebug("Unimplemented action: %s", action);
+		wxLogDebug("Unhandled action: %s", action);
 }
 
 void wxPDFViewImpl::HandleUnsupportedFeature(int type)
