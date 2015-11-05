@@ -1267,7 +1267,7 @@ void wxPDFViewImpl::CalcZoomLevel()
 			wxSize pageSize = m_pageRects[m_mostVisiblePage].GetSize();
 			pageSize.x += 6; // Add padding to page width
 			pageSize.y += m_pagePadding;
-			if (pageSize.x > pageSize.y)
+			if (clientSize.x < clientSize.y)
 			{
 				scale = (double) clientSize.x / (double) pageSize.x;
 			} else {
