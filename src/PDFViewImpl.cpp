@@ -445,7 +445,13 @@ void wxPDFViewImpl::RecalculatePageRects()
 	m_pageRects.reserve(GetPageCount());
 	
 	wxSize defaultPageSize = wxDefaultSize;
-	
+
+#ifdef __WXMSW__
+	HDC desktopDc = ::GetDC(NULL);
+	int dpiX = ::GetDeviceCaps(desktopDc, LOGPIXELSX);
+	double screenScale = dpiX / (double)96;
+#endif
+
 	m_docSize.Set(0, 0);
 	wxRect pageRect;
 	for (int i = 0; i < GetPageCount(); ++i)
@@ -463,6 +469,10 @@ void wxPDFViewImpl::RecalculatePageRects()
 		} else
 			pageSize = defaultPageSize;
 		
+#ifdef __WXMSW__
+		pageSize *= screenScale;
+#endif
+
 		pageRect.y += m_pagePadding / 2;
 		pageRect.SetSize(pageSize);
 		m_pageRects.push_back(pageRect);
