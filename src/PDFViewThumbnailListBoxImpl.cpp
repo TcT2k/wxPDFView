@@ -50,12 +50,7 @@ void wxPDFViewThumbnailListBoxImpl::DrawPage(wxDC& dc, const wxRect& rect, int p
 	wxRect pageDrawRect = rect;
 	wxPDFViewPage& page = (*m_pPages)[pageIndex];
 	wxRect pageRect(m_pdfView->GetImpl()->GetPageSize(pageIndex));
-	if (pageRect.height >= pageRect.width)
-	{
-		pageDrawRect.width = pageDrawRect.height / ((double) pageRect.height / pageRect.width);
-	} else {
-		pageDrawRect.height = pageDrawRect.width / ((double) pageRect.width / pageRect.height);
-	}
+	pageDrawRect.width = pageDrawRect.height / ((double) pageRect.height / pageRect.width);
 
 	page.DrawThumbnail(this, dc, pageDrawRect.CenterIn(rect));
 }
