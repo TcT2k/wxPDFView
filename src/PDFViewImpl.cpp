@@ -180,6 +180,22 @@ int Form_Browse(IPDF_JSPLATFORM* pThis,
 	return 0;
 }
 
+void Form_OpenDoc(IPDF_JSPLATFORM* pThis,
+				   FPDF_WIDESTRING Path)
+{
+	wxPDFViewImpl* impl = g_pdfFormMap[(FPDF_FORMFILLINFO*) pThis->m_pFormfillinfo];
+	if (!impl)
+		return;
+
+	wxMBConvUTF16 conv;
+	wxString filePath = conv.cMB2WC((char*) Path);
+
+	wxLogDebug("Form_OpenDoc: %s", filePath);
+
+	impl->GoToRemote(filePath);
+}
+
+
 wxPDFViewImpl* g_unsupportedHandlerPDFViewImpl = NULL;
 
 void Unsupported_Handler(UNSUPPORT_INFO*, int type)
@@ -619,6 +635,13 @@ void wxPDFViewImpl::GoToPage(int pageIndex)
 	GoToPage(pageIndex, NULL);
 }
 
+void wxPDFViewImpl::GoToRemote(const wxString& path)
+{
+	wxCommandEvent gotoEvt(wxEVT_PDFVIEW_REMOTE_GOTO);
+	gotoEvt.SetString(path);
+	m_ctrl->AddPendingEvent(gotoEvt);
+}
+
 void wxPDFViewImpl::DoGoToAction(int pageIndex)
 {
 	CallAfter(&wxPDFViewImpl::GoToPage, pageIndex);
@@ -910,6 +933,10 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream, const wxString
 	m_platformCallbacks.Doc_print = &Form_Print;
 	m_platformCallbacks.Field_browse = &Form_Browse;
 	m_platformCallbacks.m_pFormfillinfo = &m_formCallbacks;
+#ifdef PDFIUM_HAVE_JS_APP_OPENDOC
+	m_platformCallbacks.version = 4;
+	m_platformCallbacks.app_openDoc = &Form_OpenDoc;
+#endif
 
 	memset(&m_formCallbacks, '\0', sizeof(m_formCallbacks));
 	m_formCallbacks.version = 1;
@@ -1124,11 +1151,7 @@ bool wxPDFViewImpl::EvaluateLinkTargetPageAtClientPos(const wxPoint& clientPos, 
 							{
 								char cpath[512];
 								FPDFAction_GetFilePath(action, cpath, 512);
-								wxString path = wxString::FromUTF8(cpath);
-								wxCommandEvent gotoEvt(wxEVT_PDFVIEW_REMOTE_GOTO);
-								gotoEvt.SetString(path);
-								// TODO: determine remote goto page by loading remote document
-								m_ctrl->ProcessEvent(gotoEvt);
+								GoToRemote(wxString::FromUTF8(cpath));
 								break;
 							}
 							case PDFACTION_LAUNCH:
@@ -1141,9 +1164,7 @@ bool wxPDFViewImpl::EvaluateLinkTargetPageAtClientPos(const wxPoint& clientPos, 
 								if (fn.GetExt().IsSameAs("pdf", false))
 								{
 									// Handle like a remote goto
-									wxCommandEvent gotoEvt(wxEVT_PDFVIEW_REMOTE_GOTO);
-									gotoEvt.SetString(path);
-									m_ctrl->ProcessEvent(gotoEvt);
+									GoToRemote(path);
 								} else {
 									wxCommandEvent gotoEvt(wxEVT_PDFVIEW_LAUNCH);
 									gotoEvt.SetString(path);

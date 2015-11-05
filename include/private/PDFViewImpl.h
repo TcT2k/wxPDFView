@@ -44,6 +44,8 @@ public:
 	
 	void GoToPage(int pageIndex);
 
+	void GoToRemote(const wxString& path);
+
 	int GetMostVisiblePage() const { return m_mostVisiblePage; };
 
 	void SetZoom(double zoom);
