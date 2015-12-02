@@ -252,13 +252,7 @@ void wxPDFViewDocumentPanel::OnFrameSize(wxSizeEvent& event)
 
 wxBitmap wxPDFViewDocumentPanel::GetToolbarBitmap(wxArtID id)
 {
-	wxSize toolBarBmpSize = wxDefaultSize;
-#if __WXOSX__
-	// Tango icons are only available in 16x16 and 24x24, set size here to prevent scaling
-	if (id != wxART_HELP_SIDE_PANEL)
-		toolBarBmpSize = wxSize(24, 24);
-#endif
-	return wxArtProvider::GetBitmap(id, wxART_TOOLBAR, toolBarBmpSize);
+	return wxArtProvider::GetBitmap(id, wxART_TOOLBAR);
 }
 
 bool wxPDFViewDocumentPanel::LoadFile(const wxString& fileName)
