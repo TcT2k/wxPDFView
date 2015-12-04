@@ -26,7 +26,9 @@ enum wxPDFViewZoomType
 	/// Free zoom set by SetZoom. Not affected by resizing
 	wxPDFVIEW_ZOOM_TYPE_FREE,
 	wxPDFVIEW_ZOOM_TYPE_FIT_PAGE,
-	wxPDFVIEW_ZOOM_TYPE_PAGE_WIDTH
+	wxPDFVIEW_ZOOM_TYPE_PAGE_WIDTH,
+	wxPDFVIEW_ZOOM_TYPE_TWO_PAGE,
+	wxPDFVIEW_ZOOM_TYPE_TWO_PAGE_COVER
 };
 
 enum wxPDFViewPageNavigation
@@ -42,6 +44,13 @@ enum wxPDFViewFindFlags
 	wxPDFVIEW_FIND_MATCH_CASE = 0x0001,
 	wxPDFVIEW_FIND_BACKWARDS = 0x0002,
 	wxPDFVIEW_FIND_DEFAULT = 0
+};
+
+enum wxPDFViewPagePosition
+{
+	wxPDFVIEW_PAGE_POS_CENTER,
+	wxPDFVIEW_PAGE_POS_LEFT,
+	wxPDFVIEW_PAGE_POS_RIGHT
 };
 
 class wxPDFViewBookmark;

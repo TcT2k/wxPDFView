@@ -414,8 +414,13 @@ void wxPDFViewImpl::NavigateToPage(wxPDFViewPageNavigation pageNavigation)
 	switch (pageNavigation)
 	{
 		case wxPDFVIEW_PAGE_NAV_NEXT:
-			GoToPage(GetMostVisiblePage() + 1);
+		{
+			int nextPage = GetMostVisiblePage();
+			if (GetPagePosition(nextPage) == wxPDFVIEW_PAGE_POS_LEFT)
+				nextPage++;
+			GoToPage(nextPage + 1);
 			break;
+		}
 		case wxPDFVIEW_PAGE_NAV_PREV:
 			GoToPage(GetMostVisiblePage() - 1);
 			break;
@@ -442,6 +447,7 @@ void wxPDFViewImpl::UpdateDocumentInfo()
 
 void wxPDFViewImpl::RecalculatePageRects()
 {
+	m_pageRects.clear();
 	m_pageRects.reserve(GetPageCount());
 	
 	wxSize defaultPageSize = wxDefaultSize;
@@ -457,7 +463,8 @@ void wxPDFViewImpl::RecalculatePageRects()
 	for (int i = 0; i < GetPageCount(); ++i)
 	{
 		bool pageAvail = !m_linearized || FPDFAvail_IsPageAvail(m_pdfAvail, i, &m_hints) != 0;
-		
+		wxPDFViewPagePosition pagePos = GetPagePosition(i);
+
 		wxSize pageSize;
 		double width;
 		double height;
@@ -473,21 +480,32 @@ void wxPDFViewImpl::RecalculatePageRects()
 		pageSize *= screenScale;
 #endif
 
-		pageRect.y += m_pagePadding / 2;
+		if (pagePos != wxPDFVIEW_PAGE_POS_RIGHT)
+			pageRect.y += m_pagePadding / 2;
 		pageRect.SetSize(pageSize);
 		m_pageRects.push_back(pageRect);
 		
-		if (pageSize.x > m_docSize.x)
-			m_docSize.x = pageSize.x;
+		int pageWidth = pageSize.x;
+		if (pagePos != wxPDFVIEW_PAGE_POS_CENTER && i > 0)
+			pageWidth *= 2;
 		
-		pageRect.y += pageSize.y;
-		pageRect.y += m_pagePadding / 2;
-		
-		// Make sure every page top is pixel exact scrollable
-		int pageDisplayHeight = pageRect.height + m_pagePadding;
-		int scrollMod = pageDisplayHeight % m_scrollStepY;
-		if (scrollMod)
-			pageRect.y += m_scrollStepY - scrollMod;
+		if (pageWidth > m_docSize.x)
+			m_docSize.x = pageWidth;
+	
+		if (pagePos != wxPDFVIEW_PAGE_POS_LEFT)
+		{
+			pageRect.x = 0;
+			pageRect.y += pageSize.y;
+			pageRect.y += m_pagePadding / 2;
+			
+			// Make sure every page top is pixel exact scrollable
+			int pageDisplayHeight = pageRect.height + m_pagePadding;
+			int scrollMod = pageDisplayHeight % m_scrollStepY;
+			if (scrollMod)
+				pageRect.y += m_scrollStepY - scrollMod;
+		}
+		else
+			pageRect.x += pageSize.x;
 	}
 	m_docSize.SetHeight(pageRect.y - (m_pagePadding / 2));
 	
@@ -497,8 +515,23 @@ void wxPDFViewImpl::RecalculatePageRects()
 void wxPDFViewImpl::AlignPageRects()
 {
 	int ctrlWidth = m_ctrl->GetVirtualSize().GetWidth() / m_ctrl->GetScaleX();
-	for (auto it = m_pageRects.begin(); it != m_pageRects.end(); ++it)
-		it->x = (ctrlWidth - it->width) / 2;
+	
+	int pageIndex = 0;
+	for (auto it = m_pageRects.begin(); it != m_pageRects.end(); ++it, ++pageIndex)
+	{
+		switch (GetPagePosition(pageIndex))
+		{
+			case wxPDFVIEW_PAGE_POS_CENTER:
+				it->x = (ctrlWidth - it->width) / 2;
+				break;
+			case wxPDFVIEW_PAGE_POS_LEFT:
+				it->x = (ctrlWidth / 2) - it->width;
+				break;
+			case wxPDFVIEW_PAGE_POS_RIGHT:
+				it->x = (ctrlWidth / 2);
+				break;
+		}
+	}
 }
 
 void wxPDFViewImpl::OnPaint(wxPaintEvent& WXUNUSED(event))
@@ -523,7 +556,15 @@ void wxPDFViewImpl::OnPaint(wxPaintEvent& WXUNUSED(event))
 	{
 		wxRect pageRect = m_pageRects[pageIndex];
 		if (pageRect.Intersects(rectUpdate))
+		{
 			m_pages[pageIndex].Draw(this, dc, *gc, pageRect);
+			if (GetPagePosition(pageIndex) == wxPDFVIEW_PAGE_POS_RIGHT)
+			{
+				// Draw line between left and right page
+				dc.SetPen(*wxLIGHT_GREY_PEN);
+				dc.DrawLine(pageRect.x, pageRect.y, pageRect.x, pageRect.y + pageRect.height);
+			}
+		}
 	}
 
 	// Draw text selections
@@ -698,7 +739,10 @@ void wxPDFViewImpl::SetZoomType(wxPDFViewZoomType zoomType)
 		return;
 
 	m_zoomType = zoomType;
+	RecalculatePageRects();
 	CalcZoomLevel();
+	CalcVisiblePages();
+	m_ctrl->Refresh();
 	wxCommandEvent zoomEvent(wxEVT_PDFVIEW_ZOOM_TYPE_CHANGED);
 	m_ctrl->ProcessEvent(zoomEvent);
 }
@@ -1273,9 +1317,17 @@ void wxPDFViewImpl::CalcZoomLevel()
 			scale = (double) clientSize.x / (double) (m_docSize.x + 6);
 			break;
 		case wxPDFVIEW_ZOOM_TYPE_FIT_PAGE:
+		case wxPDFVIEW_ZOOM_TYPE_TWO_PAGE:
+		case wxPDFVIEW_ZOOM_TYPE_TWO_PAGE_COVER:
 		{
 			wxSize pageSize = m_pageRects[m_mostVisiblePage].GetSize();
 			pageSize.x += 6; // Add padding to page width
+			if (GetPagePosition(m_mostVisiblePage) == wxPDFVIEW_PAGE_POS_LEFT &&
+				m_mostVisiblePage < GetPageCount() - 1)
+			{
+				pageSize.x += m_pageRects[m_mostVisiblePage + 1].GetSize().x;
+			}
+
 			pageSize.y += m_pagePadding;
 			if (pageSize.x > clientSize.x)
 			{
@@ -1296,6 +1348,33 @@ void wxPDFViewImpl::CalcZoomLevel()
 wxSize wxPDFViewImpl::GetPageSize(int pageIndex) const
 {
 	return m_pageRects[pageIndex].GetSize();
+}
+
+wxPDFViewPagePosition wxPDFViewImpl::GetPagePosition(int pageIndex) const
+{
+	int pageOffset = 0;
+	bool twoPageLayout;
+	if (m_zoomType == wxPDFVIEW_ZOOM_TYPE_TWO_PAGE)
+		twoPageLayout = true;
+	else if (m_zoomType == wxPDFVIEW_ZOOM_TYPE_TWO_PAGE_COVER)
+	{
+		twoPageLayout = true;
+		pageOffset = 1;
+	}
+	else
+		twoPageLayout = false;
+
+	if (GetPageCount() > 1 &&
+		twoPageLayout &&
+		!(m_zoomType == wxPDFVIEW_ZOOM_TYPE_TWO_PAGE_COVER && pageIndex == 0))
+	{
+		if ((pageIndex + pageOffset) % 2 == 0)
+			return wxPDFVIEW_PAGE_POS_LEFT;
+		else
+			return wxPDFVIEW_PAGE_POS_RIGHT;
+	}
+	else
+		return wxPDFVIEW_PAGE_POS_CENTER;
 }
 
 void wxPDFViewImpl::RefreshPage(int pageIndex)

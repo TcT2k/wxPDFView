@@ -88,6 +88,8 @@ public:
 
 	wxSize GetPageSize(int pageIndex) const;
 
+	wxPDFViewPagePosition GetPagePosition(int pageIndex) const;
+
 	void HandleUnsupportedFeature(int type);
 	
 	void SendActivity(const wxString& description);

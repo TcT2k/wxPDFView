@@ -150,8 +150,7 @@ void wxPDFViewDocumentPanel::SetToolBar(wxToolBar* toolBar)
 		m_toolBar->Unbind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnPagePrevClick, this, wxID_BACKWARD);
 		m_toolBar->Unbind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnZoomInClick, this, ID_ZOOM_IN);
 		m_toolBar->Unbind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnZoomOutClick, this, ID_ZOOM_OUT);
-		m_toolBar->Unbind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnZoomPageFitClick, this, ID_ZOOM_PAGE_FIT);
-		m_toolBar->Unbind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnZoomPageWidthClick, this, ID_ZOOM_PAGE_WIDTH);
+		m_toolBar->Unbind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnZoomTypeClick, this, ID_ZOOM_PAGE_FIT, ID_ZOOM_2PAGES_COVER);
 		m_toolBar->Unbind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnNavigationClick, this, ID_NAVIGATION);
 		m_toolBar->Unbind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnPrintClicked, this, wxID_PRINT);
 		m_toolBar->Unbind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnSearchNext, this, ID_FIND_NEXT);
@@ -204,6 +203,8 @@ void wxPDFViewDocumentPanel::SetToolBar(wxToolBar* toolBar)
 	m_toolBar->AddSeparator();
 	m_toolBar->AddTool(ID_ZOOM_PAGE_FIT, _("Page Fit"), GetToolbarBitmap(wxART_PDFVIEW_PAGE_FIT), _("Fit one full page to window"), wxITEM_CHECK);
 	m_toolBar->AddTool(ID_ZOOM_PAGE_WIDTH, _("Fit Width"), GetToolbarBitmap(wxART_PDFVIEW_PAGE_WIDTH), _("Fit to window width"), wxITEM_CHECK);
+	m_toolBar->AddTool(ID_ZOOM_2PAGES, _("Two Pages"), GetToolbarBitmap(wxART_PDFVIEW_TWO_PAGES), _("Show two pages side by side"), wxITEM_CHECK);
+	m_toolBar->AddTool(ID_ZOOM_2PAGES_COVER, _("Two Pages (Cover)"), GetToolbarBitmap(wxART_PDFVIEW_TWO_PAGES_COVER), _("Show two pages side by side with cover"), wxITEM_CHECK);
 
 	m_toolBar->AddStretchableSpace();
 	m_toolBar->AddControl(m_searchCtrl);
@@ -217,8 +218,7 @@ void wxPDFViewDocumentPanel::SetToolBar(wxToolBar* toolBar)
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnPagePrevClick, this, wxID_BACKWARD);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnZoomInClick, this, ID_ZOOM_IN);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnZoomOutClick, this, ID_ZOOM_OUT);
-	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnZoomPageFitClick, this, ID_ZOOM_PAGE_FIT);
-	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnZoomPageWidthClick, this, ID_ZOOM_PAGE_WIDTH);
+	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnZoomTypeClick, this, ID_ZOOM_PAGE_FIT, ID_ZOOM_2PAGES_COVER);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnNavigationClick, this, ID_NAVIGATION);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnPrintClicked, this, wxID_PRINT);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnSearchNext, this, ID_FIND_NEXT);
@@ -287,8 +287,8 @@ void wxPDFViewDocumentPanel::OnPDFZoomTypeChanged(wxCommandEvent& event)
 {
 	if (m_toolBar)
 	{
-		m_toolBar->ToggleTool(ID_ZOOM_PAGE_FIT, m_pdfView->GetZoomType() == wxPDFVIEW_ZOOM_TYPE_FIT_PAGE);
-		m_toolBar->ToggleTool(ID_ZOOM_PAGE_WIDTH, m_pdfView->GetZoomType() == wxPDFVIEW_ZOOM_TYPE_PAGE_WIDTH);
+		for (int toolId = ID_ZOOM_PAGE_FIT; toolId <= ID_ZOOM_2PAGES_COVER; toolId++)
+			m_toolBar->ToggleTool(toolId, m_pdfView->GetZoomType() == toolId - ID_ZOOM_PAGE_FIT + 1);
 	}
 
 	event.Skip();
@@ -490,17 +490,9 @@ void wxPDFViewDocumentPanel::OnZoomTextEnter( wxCommandEvent& event )
 	event.Skip();
 }
 
-void wxPDFViewDocumentPanel::OnZoomPageFitClick( wxCommandEvent& event)
+void wxPDFViewDocumentPanel::OnZoomTypeClick( wxCommandEvent& event)
 {
-	m_pdfView->SetZoomType(wxPDFVIEW_ZOOM_TYPE_FIT_PAGE);
-	SaveZoomConfig();
-
-	event.Skip();
-}
-
-void wxPDFViewDocumentPanel::OnZoomPageWidthClick( wxCommandEvent& event)
-{
-	m_pdfView->SetZoomType(wxPDFVIEW_ZOOM_TYPE_PAGE_WIDTH);
+	m_pdfView->SetZoomType(static_cast<wxPDFViewZoomType>(event.GetId() - ID_ZOOM_PAGE_FIT + 1));
 	SaveZoomConfig();
 
 	event.Skip();
