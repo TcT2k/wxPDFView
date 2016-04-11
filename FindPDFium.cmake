@@ -21,6 +21,7 @@ set(PDFIUM_INCLUDE_DIRS
 	${PDFIUM_ROOT_DIR}/v8/include
 	${PDFIUM_ROOT_DIR}/v8
 	${PDFIUM_ROOT_DIR}/public
+	${PDFIUM_ROOT_DIR}
 	)
 	
 set(PDFIUM_SEARCH_LIBS fdrm
@@ -35,7 +36,7 @@ set(PDFIUM_SEARCH_LIBS fdrm
 	fx_agg
 	fx_freetype
 	fx_lcms2
-	fx_libjpeg
+	libjpeg
 	fx_libopenjpeg
 	fx_lpng
 	fx_zlib

@@ -30,11 +30,12 @@ Currently not implemented:
 Requirements
 ------------
 * [wxWidgets][1]: 3.0.0  or newer
-* [PDFium][2]: 2550 (d78704258f04d947d4f5fc2a7f8b44b57d456597) or newer
+* [PDFium][2]: 2705 (b8180d491e0e38544acbe1b59f949ca4a2701374) or newer
 
 Compiling
 ---------
 * Build PDFium per instructions on the [PDFium page][2].
+* Use GYP_DEFINES='pdf_enable_xfa=0' when building pdfium
 * Use [CMake][4] to build the samples/simple project
 * Or use the  included CMake file in your project and link wxPDFView lib (will link the required pdfium libs)
 
