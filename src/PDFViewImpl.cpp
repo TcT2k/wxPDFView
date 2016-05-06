@@ -1277,6 +1277,8 @@ void wxPDFViewImpl::CalcVisiblePages()
 	}
 
 	int newMostVisiblePage = firstPage;
+	if (GetPagePosition(newMostVisiblePage) == wxPDFVIEW_PAGE_POS_LEFT)
+		newMostVisiblePage++;
 	// Check if we can see more of the next page than the first one
 	if (newMostVisiblePage >= 0 && 
 		newMostVisiblePage < GetPageCount() - 1 &&
@@ -1293,6 +1295,9 @@ void wxPDFViewImpl::CalcVisiblePages()
 	{
 		if (m_mostVisiblePage >= 0)
 			FORM_DoPageAAction(m_pages[m_mostVisiblePage].GetPage(), m_pdfForm, FPDFPAGE_AACTION_CLOSE);
+
+		if (GetPagePosition(newMostVisiblePage) == wxPDFVIEW_PAGE_POS_RIGHT && newMostVisiblePage > 0)
+			newMostVisiblePage--;
 
 		m_mostVisiblePage = newMostVisiblePage;
 		FORM_DoPageAAction(m_pages[m_mostVisiblePage].GetPage(), m_pdfForm, FPDFPAGE_AACTION_OPEN);
