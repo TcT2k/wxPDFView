@@ -561,8 +561,12 @@ void wxPDFViewImpl::OnPaint(wxPaintEvent& WXUNUSED(event))
 			if (GetPagePosition(pageIndex) == wxPDFVIEW_PAGE_POS_RIGHT)
 			{
 				// Draw line between left and right page
-				dc.SetPen(*wxLIGHT_GREY_PEN);
-				dc.DrawLine(pageRect.x, pageRect.y, pageRect.x, pageRect.y + pageRect.height);
+				gc->SetPen(*wxLIGHT_GREY_PEN);
+				wxPoint2DDouble linePoints[2] = {
+					{ (wxDouble)pageRect.x, (wxDouble)pageRect.y },
+					{ (wxDouble)pageRect.x, (wxDouble)pageRect.y + pageRect.height }
+				};
+				gc->DrawLines(2, linePoints);
 			}
 		}
 	}
