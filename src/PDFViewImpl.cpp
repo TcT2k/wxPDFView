@@ -451,6 +451,7 @@ void wxPDFViewImpl::RecalculatePageRects()
 	m_pageRects.reserve(GetPageCount());
 	
 	wxSize defaultPageSize = wxDefaultSize;
+	m_maxPageHeight = 0;
 
 #ifdef __WXMSW__
 	HDC desktopDc = ::GetDC(NULL);
@@ -492,7 +493,10 @@ void wxPDFViewImpl::RecalculatePageRects()
 		
 		if (pageWidth > m_docSize.x)
 			m_docSize.x = pageWidth;
-	
+
+		if (pageSize.y > m_maxPageHeight)
+			m_maxPageHeight = pageSize.y;
+
 		if (pagePos != wxPDFVIEW_PAGE_POS_LEFT)
 		{
 			pageRect.x = 0;
@@ -1335,14 +1339,8 @@ void wxPDFViewImpl::CalcZoomLevel()
 		case wxPDFVIEW_ZOOM_TYPE_TWO_PAGE:
 		case wxPDFVIEW_ZOOM_TYPE_TWO_PAGE_COVER:
 		{
-			wxSize pageSize = m_pageRects[m_mostVisiblePage].GetSize();
+			wxSize pageSize(m_docSize.x, m_maxPageHeight);
 			pageSize.x += 6; // Add padding to page width
-			if (GetPagePosition(m_mostVisiblePage) == wxPDFVIEW_PAGE_POS_LEFT &&
-				m_mostVisiblePage < GetPageCount() - 1)
-			{
-				pageSize.x += m_pageRects[m_mostVisiblePage + 1].GetSize().x;
-			}
-
 			pageSize.y += m_pagePadding;
 			if (pageSize.x > clientSize.x)
 			{

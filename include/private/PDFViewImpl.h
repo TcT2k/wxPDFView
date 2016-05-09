@@ -138,6 +138,7 @@ private:
 	wxVector<wxRect> m_pageRects;
 	wxPDFViewPages m_pages;
 	wxSize m_docSize;
+	int m_maxPageHeight;
 	unsigned long m_docPermissions;
 	wxString m_documentTitle;
 	bool m_linearized;
