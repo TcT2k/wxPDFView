@@ -460,6 +460,7 @@ void wxPDFViewImpl::RecalculatePageRects()
 
 	m_docSize.Set(0, 0);
 	wxRect pageRect;
+	wxRect prevPageRect;
 	for (int i = 0; i < GetPageCount(); ++i)
 	{
 		bool pageAvail = !m_linearized || FPDFAvail_IsPageAvail(m_pdfAvail, i, &m_hints) != 0;
@@ -495,7 +496,10 @@ void wxPDFViewImpl::RecalculatePageRects()
 		if (pagePos != wxPDFVIEW_PAGE_POS_LEFT)
 		{
 			pageRect.x = 0;
-			pageRect.y += pageSize.y;
+			if (prevPageRect.height > pageSize.y)
+				pageRect.y += prevPageRect.height;
+			else
+				pageRect.y += pageSize.y;
 			pageRect.y += m_pagePadding / 2;
 			
 			// Make sure every page top is pixel exact scrollable
@@ -506,6 +510,8 @@ void wxPDFViewImpl::RecalculatePageRects()
 		}
 		else
 			pageRect.x += pageSize.x;
+
+		prevPageRect = pageRect;
 	}
 	m_docSize.SetHeight(pageRect.y - (m_pagePadding / 2));
 	
