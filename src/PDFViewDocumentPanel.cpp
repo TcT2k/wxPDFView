@@ -150,7 +150,7 @@ void wxPDFViewDocumentPanel::SetToolBar(wxToolBar* toolBar)
 		m_toolBar->Unbind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnPagePrevClick, this, wxID_BACKWARD);
 		m_toolBar->Unbind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnZoomInClick, this, ID_ZOOM_IN);
 		m_toolBar->Unbind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnZoomOutClick, this, ID_ZOOM_OUT);
-		m_toolBar->Unbind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnZoomTypeClick, this, ID_ZOOM_PAGE_FIT, ID_ZOOM_2PAGES_COVER);
+		m_toolBar->Unbind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnZoomTypeClick, this, ID_ZOOM_PAGE_FIT, ID_ZOOM_PAGE_WIDTH);
 		m_toolBar->Unbind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnNavigationClick, this, ID_NAVIGATION);
 		m_toolBar->Unbind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnPrintClicked, this, wxID_PRINT);
 		m_toolBar->Unbind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnSearchNext, this, ID_FIND_NEXT);
@@ -203,8 +203,11 @@ void wxPDFViewDocumentPanel::SetToolBar(wxToolBar* toolBar)
 	m_toolBar->AddSeparator();
 	m_toolBar->AddTool(ID_ZOOM_PAGE_FIT, _("Page Fit"), GetToolbarBitmap(wxART_PDFVIEW_PAGE_FIT), _("Fit one full page to window"), wxITEM_CHECK);
 	m_toolBar->AddTool(ID_ZOOM_PAGE_WIDTH, _("Fit Width"), GetToolbarBitmap(wxART_PDFVIEW_PAGE_WIDTH), _("Fit to window width"), wxITEM_CHECK);
-	m_toolBar->AddTool(ID_ZOOM_2PAGES, _("Two Pages"), GetToolbarBitmap(wxART_PDFVIEW_TWO_PAGES), _("Show two pages side by side"), wxITEM_CHECK);
-	m_toolBar->AddTool(ID_ZOOM_2PAGES_COVER, _("Two Pages (Cover)"), GetToolbarBitmap(wxART_PDFVIEW_TWO_PAGES_COVER), _("Show two pages side by side with cover"), wxITEM_CHECK);
+	m_toolBar->AddSeparator();
+
+	m_toolBar->AddTool(ID_DISPLAY_SINGLE_PAGE, _("Single Page"), GetToolbarBitmap(wxART_PDFVIEW_SINGLE_PAGE), _("Show a single page"), wxITEM_RADIO);
+	m_toolBar->AddTool(ID_DISPLAY_2PAGES, _("Two Pages"), GetToolbarBitmap(wxART_PDFVIEW_TWO_PAGES), _("Show two pages side by side"), wxITEM_RADIO);
+	m_toolBar->AddTool(ID_DISPLAY_2PAGES_COVER, _("Two Pages (Cover)"), GetToolbarBitmap(wxART_PDFVIEW_TWO_PAGES_COVER), _("Show two pages side by side with cover"), wxITEM_RADIO);
 
 	m_toolBar->AddStretchableSpace();
 	m_toolBar->AddControl(m_searchCtrl);
@@ -218,7 +221,8 @@ void wxPDFViewDocumentPanel::SetToolBar(wxToolBar* toolBar)
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnPagePrevClick, this, wxID_BACKWARD);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnZoomInClick, this, ID_ZOOM_IN);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnZoomOutClick, this, ID_ZOOM_OUT);
-	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnZoomTypeClick, this, ID_ZOOM_PAGE_FIT, ID_ZOOM_2PAGES_COVER);
+	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnZoomTypeClick, this, ID_ZOOM_PAGE_FIT, ID_ZOOM_PAGE_WIDTH);
+	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnDisplayTypeClick, this, ID_DISPLAY_SINGLE_PAGE, ID_DISPLAY_2PAGES_COVER);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnNavigationClick, this, ID_NAVIGATION);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnPrintClicked, this, wxID_PRINT);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnSearchNext, this, ID_FIND_NEXT);
@@ -287,7 +291,7 @@ void wxPDFViewDocumentPanel::OnPDFZoomTypeChanged(wxCommandEvent& event)
 {
 	if (m_toolBar)
 	{
-		for (int toolId = ID_ZOOM_PAGE_FIT; toolId <= ID_ZOOM_2PAGES_COVER; toolId++)
+		for (int toolId = ID_ZOOM_PAGE_FIT; toolId <= ID_ZOOM_PAGE_WIDTH; toolId++)
 			m_toolBar->ToggleTool(toolId, m_pdfView->GetZoomType() == toolId - ID_ZOOM_PAGE_FIT + 1);
 	}
 
@@ -328,7 +332,12 @@ void wxPDFViewDocumentPanel::OnPDFDocumentReady(wxCommandEvent& event)
 	
 	m_pdfView->SetFocus();
 	
-	m_pdfView->SetZoomType((wxPDFViewZoomType) cfg->ReadLong("ZoomType", wxPDFVIEW_ZOOM_TYPE_FIT_PAGE));
+	m_pdfView->SetZoomType((wxPDFViewZoomType) cfg->ReadLong("ZoomType2", wxPDFVIEW_ZOOM_TYPE_FIT_PAGE));
+	m_pdfView->SetDisplayFlags(cfg->ReadLong("DisplayFlags", 0));
+	if (m_pdfView->GetDisplayFlags() & wxPDFVIEW_DISPLAY_TWO_PAGE_COVER)
+		m_toolBar->ToggleTool(ID_DISPLAY_2PAGES_COVER, true);
+	else if (m_pdfView->GetDisplayFlags() & wxPDFVIEW_DISPLAY_TWO_PAGE)
+		m_toolBar->ToggleTool(ID_DISPLAY_2PAGES, true);
 
 	event.Skip();
 }
@@ -498,6 +507,29 @@ void wxPDFViewDocumentPanel::OnZoomTypeClick( wxCommandEvent& event)
 	event.Skip();
 }
 
+void wxPDFViewDocumentPanel::OnDisplayTypeClick( wxCommandEvent& event)
+{
+
+	switch (event.GetId())
+	{
+		case ID_DISPLAY_SINGLE_PAGE:
+			m_pdfView->SetDisplayFlags(0);
+			break;
+		case ID_DISPLAY_2PAGES:
+			m_pdfView->SetDisplayFlags(wxPDFVIEW_DISPLAY_TWO_PAGE);
+			break;
+		case ID_DISPLAY_2PAGES_COVER:
+			m_pdfView->SetDisplayFlags(wxPDFVIEW_DISPLAY_TWO_PAGE | wxPDFVIEW_DISPLAY_TWO_PAGE_COVER);
+			break;
+		default:
+			break;
+	}
+
+	wxConfigBase* cfg = wxConfig::Get();
+	wxConfigPathChanger pathChanger(cfg, GetName() + "/");
+	cfg->Write("DisplayFlags", (int) m_pdfView->GetDisplayFlags());
+}
+
 void wxPDFViewDocumentPanel::OnSearchCtrlFind(wxCommandEvent& event)
 {
 	Find(m_searchCtrl->GetValue(), true);
@@ -573,5 +605,5 @@ void wxPDFViewDocumentPanel::SaveZoomConfig()
 {
 	wxConfigBase* cfg = wxConfig::Get();
 	wxConfigPathChanger pathChanger(cfg, GetName() + "/");
-	cfg->Write("ZoomType", (int) m_pdfView->GetZoomType());
+	cfg->Write("ZoomType2", (int) m_pdfView->GetZoomType());
 }

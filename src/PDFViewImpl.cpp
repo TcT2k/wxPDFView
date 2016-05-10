@@ -761,6 +761,23 @@ void wxPDFViewImpl::SetZoomType(wxPDFViewZoomType zoomType)
 	m_ctrl->ProcessEvent(zoomEvent);
 }
 
+void wxPDFViewImpl::SetDisplayFlags(int flags)
+{
+	if (m_displayFlags == flags)
+		return;
+
+	m_displayFlags = flags;
+	RecalculatePageRects();
+	CalcZoomLevel();
+	CalcVisiblePages();
+	m_ctrl->Refresh();
+}
+
+int wxPDFViewImpl::GetDisplayFlags() const
+{
+	return m_displayFlags;
+}
+
 void wxPDFViewImpl::StopFind()
 {
 	m_selection.clear();
@@ -1336,8 +1353,6 @@ void wxPDFViewImpl::CalcZoomLevel()
 			scale = (double) clientSize.x / (double) (m_docSize.x + 6);
 			break;
 		case wxPDFVIEW_ZOOM_TYPE_FIT_PAGE:
-		case wxPDFVIEW_ZOOM_TYPE_TWO_PAGE:
-		case wxPDFVIEW_ZOOM_TYPE_TWO_PAGE_COVER:
 		{
 			wxSize pageSize(m_docSize.x, m_maxPageHeight);
 			pageSize.x += 6; // Add padding to page width
@@ -1365,21 +1380,15 @@ wxSize wxPDFViewImpl::GetPageSize(int pageIndex) const
 
 wxPDFViewPagePosition wxPDFViewImpl::GetPagePosition(int pageIndex) const
 {
-	int pageOffset = 0;
-	bool twoPageLayout;
-	if (m_zoomType == wxPDFVIEW_ZOOM_TYPE_TWO_PAGE)
-		twoPageLayout = true;
-	else if (m_zoomType == wxPDFVIEW_ZOOM_TYPE_TWO_PAGE_COVER)
-	{
-		twoPageLayout = true;
+	int pageOffset;
+	if (m_displayFlags & wxPDFVIEW_DISPLAY_TWO_PAGE_COVER)
 		pageOffset = 1;
-	}
 	else
-		twoPageLayout = false;
+		pageOffset = 0;
 
 	if (GetPageCount() > 1 &&
-		twoPageLayout &&
-		!(m_zoomType == wxPDFVIEW_ZOOM_TYPE_TWO_PAGE_COVER && pageIndex == 0))
+		(m_displayFlags & wxPDFVIEW_DISPLAY_TWO_PAGE) &&
+		!(m_displayFlags & wxPDFVIEW_DISPLAY_TWO_PAGE_COVER && pageIndex == 0))
 	{
 		if ((pageIndex + pageOffset) % 2 == 0)
 			return wxPDFVIEW_PAGE_POS_LEFT;

@@ -75,8 +75,9 @@ protected:
 		ID_NAVIGATION,
 		ID_ZOOM_PAGE_FIT,
 		ID_ZOOM_PAGE_WIDTH,
-		ID_ZOOM_2PAGES,
-		ID_ZOOM_2PAGES_COVER,
+		ID_DISPLAY_SINGLE_PAGE,
+		ID_DISPLAY_2PAGES,
+		ID_DISPLAY_2PAGES_COVER,
 		ID_FIND_NEXT,
 		ID_FIND_PREV
 	};
@@ -137,6 +138,7 @@ private:
 	void OnZoomComboBox( wxCommandEvent& event );
 
 	void OnZoomTypeClick( wxCommandEvent& event);
+	void OnDisplayTypeClick( wxCommandEvent& event);
 
 	void OnSearchCtrlFind(wxCommandEvent& event);
 	void OnSearchCtrlCancel(wxCommandEvent& event);

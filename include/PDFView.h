@@ -26,9 +26,13 @@ enum wxPDFViewZoomType
 	/// Free zoom set by SetZoom. Not affected by resizing
 	wxPDFVIEW_ZOOM_TYPE_FREE,
 	wxPDFVIEW_ZOOM_TYPE_FIT_PAGE,
-	wxPDFVIEW_ZOOM_TYPE_PAGE_WIDTH,
-	wxPDFVIEW_ZOOM_TYPE_TWO_PAGE,
-	wxPDFVIEW_ZOOM_TYPE_TWO_PAGE_COVER
+	wxPDFVIEW_ZOOM_TYPE_PAGE_WIDTH
+};
+
+enum wxPDFViewDisplayFlags
+{
+	wxPDFVIEW_DISPLAY_TWO_PAGE = 0x0001,
+	wxPDFVIEW_DISPLAY_TWO_PAGE_COVER = 0x0002
 };
 
 enum wxPDFViewPageNavigation
@@ -139,6 +143,15 @@ public:
 	void SetZoomType(wxPDFViewZoomType zoomType);
 
 	wxPDFViewZoomType GetZoomType() const;
+
+	/**
+	   Set the display flags to any combination of wxPDFViewDisplayFlags
+	 
+	   @see GetDisplayFlags()
+	*/
+	void SetDisplayFlags(int flags);
+
+	int GetDisplayFlags() const;
 
 	/** 
 	   Scrolls next result into view and returns the number of matches or wxNOT_FOUND

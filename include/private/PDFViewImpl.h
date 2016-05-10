@@ -60,6 +60,10 @@ public:
 
 	wxPDFViewZoomType GetZoomType() const { return m_zoomType; };
 
+	void SetDisplayFlags(int flags);
+
+	int GetDisplayFlags() const;
+	
 	long Find(const wxString& text, int flags);
 
 	bool IsPrintAllowed() const;
@@ -147,6 +151,7 @@ private:
 
 	// Display settings
 	wxPDFViewZoomType m_zoomType;
+	int m_displayFlags;
 	int m_pagePadding;
 	int m_scrollStepX;
 	int m_scrollStepY;

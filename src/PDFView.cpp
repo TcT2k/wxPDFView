@@ -136,6 +136,20 @@ void wxPDFView::SetZoomType(wxPDFViewZoomType zoomType)
 		m_impl->SetZoomType(zoomType);
 }
 
+void wxPDFView::SetDisplayFlags(int flags)
+{
+	if (m_impl)
+		m_impl->SetDisplayFlags(flags);
+}
+
+int wxPDFView::GetDisplayFlags() const
+{
+	if (m_impl)
+		return m_impl->GetDisplayFlags();
+	else
+		return 0;
+}
+
 wxPDFViewZoomType wxPDFView::GetZoomType() const
 {
 	if (m_impl)
