@@ -475,7 +475,9 @@ void wxPDFViewDocumentPanel::OnZoomComboBox( wxCommandEvent& event )
 {
 	if (m_zoomComboBox->GetSelection() >= 0)
 	{
-		double zoom = reinterpret_cast<int>(m_zoomComboBox->GetClientData(m_zoomComboBox->GetSelection())) / (double) 100;
+		wxString zoomStr = m_zoomComboBox->GetValue();
+
+		double zoom = wxAtof(zoomStr) / 100.0;
 		m_pdfView->SetZoom(zoom);
 		m_pdfView->SetFocus();
 	}

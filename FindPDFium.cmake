@@ -6,7 +6,7 @@ include(FindPackageHandleStandardArgs)
 set(PDFIUM_ROOT_DIR "" CACHE PATH "PDFium root directory")
 
 if (APPLE)
-	set(PDFIUM_BUILD_DIR ${PDFIUM_ROOT_DIR}/xcodebuild)
+	set(PDFIUM_BUILD_DIR ${PDFIUM_ROOT_DIR}/out)
 	set(PDFIUM_BUILD_SUB_DIR )
 else ()
 	set(PDFIUM_BUILD_DIR ${PDFIUM_ROOT_DIR}/build)
@@ -36,7 +36,7 @@ set(PDFIUM_SEARCH_LIBS fdrm
 	fx_agg
 	fx_freetype
 	fx_lcms2
-	libjpeg
+	jpeg
 	fx_libopenjpeg
 	fx_lpng
 	fx_zlib

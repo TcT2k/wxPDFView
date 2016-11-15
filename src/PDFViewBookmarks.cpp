@@ -19,7 +19,7 @@ public:
 		CFX_WideString sdkTitle = bookmark.GetTitle();
 		m_title.assign(sdkTitle, sdkTitle.GetLength());
 		CPDF_Bookmark child = bmTree.GetFirstChild(bookmark);
-		while (child)
+		while (child.GetDict())
 		{
 			wxSharedPtr<wxPDFViewBookmark> newBM(new wxPDFViewBookmarkImpl(bmTree, child));
 			push_back(newBM);
@@ -36,13 +36,13 @@ public:
 	{
 		CPDF_Document* doc = (CPDF_Document*) pdfView->GetImpl()->GetDocument();
 		CPDF_Dest dest = m_bookmark.GetDest(doc);
-		if (!dest)
+		if (!dest.GetObject())
 		{
 			CPDF_Action action = m_bookmark.GetAction();
 			dest = action.GetDest(doc);
 		}
 
-		if (dest)
+		if (dest.GetObject())
 			pdfView->GoToPage(dest.GetPageIndex(doc));
 	}
 
@@ -56,6 +56,6 @@ wxPDFViewBookmarks::wxPDFViewBookmarks(FPDF_DOCUMENT doc):
 {
 	CPDF_Bookmark emptyBM;
 	CPDF_Bookmark rootBM = m_tree.GetFirstChild(emptyBM);
-	if (rootBM)
+	if (rootBM.GetDict())
 		m_root.reset(new wxPDFViewBookmarkImpl(m_tree, emptyBM));
 }
