@@ -24,30 +24,36 @@ set(PDFIUM_INCLUDE_DIRS
 	${PDFIUM_ROOT_DIR}
 	)
 	
-set(PDFIUM_SEARCH_LIBS fdrm
+set(PDFIUM_SEARCH_LIBS
+	bigint
+	fdrm
 	formfiller
 	fpdfapi
 	fpdfdoc
 	fpdftext
+	fpdfxfa
+	fx_agg
+	fx_freetype
+	fx_lcms2
+	fx_libopenjpeg
+	fx_lpng
+	fx_tiff
+	fx_zlib
 	fxcodec
 	fxcrt
 	fxedit
 	fxge
-	fx_agg
-	fx_freetype
-	fx_lcms2
 	jpeg
-	fx_libopenjpeg
-	fx_lpng
-	fx_zlib
 	icui18n
 	icuuc
+	jpeg
 	javascript
 	pdfium
 	pdfwindow
 	v8_libbase
 	v8_libplatform
-	v8_snapshot)
+	v8_snapshot
+	xfa)
 	
 if (NOT WIN32)
 	set(PDFIUM_SEARCH_LIBS ${PDFIUM_SEARCH_LIBS}
