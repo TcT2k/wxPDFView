@@ -17,7 +17,7 @@ public:
 		m_bookmark(bookmark)
 	{
 		CFX_WideString sdkTitle = bookmark.GetTitle();
-		m_title.assign(sdkTitle, sdkTitle.GetLength());
+		m_title.assign(sdkTitle.c_str(), sdkTitle.GetLength());
 		CPDF_Bookmark child = bmTree.GetFirstChild(bookmark);
 		while (child.GetDict())
 		{

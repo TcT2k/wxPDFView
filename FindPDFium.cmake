@@ -7,7 +7,7 @@ set(PDFIUM_ROOT_DIR "" CACHE PATH "PDFium root directory")
 
 if (APPLE)
 	set(PDFIUM_BUILD_DIR ${PDFIUM_ROOT_DIR}/out)
-	set(PDFIUM_BUILD_SUB_DIR )
+	set(PDFIUM_BUILD_SUB_DIR obj/)
 else ()
 	set(PDFIUM_BUILD_DIR ${PDFIUM_ROOT_DIR}/build)
 	set(PDFIUM_BUILD_SUB_DIR lib/)
@@ -25,55 +25,56 @@ set(PDFIUM_INCLUDE_DIRS
 	)
 	
 set(PDFIUM_SEARCH_LIBS
-	bigint
 	fdrm
 	formfiller
 	fpdfapi
 	fpdfdoc
 	fpdftext
-	fpdfxfa
+	fxcodec
+	fxcrt
+	fxedit
+	fxge
+	fxjs
+	javascript
+	pdfium
+	pdfwindow
+	)
+
+set(PDFIUM_3RD_PARTY_SEARCH_LIBS
+	bigint
 	fx_agg
 	fx_freetype
 	fx_lcms2
 	fx_libopenjpeg
 	fx_lpng
-	fx_tiff
 	fx_zlib
-	fxcodec
-	fxcrt
-	fxedit
-	fxge
 	jpeg
+	)
+
+set(PDFIUM_V8_SEARCH_LIBS
 	icui18n
 	icuuc
-	jpeg
-	javascript
-	pdfium
-	pdfwindow
 	v8_libbase
 	v8_libplatform
-	v8_snapshot
-	xfa)
-	
-if (NOT WIN32)
-	set(PDFIUM_SEARCH_LIBS ${PDFIUM_SEARCH_LIBS}
-		v8_base
-		icudata
-		icui18n
-		)
-else()
-	set(PDFIUM_SEARCH_LIBS ${PDFIUM_SEARCH_LIBS}
-		v8_base_0
-		v8_base_1
-		v8_base_2
-		v8_base_3
-		)
-endif()
+	v8
+	)
 	
 foreach(LIB ${PDFIUM_SEARCH_LIBS})
 	set(PDFIUM_LIBRARIES ${PDFIUM_LIBRARIES}
 		debug ${PDFIUM_BUILD_DIR}/Debug/${PDFIUM_BUILD_SUB_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}${LIB}${CMAKE_STATIC_LIBRARY_SUFFIX}
 		optimized ${PDFIUM_BUILD_DIR}/Release/${PDFIUM_BUILD_SUB_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}${LIB}${CMAKE_STATIC_LIBRARY_SUFFIX})
+endforeach()
+
+foreach(LIB ${PDFIUM_3RD_PARTY_SEARCH_LIBS})
+	set(PDFIUM_LIBRARIES ${PDFIUM_LIBRARIES}
+		debug ${PDFIUM_BUILD_DIR}/Debug/${PDFIUM_BUILD_SUB_DIR}/third_party/${CMAKE_STATIC_LIBRARY_PREFIX}${LIB}${CMAKE_STATIC_LIBRARY_SUFFIX}
+		optimized ${PDFIUM_BUILD_DIR}/Release/${PDFIUM_BUILD_SUB_DIR}/third_party/${CMAKE_STATIC_LIBRARY_PREFIX}${LIB}${CMAKE_STATIC_LIBRARY_SUFFIX})
+endforeach()
+
+foreach(LIB ${PDFIUM_V8_SEARCH_LIBS})
+	set(PDFIUM_LIBRARIES ${PDFIUM_LIBRARIES}
+		debug ${PDFIUM_BUILD_DIR}/Debug/${CMAKE_SHARED_LIBRARY_PREFIX}${LIB}${CMAKE_SHARED_LIBRARY_SUFFIX}
+		optimized ${PDFIUM_BUILD_DIR}/Release/${CMAKE_SHARED_LIBRARY_PREFIX}${LIB}${CMAKE_SHARED_LIBRARY_SUFFIX})
 endforeach()
 
 include(FindPackageHandleStandardArgs)

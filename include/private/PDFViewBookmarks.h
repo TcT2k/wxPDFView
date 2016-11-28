@@ -12,7 +12,7 @@
 
 #include "PDFView.h"
 #include "fpdf_doc.h"
-#include "fpdfdoc/fpdf_doc.h"
+#include "core/fpdfdoc/cpdf_bookmarktree.h"
 
 class wxPDFViewBookmarks
 {
