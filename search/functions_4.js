@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['loadfile',['LoadFile',['../classwx_p_d_f_view.html#ae7c48ca2934d49b39a5ce45c10defadf',1,'wxPDFView::LoadFile()'],['../classwx_p_d_f_view_document_frame.html#af06d508ff81e72c1683d2fc8edc12771',1,'wxPDFViewDocumentFrame::LoadFile()']]],
-  ['loadstream',['LoadStream',['../classwx_p_d_f_view.html#ae25f9ae813828f350489755de0f8ec89',1,'wxPDFView']]]
+  ['initialize',['Initialize',['../classwx_p_d_f_view_art_provider.html#af730bbed2ffee8c211bb51f1614fc7d5',1,'wxPDFViewArtProvider']]],
+  ['isprintallowed',['IsPrintAllowed',['../classwx_p_d_f_view.html#a7bf15c8138e70b5087d745ede6abae96',1,'wxPDFView']]]
 ];

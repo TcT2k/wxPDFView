@@ -1,7 +1,6 @@
 var searchData=
 [
-  ['scrollwindow',['ScrollWindow',['../classwx_p_d_f_view.html#a2f241a7b512a84097a012bcf93b6d8d0',1,'wxPDFView::ScrollWindow()'],['../classwx_p_d_f_view_thumbnail_list_box.html#a95bfd4abaa765296b56e5825c07981e9',1,'wxPDFViewThumbnailListBox::ScrollWindow()']]],
-  ['setpdfview',['SetPDFView',['../classwx_p_d_f_view_bookmarks_ctrl.html#ae21224701f132393b2edf7495fd6e432',1,'wxPDFViewBookmarksCtrl::SetPDFView()'],['../classwx_p_d_f_view_thumbnail_list_box.html#a743ad27c0aee32a6c5263e08473c2866',1,'wxPDFViewThumbnailListBox::SetPDFView()']]],
-  ['setzoom',['SetZoom',['../classwx_p_d_f_view.html#a5837ea01e0fbdb021525f5ac5a22ae3b',1,'wxPDFView']]],
-  ['setzoomtype',['SetZoomType',['../classwx_p_d_f_view.html#a3600f443ba8ad709cd1de16b858b0abb',1,'wxPDFView']]]
+  ['onbeginprint',['OnBeginPrint',['../classwx_p_d_f_view_print_validator.html#a295fc4990fe7b32ef26defcdcbfee6a8',1,'wxPDFViewPrintValidator']]],
+  ['ondrawitem',['OnDrawItem',['../classwx_p_d_f_view_thumbnail_list_box.html#aa27c139794ab52382d8c2353dee140dd',1,'wxPDFViewThumbnailListBox']]],
+  ['onmeasureitem',['OnMeasureItem',['../classwx_p_d_f_view_thumbnail_list_box.html#a0854b94f5afb8449a839af13058fcd44',1,'wxPDFViewThumbnailListBox']]]
 ];

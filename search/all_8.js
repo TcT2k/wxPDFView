@@ -1,8 +1,5 @@
 var searchData=
 [
-  ['pdfview_2eh',['PDFView.h',['../_p_d_f_view_8h.html',1,'']]],
-  ['pdfviewartprovider_2eh',['PDFViewArtProvider.h',['../_p_d_f_view_art_provider_8h.html',1,'']]],
-  ['pdfviewbookmarksctrl_2eh',['PDFViewBookmarksCtrl.h',['../_p_d_f_view_bookmarks_ctrl_8h.html',1,'']]],
-  ['pdfviewdocumentframe_2eh',['PDFViewDocumentFrame.h',['../_p_d_f_view_document_frame_8h.html',1,'']]],
-  ['pdfviewthumbnaillistbox_2eh',['PDFViewThumbnailListBox.h',['../_p_d_f_view_thumbnail_list_box_8h.html',1,'']]]
+  ['navigate',['Navigate',['../classwx_p_d_f_view_bookmark.html#a3358f22de69e8a122de58fe7027bd5e1',1,'wxPDFViewBookmark']]],
+  ['navigatetopage',['NavigateToPage',['../classwx_p_d_f_view.html#ad2e40d2626d3466f8d90c69c44417a69',1,'wxPDFView']]]
 ];

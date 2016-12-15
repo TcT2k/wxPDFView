@@ -1,17 +1,15 @@
 var searchData=
 [
-  ['m_5fbookmarkpanel',['m_bookmarkPanel',['../classwx_p_d_f_view_document_frame.html#aa60467afc4dda43b1bd21a75414faa9e',1,'wxPDFViewDocumentFrame']]],
-  ['m_5fdocnotebook',['m_docNotebook',['../classwx_p_d_f_view_document_frame.html#a118ff00dfa108fdedcfae9aaad487048',1,'wxPDFViewDocumentFrame']]],
-  ['m_5fdocpanel',['m_docPanel',['../classwx_p_d_f_view_document_frame.html#aeb4bd489942bf82a43d192537482392e',1,'wxPDFViewDocumentFrame']]],
-  ['m_5fnavpanel',['m_navPanel',['../classwx_p_d_f_view_document_frame.html#ac09297f66a2ff571d7e546249016f511',1,'wxPDFViewDocumentFrame']]],
-  ['m_5fpagecounttxtctrl',['m_pageCountTxtCtrl',['../classwx_p_d_f_view_document_frame.html#abc7794d9d3192f9358dc37d6427ede83',1,'wxPDFViewDocumentFrame']]],
-  ['m_5fpagetxtctrl',['m_pageTxtCtrl',['../classwx_p_d_f_view_document_frame.html#ae391cf2c20ed0e70b584e79b009e5f11',1,'wxPDFViewDocumentFrame']]],
-  ['m_5fpdfview',['m_pdfView',['../classwx_p_d_f_view_document_frame.html#aa78fc21575f47d46b27a90f3e7070817',1,'wxPDFViewDocumentFrame']]],
-  ['m_5fpdfviewbookmarksctrl',['m_pdfViewBookmarksCtrl',['../classwx_p_d_f_view_document_frame.html#a40825ba0b479d4ee97f07b3fc3c16eee',1,'wxPDFViewDocumentFrame']]],
-  ['m_5fsearchctrl',['m_searchCtrl',['../classwx_p_d_f_view_document_frame.html#adfd65f64f64ed6f15024a452f71fcbfc',1,'wxPDFViewDocumentFrame']]],
-  ['m_5fsplitter',['m_splitter',['../classwx_p_d_f_view_document_frame.html#a284d5465077a0daefe26f566d5b3ead0',1,'wxPDFViewDocumentFrame']]],
-  ['m_5fthumbnaillistbox',['m_thumbnailListBox',['../classwx_p_d_f_view_document_frame.html#a0196f2f4e01106406adc6005b803f67e',1,'wxPDFViewDocumentFrame']]],
-  ['m_5fthumbpanel',['m_thumbPanel',['../classwx_p_d_f_view_document_frame.html#a6d76b4ab45aa5c042dadd990f168d189',1,'wxPDFViewDocumentFrame']]],
-  ['m_5ftoolbar',['m_toolBar',['../classwx_p_d_f_view_document_frame.html#ae71ff00a6a7a3aa1928cc1f04ef2008b',1,'wxPDFViewDocumentFrame']]],
-  ['m_5fzoomcombobox',['m_zoomComboBox',['../classwx_p_d_f_view_document_frame.html#a5933b5ab5847fdd5782990218474197c',1,'wxPDFViewDocumentFrame']]]
+  ['id_5fdisplay_5f2pages',['ID_DISPLAY_2PAGES',['../classwx_p_d_f_view_document_panel.html#a4170da9cb7fe4bf048c75b4fbcaf3e2fa58914e70c711c5f76b35d67fc63381a5',1,'wxPDFViewDocumentPanel']]],
+  ['id_5fdisplay_5f2pages_5fcover',['ID_DISPLAY_2PAGES_COVER',['../classwx_p_d_f_view_document_panel.html#a4170da9cb7fe4bf048c75b4fbcaf3e2fa086e40d33e447c51f53ee06a7c5f6bc6',1,'wxPDFViewDocumentPanel']]],
+  ['id_5fdisplay_5fsingle_5fpage',['ID_DISPLAY_SINGLE_PAGE',['../classwx_p_d_f_view_document_panel.html#a4170da9cb7fe4bf048c75b4fbcaf3e2fa297033af5159b4db625a44b4db5f7eb2',1,'wxPDFViewDocumentPanel']]],
+  ['id_5ffind_5fnext',['ID_FIND_NEXT',['../classwx_p_d_f_view_document_frame.html#a6a2cbf4d2cebe9889b48aa9be92e706cac8f94469338d892e9523a371cadfd699',1,'wxPDFViewDocumentFrame::ID_FIND_NEXT()'],['../classwx_p_d_f_view_document_panel.html#a4170da9cb7fe4bf048c75b4fbcaf3e2fa7b45f4ba09d2cb604a68e8a2f63e40c9',1,'wxPDFViewDocumentPanel::ID_FIND_NEXT()']]],
+  ['id_5ffind_5fprev',['ID_FIND_PREV',['../classwx_p_d_f_view_document_frame.html#a6a2cbf4d2cebe9889b48aa9be92e706cadbf99b65db7a256e2e455da045724a83',1,'wxPDFViewDocumentFrame::ID_FIND_PREV()'],['../classwx_p_d_f_view_document_panel.html#a4170da9cb7fe4bf048c75b4fbcaf3e2fa33c0d32b64e66ebf815e74a06cbe412e',1,'wxPDFViewDocumentPanel::ID_FIND_PREV()']]],
+  ['id_5fnavigation',['ID_NAVIGATION',['../classwx_p_d_f_view_document_frame.html#a6a2cbf4d2cebe9889b48aa9be92e706ca92ee12d19d030561adf0c162944da46c',1,'wxPDFViewDocumentFrame::ID_NAVIGATION()'],['../classwx_p_d_f_view_document_panel.html#a4170da9cb7fe4bf048c75b4fbcaf3e2fa22e9ea5e765229fd518c197161b21d92',1,'wxPDFViewDocumentPanel::ID_NAVIGATION()']]],
+  ['id_5fzoom_5fin',['ID_ZOOM_IN',['../classwx_p_d_f_view_document_frame.html#a6a2cbf4d2cebe9889b48aa9be92e706ca633be68187c74539bc6b5ee220a8b5fa',1,'wxPDFViewDocumentFrame::ID_ZOOM_IN()'],['../classwx_p_d_f_view_document_panel.html#a4170da9cb7fe4bf048c75b4fbcaf3e2fa96dd302ee85af2ee2f36c412c7ba22c4',1,'wxPDFViewDocumentPanel::ID_ZOOM_IN()']]],
+  ['id_5fzoom_5fout',['ID_ZOOM_OUT',['../classwx_p_d_f_view_document_frame.html#a6a2cbf4d2cebe9889b48aa9be92e706ca24dfc37adc914fca175c2f54b173ab81',1,'wxPDFViewDocumentFrame::ID_ZOOM_OUT()'],['../classwx_p_d_f_view_document_panel.html#a4170da9cb7fe4bf048c75b4fbcaf3e2fabc2ba28d43c9ce8fbba08a6ebd888dfd',1,'wxPDFViewDocumentPanel::ID_ZOOM_OUT()']]],
+  ['id_5fzoom_5fpage_5ffit',['ID_ZOOM_PAGE_FIT',['../classwx_p_d_f_view_document_frame.html#a6a2cbf4d2cebe9889b48aa9be92e706ca02845f994d28c81d6e369de46f4bc938',1,'wxPDFViewDocumentFrame::ID_ZOOM_PAGE_FIT()'],['../classwx_p_d_f_view_document_panel.html#a4170da9cb7fe4bf048c75b4fbcaf3e2fa4155e2e59b8cd36c168139e40d2f35a7',1,'wxPDFViewDocumentPanel::ID_ZOOM_PAGE_FIT()']]],
+  ['id_5fzoom_5fpage_5fwidth',['ID_ZOOM_PAGE_WIDTH',['../classwx_p_d_f_view_document_frame.html#a6a2cbf4d2cebe9889b48aa9be92e706ca955983d327a58bcb2d9d1a908c6dfda1',1,'wxPDFViewDocumentFrame::ID_ZOOM_PAGE_WIDTH()'],['../classwx_p_d_f_view_document_panel.html#a4170da9cb7fe4bf048c75b4fbcaf3e2fa2fb932a1649a09f96f8eb804bf21b4d3',1,'wxPDFViewDocumentPanel::ID_ZOOM_PAGE_WIDTH()']]],
+  ['initialize',['Initialize',['../classwx_p_d_f_view_art_provider.html#af730bbed2ffee8c211bb51f1614fc7d5',1,'wxPDFViewArtProvider']]],
+  ['isprintallowed',['IsPrintAllowed',['../classwx_p_d_f_view.html#a7bf15c8138e70b5087d745ede6abae96',1,'wxPDFView']]]
 ];

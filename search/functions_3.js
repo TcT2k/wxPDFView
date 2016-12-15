@@ -1,5 +1,20 @@
 var searchData=
 [
-  ['initialize',['Initialize',['../classwx_p_d_f_view_art_provider.html#af730bbed2ffee8c211bb51f1614fc7d5',1,'wxPDFViewArtProvider']]],
-  ['isprintallowed',['IsPrintAllowed',['../classwx_p_d_f_view.html#a7bf15c8138e70b5087d745ede6abae96',1,'wxPDFView']]]
+  ['getdisplayflags',['GetDisplayFlags',['../classwx_p_d_f_view.html#a8a8deefb851289c067467b03523e7bfc',1,'wxPDFView']]],
+  ['getdocumenttitle',['GetDocumentTitle',['../classwx_p_d_f_view.html#a0e0245ad823a7fb4038739a979251f58',1,'wxPDFView']]],
+  ['getimpl',['GetImpl',['../classwx_p_d_f_view.html#a1af956c741398ec0fa4b5215f8af1fbd',1,'wxPDFView']]],
+  ['getmaxzoom',['GetMaxZoom',['../classwx_p_d_f_view.html#af87a9c67ca60a00886f955a3d4636069',1,'wxPDFView']]],
+  ['getminzoom',['GetMinZoom',['../classwx_p_d_f_view.html#ab072e121d72c813a846e7ff20fa529ef',1,'wxPDFView']]],
+  ['getmostvisiblepage',['GetMostVisiblePage',['../classwx_p_d_f_view.html#a28afda34a5ad7a9f97b253cfa961eab2',1,'wxPDFView']]],
+  ['getpagecount',['GetPageCount',['../classwx_p_d_f_view.html#a47930e7f8e605cfd5a9f2cfe5402d684',1,'wxPDFView']]],
+  ['getpdfview',['GetPDFView',['../classwx_p_d_f_view_bookmarks_ctrl.html#a399613da76cd29d8035f2db018a8d639',1,'wxPDFViewBookmarksCtrl::GetPDFView()'],['../classwx_p_d_f_view_document_frame.html#a82e43e38c6cadce866b70bf5e4a78533',1,'wxPDFViewDocumentFrame::GetPDFView()'],['../classwx_p_d_f_view_document_panel.html#a80264380f40460765dc07f95bfc6dffa',1,'wxPDFViewDocumentPanel::GetPDFView()'],['../classwx_p_d_f_view_thumbnail_list_box.html#a73f9ef1353bf68fe1d8e79900f2b5d26',1,'wxPDFViewThumbnailListBox::GetPDFView()']]],
+  ['getprintdialogdata',['GetPrintDialogData',['../classwx_p_d_f_view.html#a7252cf8344a9646a51b8633d2f614e1d',1,'wxPDFView']]],
+  ['getprintpermission',['GetPrintPermission',['../classwx_p_d_f_view_print_validator.html#a19eebece311775907f4bead17eeab55c',1,'wxPDFViewPrintValidator']]],
+  ['getprintvalidator',['GetPrintValidator',['../classwx_p_d_f_view.html#a2a5d5420118f02def970f19bf44d044a',1,'wxPDFView']]],
+  ['getrootbookmark',['GetRootBookmark',['../classwx_p_d_f_view.html#a2bcc9b4633e2943fe28b6f8a019bc2f2',1,'wxPDFView']]],
+  ['gettitle',['GetTitle',['../classwx_p_d_f_view_bookmark.html#a697075f4653772ffde12d5cb5bd76cd0',1,'wxPDFViewBookmark']]],
+  ['gettoolbarbitmap',['GetToolbarBitmap',['../classwx_p_d_f_view_document_frame.html#a2e93d0284f3cfc991a70e49be66f16f7',1,'wxPDFViewDocumentFrame::GetToolbarBitmap()'],['../classwx_p_d_f_view_document_panel.html#a580506464e48946a00a4b6ce92a79b0c',1,'wxPDFViewDocumentPanel::GetToolbarBitmap()']]],
+  ['getzoom',['GetZoom',['../classwx_p_d_f_view.html#a185a651a81a93ef00e0ba0a0472fd4d9',1,'wxPDFView']]],
+  ['getzoomtype',['GetZoomType',['../classwx_p_d_f_view.html#a71e71b70de2d4c26bb687f71efb2600f',1,'wxPDFView']]],
+  ['gotopage',['GoToPage',['../classwx_p_d_f_view.html#afee3ba3e002019bee7ba333dece0f24f',1,'wxPDFView']]]
 ];
