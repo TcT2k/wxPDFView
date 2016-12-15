@@ -8,7 +8,7 @@ navigate PDF documents using Google Chromes [PDFium library][2].
 
 Resources
 ---------
-* [Documentation](http://wxpdfview.tc84.net/)
+* [Documentation](https://tct2k.github.io/wxPDFView/)
 * [Download](https://github.com/TcT2k/wxPDFView/releases)
 * [GitHub](https://github.com/TcT2k/wxPDFView)
 
