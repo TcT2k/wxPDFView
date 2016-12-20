@@ -180,7 +180,7 @@ copy %PDFIUM_DIR%\out\Debug\icuuc.dll Debug\
 
 * in 2., in the `gn gen ...` line, use `is_debug=false`
 * in 3., set Solution Configuration to *Release*
-* in 4., set Solution Configuration to *Release*, and copy the DLL files to the *Release* folder
+* in 4., set Solution Configuration to *Release*, use *mswu* instead of *mswud* in the `cmake ...` line, and copy the DLL files to the *Release* folder
 * distribute *Release* folder, and make sure the [Visual C++ Redistributable for VS2015][5] (x86) is installed on the target machine
 
 ## Using
