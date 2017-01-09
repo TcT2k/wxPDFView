@@ -136,7 +136,7 @@ gclient config --unmanaged --spec "solutions=[{'name':'pdfium','url':'https://pd
 gclient sync
 cd pdfium
 set PDFIUM_DIR=%cd%
-gn gen out/Debug --args="pdf_enable_xfa=false pdf_enable_v8=true target_cpu=\"x86\" is_debug=true"
+gn gen out/Debug --args="pdf_enable_xfa=false pdf_enable_v8=true pdf_is_standalone=true is_component_build=true target_cpu=\"x86\" is_debug=true"
 ninja -C out/Debug pdfium
 ```
 
@@ -178,7 +178,9 @@ copy %PDFIUM_DIR%\out\Debug\icuuc.dll Debug\
 
 ### 5. Create a Release Build for Distribution
 
-* in 2., in the `gn gen ...` line, use `is_debug=false`
+(Tested only on Windows!)
+
+* in 2., replace `out/Debug` with `out/Release`; in the `gn gen ...` line, use `is_debug=false`
 * in 3., set Solution Configuration to *Release*
 * in 4., set Solution Configuration to *Release*, use *mswu* instead of *mswud* in the `cmake ...` line, and copy the DLL files to the *Release* folder
 * distribute *Release* folder, and make sure the [Visual C++ Redistributable for VS2015][5] (x86) is installed on the target machine
