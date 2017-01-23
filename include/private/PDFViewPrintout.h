@@ -11,6 +11,7 @@
 #define PDFVIEW_PRINTOUT_H
 
 #include <wx/print.h>
+
 class wxPDFView;
 
 class wxPDFViewPrintout: public wxPrintout

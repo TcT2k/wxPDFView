@@ -14,7 +14,9 @@
 #include <wx/graphics.h>
 #include <wx/thread.h>
 #include <wx/vector.h>
+
 #include <map>
+
 #include "fpdf_doc.h"
 #include "fpdf_formfill.h"
 

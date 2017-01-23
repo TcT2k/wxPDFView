@@ -12,7 +12,6 @@
 #include <wx/rawbmp.h>
 
 #include "fpdf_text.h"
-#include "fpdf_formfill.h"
 
 #include <algorithm>
 

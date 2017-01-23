@@ -13,17 +13,24 @@
 class wxPDFViewBookmarkImpl: public wxPDFViewBookmark
 {
 public:
-	wxPDFViewBookmarkImpl(CPDF_BookmarkTree& bmTree, CPDF_Bookmark& bookmark):
+	wxPDFViewBookmarkImpl(FPDF_DOCUMENT doc, FPDF_BOOKMARK bookmark):
 		m_bookmark(bookmark)
 	{
-		CFX_WideString sdkTitle = bookmark.GetTitle();
-		m_title.assign(sdkTitle.c_str(), sdkTitle.GetLength());
-		CPDF_Bookmark child = bmTree.GetFirstChild(bookmark);
-		while (child.GetDict())
+		unsigned long length = FPDFBookmark_GetTitle(bookmark, NULL, 0);
+		if (length > 0)
 		{
-			wxSharedPtr<wxPDFViewBookmark> newBM(new wxPDFViewBookmarkImpl(bmTree, child));
+			char * buffer = new char[length];
+			length = FPDFBookmark_GetTitle(bookmark, buffer, length);
+			m_title = wxString(buffer, wxCSConv(wxFONTENCODING_UTF16LE), length);
+			delete [] buffer;
+		}
+
+		FPDF_BOOKMARK child = FPDFBookmark_GetFirstChild(doc, bookmark);
+		while (child)
+		{
+			wxSharedPtr<wxPDFViewBookmark> newBM(new wxPDFViewBookmarkImpl(doc, child));
 			push_back(newBM);
-			child = bmTree.GetNextSibling(child);
+			child = FPDFBookmark_GetNextSibling(doc, child);
 		}
 	}
 
@@ -34,28 +41,35 @@ public:
 
 	virtual void Navigate(wxPDFView* pdfView)
 	{
-		CPDF_Document* doc = (CPDF_Document*) pdfView->GetImpl()->GetDocument();
-		CPDF_Dest dest = m_bookmark.GetDest(doc);
-		if (!dest.GetObject())
+		FPDF_DOCUMENT doc = pdfView->GetImpl()->GetDocument();
+		FPDF_ACTION action = FPDFBookmark_GetAction(m_bookmark);
+		FPDF_DEST dest = NULL;
+		if (action)
 		{
-			CPDF_Action action = m_bookmark.GetAction();
-			dest = action.GetDest(doc);
+			if (FPDFAction_GetType(action) == PDFACTION_GOTO)
+			{
+				dest = FPDFBookmark_GetDest(doc, m_bookmark);
+			}
+		} else {
+			dest = FPDFBookmark_GetDest(doc, m_bookmark);
 		}
-
-		if (dest.GetObject())
-			pdfView->GoToPage(dest.GetPageIndex(doc));
+		if (dest)
+		{
+			unsigned long pageIndex = FPDFDest_GetPageIndex(doc, dest);
+			pdfView->GoToPage(pageIndex);
+		}
 	}
 
 private:
 	wxString m_title;
-	CPDF_Bookmark m_bookmark;
+	FPDF_BOOKMARK m_bookmark;
 };
 
-wxPDFViewBookmarks::wxPDFViewBookmarks(FPDF_DOCUMENT doc):
-	m_tree((CPDF_Document*)doc)
+wxPDFViewBookmarks::wxPDFViewBookmarks(FPDF_DOCUMENT doc)
 {
-	CPDF_Bookmark emptyBM;
-	CPDF_Bookmark rootBM = m_tree.GetFirstChild(emptyBM);
-	if (rootBM.GetDict())
-		m_root.reset(new wxPDFViewBookmarkImpl(m_tree, emptyBM));
+	FPDF_BOOKMARK emptyBM = NULL;
+	FPDF_BOOKMARK rootBM = FPDFBookmark_GetFirstChild(doc, emptyBM);
+	if (rootBM)
+		m_root.reset(new wxPDFViewBookmarkImpl(doc, emptyBM));
 }
+

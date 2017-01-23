@@ -12,7 +12,6 @@
 
 #include "PDFView.h"
 #include "fpdf_doc.h"
-#include "core/fpdfdoc/cpdf_bookmarktree.h"
 
 class wxPDFViewBookmarks
 {
@@ -22,7 +21,6 @@ public:
 	const wxPDFViewBookmark* GetRoot() const { return m_root.get(); };
 
 private:
-	CPDF_BookmarkTree m_tree;
 	wxSharedPtr<wxPDFViewBookmark> m_root;
 };
 

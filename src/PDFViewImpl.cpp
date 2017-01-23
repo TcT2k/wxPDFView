@@ -11,20 +11,13 @@
 #include "private/PDFViewPrintout.h"
 
 #include <wx/dcbuffer.h>
-#include <wx/textdlg.h>
 #include <wx/filename.h>
-#include <wx/filedlg.h>
-#include <map>
 
-#include <v8.h>
 #include "fpdf_ext.h"
 #include "fpdf_text.h"
 
-#define PDF_ENABLE_V8
-
-#ifdef PDF_ENABLE_V8
+#include "v8.h"
 #include "libplatform/libplatform.h"
-#endif
 
 // See Table 3.20 in
 // http://www.adobe.com/devnet/acrobat/pdfs/pdf_reference_1-7.pdf

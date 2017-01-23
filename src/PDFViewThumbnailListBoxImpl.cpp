@@ -10,8 +10,6 @@
 #include "private/PDFViewThumbnailListBoxImpl.h"
 #include "private/PDFViewImpl.h"
 
-#include <wx/graphics.h>
-
 wxPDFViewThumbnailListBoxImpl::wxPDFViewThumbnailListBoxImpl(wxPDFViewThumbnailListBox* ctrl):
 	m_ctrl(ctrl)
 {

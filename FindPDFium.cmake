@@ -11,12 +11,8 @@ set(PDFIUM_BUILD_SUB_DIR obj/)
 set(PDFIUM_FOUND FALSE)
 
 set(PDFIUM_INCLUDE_DIRS
-	${PDFIUM_ROOT_DIR}/fpdfsdk/include
-	${PDFIUM_ROOT_DIR}/core/include
 	${PDFIUM_ROOT_DIR}/v8/include
-	${PDFIUM_ROOT_DIR}/v8
 	${PDFIUM_ROOT_DIR}/public
-	${PDFIUM_ROOT_DIR}
 	)
 
 # main static libraries
@@ -76,7 +72,7 @@ set (PDFIUM_SHARED_LIB_SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX})
 
 if (WIN32)
 	# link to .dll.lib on Windows
-	set (PDFIUM_SHARED_LIB_SUFFIX ${PDFIUM_SHARED_LIB_SUFFIX}.lib)
+	set(PDFIUM_SHARED_LIB_SUFFIX ${PDFIUM_SHARED_LIB_SUFFIX}.lib)
 endif ()
 
 foreach(LIB ${PDFIUM_SHARED_LIBS})

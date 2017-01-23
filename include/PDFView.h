@@ -14,6 +14,7 @@
 #include <wx/sharedptr.h>
 #include <wx/vector.h>
 #include <wx/print.h>
+
 #include <istream>
 
 class wxPDFViewImpl;
