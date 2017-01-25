@@ -111,7 +111,7 @@ git clone https://github.com/rsippl/wxPDFView.git
 cd wxPDFView/samples/simple
 mkdir build
 cd build
-cmake .. -DCMAKE_BUILD_TYPE=Debug -DPDFIUM_ROOT_DIR=$PDFIUM_DIR
+cmake .. -DCMAKE_BUILD_TYPE=Debug -DPDFIUM_ROOT_DIR=$PDFIUM_DIR -DWITH_PDFIUM_SOURCE=true
 make
 open wxPDFViewSimpleSample.app
 ```
@@ -161,7 +161,7 @@ git clone https://github.com/rsippl/wxPDFView.git
 cd wxPDFView\samples\simple
 mkdir build
 cd build
-cmake .. -DPDFIUM_ROOT_DIR=%PDFIUM_DIR% -DwxWidgets_ROOT_DIR=%WXWIDGETS_DIR% -DwxWidgets_LIB_DIR=%WXWIDGETS_DIR%\lib\vc_lib -DwxWidgets_CONFIGURATION=mswud
+cmake .. -DPDFIUM_ROOT_DIR=%PDFIUM_DIR% -DwxWidgets_ROOT_DIR=%WXWIDGETS_DIR% -DwxWidgets_LIB_DIR=%WXWIDGETS_DIR%\lib\vc_lib -DwxWidgets_CONFIGURATION=mswud -DWITH_PDFIUM_SOURCE=true
 ```
 
 Open wxPDFView\samples\simple\build\wxPDFViewSimpleSample.sln in Visual Studio, set Solution Configuration to *Debug*, Solution Platform to *Win32*, then *Build Solution*.
