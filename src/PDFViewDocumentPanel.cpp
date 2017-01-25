@@ -12,6 +12,7 @@
 #include "private/PDFViewActivityPanel.h"
 
 #include <wx/config.h>
+#include <wx/filename.h>
 
 wxString wxPDFViewDocumentPanel::DefaultName = "wxPDFView Document Panel";
 

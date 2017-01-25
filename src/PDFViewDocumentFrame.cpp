@@ -13,6 +13,7 @@
 
 #include <wx/config.h>
 #include <wx/persist/toplevel.h>
+#include <wx/filename.h>
 
 wxString wxPDFViewDocumentFrame::DefaultName = "wxPDFView Document Frame";
 
