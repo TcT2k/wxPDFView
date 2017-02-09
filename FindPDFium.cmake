@@ -94,6 +94,5 @@ else()
 	endforeach()
 endif()
 
-include(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(PDFIUM
 	REQUIRED_VARS PDFIUM_ROOT_DIR PDFIUM_INCLUDE_DIRS)
