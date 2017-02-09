@@ -70,7 +70,7 @@ void wxPDFViewThumbnailListBox::OnDrawItem(wxDC& dc, const wxRect& rect, size_t 
 	dc.SetTextForeground(textColour);
 
 	wxRect labelRect = rect.Inflate(-1, -1);
-	dc.DrawLabel(wxString::Format("%d", n + 1), labelRect, wxALIGN_BOTTOM | wxALIGN_CENTER);
+	dc.DrawLabel(wxString::Format("%lu", n + 1), labelRect, wxALIGN_BOTTOM | wxALIGN_CENTER);
 
 	wxRect pageDrawRect = labelRect.Inflate(-1, -1);
 	pageDrawRect.height -= dc.GetCharHeight();
