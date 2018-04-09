@@ -68,17 +68,25 @@ set(wxPDFView_INCLUDE_DIRS ${wxPDFView_INCLUDE_DIRS}
 	${PROJECT_SOURCE_DIR}/include/
 	)
 
+option(wxPDFVIEW_USE_SYSTEM_ZLIB "Use system ZLIB instead of pdfium bundled" ON)
+
 include_directories(${wxPDFView_INCLUDE_DIRS} ${PDFIUM_INCLUDE_DIRS})
 add_library(wxPDFView STATIC ${SRCS})
 target_link_libraries(wxPDFView ${wxWidgets_LIBRARIES} ${PDFIUM_LIBRARIES})
+if(wxPDFVIEW_USE_SYSTEM_ZLIB)
+	# Zlib is required if not linked into pdfium
+	find_package(zlib)
+	target_link_libraries(wxPDFView ${ZLIB_LIBRARIES})
+endif()
+
 set_target_properties(wxPDFView PROPERTIES CXX_STANDARD 11)
 if(APPLE)
 	# Force libc++ (required for pdfium)
 	if(CMAKE_GENERATOR STREQUAL "Xcode")
-		set_target_properties(${target_name} PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY libc++)
+		set_target_properties(wxPDFView PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY libc++)
 	else()
-		target_compile_options(${target_name} PUBLIC "-stdlib=libc++")
-		target_link_libraries(${target_name} PRIVATE "-stdlib=libc++")
+		target_compile_options(wxPDFView PUBLIC "-stdlib=libc++")
+		target_link_libraries(wxPDFView "-stdlib=libc++")
 	endif()
 endif()
 
