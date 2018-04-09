@@ -15,9 +15,8 @@ set(PDFIUM_FOUND FALSE)
 set(PDFIUM_SEARCH_LIBS
 	pdfium
 	formfiller
-	pdfwindow
-	fxedit
 	pdfium
+	pwl
 	fpdfapi
 	fdrm
 	fpdfdoc
@@ -25,7 +24,6 @@ set(PDFIUM_SEARCH_LIBS
 	fxcodec
 	fxcrt
 	fxge
-	javascript
 	fxjs
 	)
 
@@ -35,8 +33,6 @@ set(PDFIUM_3RD_PARTY_SEARCH_LIBS
 	fx_freetype
 	fx_lcms2
 	fx_libopenjpeg
-	fx_zlib
-	jpeg
 	)
 
 set(PDFIUM_SHARED_LIBS
@@ -75,6 +71,15 @@ if(${WITH_PDFIUM_SOURCE})
 			debug ${PDFIUM_BUILD_DIR}/Debug/${CMAKE_SHARED_LIBRARY_PREFIX}${LIB}${PDFIUM_SHARED_LIB_SUFFIX}
 			optimized ${PDFIUM_BUILD_DIR}/Release/${CMAKE_SHARED_LIBRARY_PREFIX}${LIB}${PDFIUM_SHARED_LIB_SUFFIX})
 	endforeach()
+	# Pdfium version of libjpeg_turbo
+	set(PDFIUM_LIBRARIES ${PDFIUM_LIBRARIES}
+		debug ${PDFIUM_BUILD_DIR}/Debug/${PDFIUM_BUILD_SUB_DIR}/third_party/libjpeg_turbo/${CMAKE_STATIC_LIBRARY_PREFIX}jpeg${CMAKE_STATIC_LIBRARY_SUFFIX}
+		optimized ${PDFIUM_BUILD_DIR}/Release/${PDFIUM_BUILD_SUB_DIR}/third_party/libjpeg_turbo/${CMAKE_STATIC_LIBRARY_PREFIX}jpeg${CMAKE_STATIC_LIBRARY_SUFFIX}
+		debug ${PDFIUM_BUILD_DIR}/Debug/${PDFIUM_BUILD_SUB_DIR}/third_party/libjpeg_turbo/${CMAKE_STATIC_LIBRARY_PREFIX}simd${CMAKE_STATIC_LIBRARY_SUFFIX}
+		optimized ${PDFIUM_BUILD_DIR}/Release/${PDFIUM_BUILD_SUB_DIR}/third_party/libjpeg_turbo/${CMAKE_STATIC_LIBRARY_PREFIX}simd${CMAKE_STATIC_LIBRARY_SUFFIX}
+		debug ${PDFIUM_BUILD_DIR}/Debug/${PDFIUM_BUILD_SUB_DIR}/third_party/libjpeg_turbo/${CMAKE_STATIC_LIBRARY_PREFIX}simd_asm${CMAKE_STATIC_LIBRARY_SUFFIX}
+		optimized ${PDFIUM_BUILD_DIR}/Release/${PDFIUM_BUILD_SUB_DIR}/third_party/libjpeg_turbo/${CMAKE_STATIC_LIBRARY_PREFIX}simd_asm${CMAKE_STATIC_LIBRARY_SUFFIX})
+
 else()
 	message(STATUS "Using PDFium binaries in ${PDFIUM_ROOT_DIR}")
 	set(PDFIUM_INCLUDE_DIRS
