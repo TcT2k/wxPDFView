@@ -73,7 +73,7 @@ option(wxPDFVIEW_USE_SYSTEM_ZLIB "Use system ZLIB instead of pdfium bundled" ON)
 include_directories(${wxPDFView_INCLUDE_DIRS} ${PDFIUM_INCLUDE_DIRS})
 add_library(wxPDFView STATIC ${SRCS})
 target_link_libraries(wxPDFView ${wxWidgets_LIBRARIES} ${PDFIUM_LIBRARIES})
-if(wxPDFVIEW_USE_SYSTEM_ZLIB)
+if(wxPDFVIEW_USE_SYSTEM_ZLIB AND NOT WIN32)
 	# Zlib is required if not linked into pdfium
 	find_package(zlib)
 	target_link_libraries(wxPDFView ${ZLIB_LIBRARIES})
