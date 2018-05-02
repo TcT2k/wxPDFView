@@ -12,6 +12,7 @@
 
 #include <wx/dcbuffer.h>
 #include <wx/filename.h>
+#include <wx/stdpaths.h>
 
 #include "fpdf_ext.h"
 #include "fpdf_text.h"
@@ -1513,11 +1514,19 @@ bool wxPDFViewImpl::AcquireSDK()
 		if (!ms_v8initialized)
 		{
 			v8::V8::InitializeICU();
-			
+
+			// Build path for external startup data (natives_blob.bin and snapshot_blob.bin)
+#if defined(__WXMSW__) && !defined(NDEBUG)
+			wxStandardPaths::Get().DontIgnoreAppSubDir();
+#endif
+			wxFileName resPath(wxStandardPaths::Get().GetResourcesDir(), "");
+			wxString resPathStr = resPath.GetFullPath();
+			v8::V8::InitializeExternalStartupData(resPathStr.c_str());
+
 			v8::Platform* platform = v8::platform::CreateDefaultPlatform();
 			v8::V8::InitializePlatform(platform);
 			v8::V8::Initialize();
-			
+
 			// By enabling predictable mode, V8 won't post any background tasks.
 			const char predictable_flag[] = "--predictable";
 			v8::V8::SetFlagsFromString(predictable_flag,
