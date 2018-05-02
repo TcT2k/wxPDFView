@@ -655,20 +655,20 @@ void wxPDFViewImpl::OnMouseLeftUp(wxMouseEvent& event)
 
 void wxPDFViewImpl::OnKeyUp(wxKeyEvent& event)
 {
-	FORM_OnKeyUp(m_pdfForm, m_pages[GetMostVisiblePage()].GetPage(), event.GetKeyCode(), 0);
-	event.Skip();
+	if (!FORM_OnKeyUp(m_pdfForm, m_pages[GetMostVisiblePage()].GetPage(), event.GetKeyCode(), 0))
+		event.Skip();
 }
 
 void wxPDFViewImpl::OnKeyDown(wxKeyEvent& event)
 {
-	FORM_OnKeyDown(m_pdfForm, m_pages[GetMostVisiblePage()].GetPage(), event.GetKeyCode(), 0);
-	event.Skip();
+	if (!FORM_OnKeyDown(m_pdfForm, m_pages[GetMostVisiblePage()].GetPage(), event.GetKeyCode(), 0))
+		event.Skip();
 }
 
 void wxPDFViewImpl::OnKeyChar(wxKeyEvent& event)
 {
-	FORM_OnChar(m_pdfForm, m_pages[GetMostVisiblePage()].GetPage(), event.GetKeyCode(), 0);
-	event.Skip();
+	if (!FORM_OnChar(m_pdfForm, m_pages[GetMostVisiblePage()].GetPage(), event.GetKeyCode(), 0))
+		event.Skip();
 }
 
 void wxPDFViewImpl::GoToPage(int pageIndex, const wxRect* centerRect)
