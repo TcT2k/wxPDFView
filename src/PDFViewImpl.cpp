@@ -1522,8 +1522,8 @@ void wxPDFViewImpl::HandleUnsupportedFeature(int type)
 			break;
 		case FPDF_UNSP_DOC_ATTACHMENT:
 		case FPDF_UNSP_ANNOT_ATTACHMENT:
-			feature = "Attachment";
-			break;
+			// Ignore annotations unsupported feature
+			return;
 		case FPDF_UNSP_DOC_SECURITY:
 			feature = "Rights_Management";
 			break;
