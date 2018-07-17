@@ -662,8 +662,20 @@ void wxPDFViewImpl::OnKeyUp(wxKeyEvent& event)
 
 void wxPDFViewImpl::OnKeyDown(wxKeyEvent& event)
 {
-	if (!FORM_OnKeyDown(m_pdfForm, m_pages[GetMostVisiblePage()].GetPage(), event.GetKeyCode(), 0))
+	int keyCode = event.GetKeyCode();
+	switch (keyCode)
+	{
+	case WXK_ESCAPE:
+	case WXK_BACK:
+	case WXK_RETURN:
+	case WXK_SPACE:
 		event.Skip();
+		break;
+	default:
+		if (!FORM_OnKeyDown(m_pdfForm, m_pages[GetMostVisiblePage()].GetPage(), keyCode, 0))
+			event.Skip();
+		break;
+	}
 }
 
 void wxPDFViewImpl::OnKeyChar(wxKeyEvent& event)
