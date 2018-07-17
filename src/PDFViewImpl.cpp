@@ -16,6 +16,7 @@
 
 #include "fpdf_ext.h"
 #include "fpdf_text.h"
+#include "fpdf_fwlevent.h"
 
 #include "v8.h"
 #include "libplatform/libplatform.h"
@@ -312,6 +313,50 @@ void FFI_ExecuteNamedAction(FPDF_FORMFILLINFO* pThis,
 	wxPDFViewImpl* impl = g_pdfFormMap[pThis];
 	if (impl)
 		impl->ExecuteNamedAction(action);
+}
+
+static int wxConvertModifiersToPdf(int modifiers)
+{
+	int pdf_mods = 0;
+	if (modifiers & wxMOD_CONTROL)
+		pdf_mods |= FWL_EVENTFLAG_ControlKey;
+	if (modifiers & wxMOD_ALT)
+		pdf_mods |= FWL_EVENTFLAG_AltKey;
+	if (modifiers & wxMOD_SHIFT)
+		pdf_mods |= FWL_EVENTFLAG_ShiftKey;
+	if (modifiers & wxMOD_META)
+		pdf_mods |= FWL_EVENTFLAG_MetaKey;
+
+	return pdf_mods;
+}
+
+static int wxConvertKeyCodeToPdf(int keyCode)
+{
+	switch (keyCode)
+	{
+	case WXK_LEFT:
+		return FWL_VKEY_Left;
+	case WXK_UP:
+		return FWL_VKEY_Up;
+	case WXK_RIGHT:
+		return FWL_VKEY_Right;
+	case WXK_DOWN:
+		return FWL_VKEY_Down;
+	case WXK_PAGEUP:
+		return FWL_VKEY_Prior;
+	case WXK_PAGEDOWN:
+		return FWL_VKEY_Next;
+	case WXK_END:
+		return FWL_VKEY_End;
+	case WXK_HOME:
+		return FWL_VKEY_Home;
+	case WXK_INSERT:
+		return FWL_VKEY_Insert;
+	case WXK_DELETE:
+		return FWL_VKEY_Delete;
+	default:
+		return keyCode;
+	}
 }
 
 //
@@ -656,13 +701,14 @@ void wxPDFViewImpl::OnMouseLeftUp(wxMouseEvent& event)
 
 void wxPDFViewImpl::OnKeyUp(wxKeyEvent& event)
 {
-	if (!FORM_OnKeyUp(m_pdfForm, m_pages[GetMostVisiblePage()].GetPage(), event.GetKeyCode(), 0))
+	if (!FORM_OnKeyUp(m_pdfForm, m_pages[GetMostVisiblePage()].GetPage(),
+		wxConvertKeyCodeToPdf(event.GetKeyCode()), wxConvertModifiersToPdf(event.GetModifiers())))
 		event.Skip();
 }
 
 void wxPDFViewImpl::OnKeyDown(wxKeyEvent& event)
 {
-	int keyCode = event.GetKeyCode();
+	int keyCode = wxConvertKeyCodeToPdf(event.GetKeyCode());
 	switch (keyCode)
 	{
 	case WXK_ESCAPE:
@@ -672,7 +718,8 @@ void wxPDFViewImpl::OnKeyDown(wxKeyEvent& event)
 		event.Skip();
 		break;
 	default:
-		if (!FORM_OnKeyDown(m_pdfForm, m_pages[GetMostVisiblePage()].GetPage(), keyCode, 0))
+		if (!FORM_OnKeyDown(m_pdfForm, m_pages[GetMostVisiblePage()].GetPage(), keyCode,
+			wxConvertModifiersToPdf(event.GetModifiers())))
 			event.Skip();
 		break;
 	}
@@ -680,7 +727,8 @@ void wxPDFViewImpl::OnKeyDown(wxKeyEvent& event)
 
 void wxPDFViewImpl::OnKeyChar(wxKeyEvent& event)
 {
-	if (!FORM_OnChar(m_pdfForm, m_pages[GetMostVisiblePage()].GetPage(), event.GetKeyCode(), 0))
+	if (!FORM_OnChar(m_pdfForm, m_pages[GetMostVisiblePage()].GetPage(),
+		wxConvertKeyCodeToPdf(event.GetKeyCode()), wxConvertModifiersToPdf(event.GetModifiers())))
 		event.Skip();
 }
 

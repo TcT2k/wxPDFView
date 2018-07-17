@@ -50,7 +50,7 @@ bool wxPDFView::Create(wxWindow *parent,
 	long style,
 	const wxString& name)
 {
-	bool res = wxScrolledCanvas::Create(parent, winid, pos, size, style | wxFULL_REPAINT_ON_RESIZE, name);
+	bool res = wxScrolledCanvas::Create(parent, winid, pos, size, style | wxFULL_REPAINT_ON_RESIZE | wxWANTS_CHARS, name);
 	if (res)
 	{
 		m_impl = new wxPDFViewImpl(this);
