@@ -173,12 +173,12 @@ void wxPDFViewDocumentPanel::SetToolBar(wxToolBar* toolBar)
 	m_searchCtrl->Bind(wxEVT_COMMAND_TEXT_ENTER, &wxPDFViewDocumentPanel::OnSearchCtrlFind, this);
 	m_searchCtrl->Bind(wxEVT_COMMAND_TEXT_UPDATED, &wxPDFViewDocumentPanel::OnSearchCtrlText, this);
 
-	m_toolBar->AddTool(ID_NAVIGATION, _("Navigation"), GetToolbarBitmap(wxART_HELP_SIDE_PANEL), _("Show/Hide Navigation"), wxITEM_CHECK);
-	m_toolBar->AddTool(wxID_PRINT, _("Print"), GetToolbarBitmap(wxART_PRINT), _("Print Document"));
+	AddTool(ID_NAVIGATION, _("Navigation"), wxART_HELP_SIDE_PANEL, _("Show/Hide Navigation"), wxITEM_CHECK);
+	AddTool(wxID_PRINT, _("Print"), wxART_PRINT, _("Print Document"));
 	m_toolBar->AddSeparator();
 
-	m_toolBar->AddTool(wxID_BACKWARD, _("Previous Page"), GetToolbarBitmap(wxART_GO_BACK), _("Show previous page"));
-	m_toolBar->AddTool(wxID_FORWARD, _("Next Page"), GetToolbarBitmap(wxART_GO_FORWARD), _("Show next page"));
+	AddTool(wxID_BACKWARD, _("Previous Page"), wxART_GO_BACK, _("Show previous page"));
+	AddTool(wxID_FORWARD, _("Next Page"), wxART_GO_FORWARD, _("Show next page"));
 	m_pageTxtCtrl = new wxTextCtrl(m_toolBar, wxID_ANY, "0", wxDefaultPosition, wxDLG_UNIT(this, wxSize(24, -1)), wxTE_PROCESS_ENTER | wxTE_RIGHT);
 	m_pageTxtCtrl->Bind(wxEVT_TEXT_ENTER, &wxPDFViewDocumentPanel::OnPageTextEnter, this);
 	m_toolBar->AddControl(m_pageTxtCtrl);
@@ -196,23 +196,23 @@ void wxPDFViewDocumentPanel::SetToolBar(wxToolBar* toolBar)
 	m_zoomComboBox->Bind(wxEVT_TEXT_ENTER, &wxPDFViewDocumentPanel::OnZoomTextEnter, this);
 
 	m_toolBar->AddSeparator();
-	m_toolBar->AddTool(ID_ZOOM_OUT, _("Zoom Out"), GetToolbarBitmap(wxART_PDFVIEW_ZOOM_OUT), _("Zoom Out"));
-	m_toolBar->AddTool(ID_ZOOM_IN, _("Zoom In"), GetToolbarBitmap(wxART_PDFVIEW_ZOOM_IN), _("Zoom In"));
+	AddTool(ID_ZOOM_OUT, _("Zoom Out"), wxART_PDFVIEW_ZOOM_OUT, _("Zoom Out"));
+	AddTool(ID_ZOOM_IN, _("Zoom In"), wxART_PDFVIEW_ZOOM_IN, _("Zoom In"));
 	m_toolBar->AddControl(m_zoomComboBox);
 
 	m_toolBar->AddSeparator();
-	m_toolBar->AddTool(ID_ZOOM_PAGE_FIT, _("Page Fit"), GetToolbarBitmap(wxART_PDFVIEW_PAGE_FIT), _("Fit one full page to window"), wxITEM_CHECK);
-	m_toolBar->AddTool(ID_ZOOM_PAGE_WIDTH, _("Fit Width"), GetToolbarBitmap(wxART_PDFVIEW_PAGE_WIDTH), _("Fit to window width"), wxITEM_CHECK);
+	AddTool(ID_ZOOM_PAGE_FIT, _("Page Fit"), wxART_PDFVIEW_PAGE_FIT, _("Fit one full page to window"), wxITEM_CHECK);
+	AddTool(ID_ZOOM_PAGE_WIDTH, _("Fit Width"), wxART_PDFVIEW_PAGE_WIDTH, _("Fit to window width"), wxITEM_CHECK);
 	m_toolBar->AddSeparator();
 
-	m_toolBar->AddTool(ID_DISPLAY_SINGLE_PAGE, _("Single Page"), GetToolbarBitmap(wxART_PDFVIEW_SINGLE_PAGE), _("Show a single page"), wxITEM_RADIO);
-	m_toolBar->AddTool(ID_DISPLAY_2PAGES, _("Two Pages"), GetToolbarBitmap(wxART_PDFVIEW_TWO_PAGES), _("Show two pages side by side"), wxITEM_RADIO);
-	m_toolBar->AddTool(ID_DISPLAY_2PAGES_COVER, _("Two Pages (Cover)"), GetToolbarBitmap(wxART_PDFVIEW_TWO_PAGES_COVER), _("Show two pages side by side with cover"), wxITEM_RADIO);
+	AddTool(ID_DISPLAY_SINGLE_PAGE, _("Single Page"), wxART_PDFVIEW_SINGLE_PAGE, _("Show a single page"), wxITEM_RADIO);
+	AddTool(ID_DISPLAY_2PAGES, _("Two Pages"), wxART_PDFVIEW_TWO_PAGES, _("Show two pages side by side"), wxITEM_RADIO);
+	AddTool(ID_DISPLAY_2PAGES_COVER, _("Two Pages (Cover)"), wxART_PDFVIEW_TWO_PAGES_COVER, _("Show two pages side by side with cover"), wxITEM_RADIO);
 
 	m_toolBar->AddStretchableSpace();
 	m_toolBar->AddControl(m_searchCtrl);
-	m_toolBar->AddTool(ID_FIND_NEXT, _("Next"), GetToolbarBitmap(wxART_GO_DOWN), _("Find next"));
-	m_toolBar->AddTool(ID_FIND_PREV, _("Previous"), GetToolbarBitmap(wxART_GO_UP), _("Find previous"));
+	AddTool(ID_FIND_NEXT, _("Next"), wxART_GO_DOWN, _("Find next"));
+	AddTool(ID_FIND_PREV, _("Previous"), wxART_GO_UP, _("Find previous"));
 
 	m_toolBar->Realize();
 
@@ -257,6 +257,12 @@ void wxPDFViewDocumentPanel::OnFrameSize(wxSizeEvent& event)
 wxBitmap wxPDFViewDocumentPanel::GetToolbarBitmap(wxArtID id)
 {
 	return wxArtProvider::GetBitmap(id, wxART_TOOLBAR);
+}
+
+wxToolBarToolBase* wxPDFViewDocumentPanel::AddTool(int id, const wxString& label, wxArtID icon,
+	const wxString& shortHelp, wxItemKind itemKind)
+{
+	return m_toolBar->AddTool(id, label, GetToolbarBitmap(icon), shortHelp, itemKind);
 }
 
 bool wxPDFViewDocumentPanel::LoadFile(const wxString& fileName)

@@ -109,6 +109,8 @@ protected:
 	   Returns bitmap for the specified art ID
 	*/
 	virtual wxBitmap GetToolbarBitmap(wxArtID id);
+
+	virtual wxToolBarToolBase* AddTool(int id, const wxString& label, wxArtID icon, const wxString& shortHelp, wxItemKind itemKind = wxITEM_NORMAL);
 	
 	void StartActivity(const wxString& description);
 	
