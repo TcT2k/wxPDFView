@@ -30,7 +30,7 @@ private:
 	bool m_forceBitmapPrint;
 	bool m_printValidated;
 
-	void RenderPage(wxDC& dc, int pageIndex);
+	bool RenderPage(wxDC& dc, int pageIndex);
 
 	wxString GetDocTitle(wxPDFView* pdfView);
 };

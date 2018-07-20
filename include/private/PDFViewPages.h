@@ -42,7 +42,7 @@ public:
 
 	void DrawThumbnail(wxPDFViewPagesClient* client, wxDC& dc, const wxRect& rect);
 
-	void DrawPrint(wxDC& dc, const wxRect& rect, bool forceBitmap);
+	bool DrawPrint(wxDC& dc, const wxRect& rect, bool forceBitmap);
 
 	wxBitmap CreateCacheBitmap(const wxSize& bmpSize);
 

@@ -34,8 +34,7 @@ bool wxPDFViewPrintout::OnPrintPage(int page)
 	{
 		if (HasPage(page))
 		{
-			RenderPage(*dc, page - 1);
-			return true;
+			return RenderPage(*dc, page - 1);
 		}
 		else
 			return false;
@@ -76,7 +75,7 @@ void wxPDFViewPrintout::OnPreparePrinting()
 	wxPrintout::OnPreparePrinting();
 }
 
-void wxPDFViewPrintout::RenderPage(wxDC& dc, int pageIndex)
+bool wxPDFViewPrintout::RenderPage(wxDC& dc, int pageIndex)
 {
 	int pageWidth, pageHeight;
 	GetPageSizePixels(&pageWidth, &pageHeight);
@@ -87,6 +86,7 @@ void wxPDFViewPrintout::RenderPage(wxDC& dc, int pageIndex)
 	// Draw page content
 	wxRect printRect(0, 0, pageWidth, pageHeight);
 	wxPDFViewPage& page = m_ctrl->GetImpl()->m_pages[pageIndex];
-	page.DrawPrint(dc, printRect, m_forceBitmapPrint);
+	bool result = page.DrawPrint(dc, printRect, m_forceBitmapPrint);
 	page.Unload();
+	return result;
 }

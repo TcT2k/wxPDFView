@@ -118,7 +118,7 @@ void wxPDFViewPage::DrawThumbnail(wxPDFViewPagesClient* client, wxDC& dc, const 
 	}
 }
 
-void wxPDFViewPage::DrawPrint(wxDC& dc, const wxRect& rect, bool forceBitmap)
+bool wxPDFViewPage::DrawPrint(wxDC& dc, const wxRect& rect, bool forceBitmap)
 {
 	FPDF_PAGE page = GetPage();
 
@@ -131,8 +131,11 @@ void wxPDFViewPage::DrawPrint(wxDC& dc, const wxRect& rect, bool forceBitmap)
 #endif
 	{
 		wxBitmap bmp = CreateBitmap(page, m_pages->form(), rect.GetSize(), renderFlags);
+		if (!bmp.IsOk())
+			return false;
 		dc.DrawBitmap(bmp, wxPoint(0, 0));
 	}
+	return true;
 }
 
 wxBitmap wxPDFViewPage::CreateCacheBitmap(const wxSize& bmpSize)
@@ -155,6 +158,9 @@ wxBitmap wxPDFViewPage::CreateCacheBitmap(const wxSize& bmpSize)
 wxBitmap wxPDFViewPage::CreateBitmap(FPDF_PAGE page, FPDF_FORMHANDLE form, const wxSize& bmpSize, int flags)
 {
 	FPDF_BITMAP bitmap = FPDFBitmap_Create(bmpSize.x, bmpSize.y, 0);
+	if (!bitmap) // Could not allocate PDF bitmap return null bitmap
+		return wxNullBitmap;
+
 	FPDFBitmap_FillRect(bitmap, 0, 0, bmpSize.x, bmpSize.y, 0xFFFFFFFF);
 
 	FPDF_RenderPageBitmap(bitmap, page, 0, 0, bmpSize.x, bmpSize.y, 0, flags);
