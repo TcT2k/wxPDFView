@@ -78,7 +78,7 @@ void wxPDFViewPrintout::OnPreparePrinting()
 bool wxPDFViewPrintout::RenderPage(wxDC& dc, int pageIndex)
 {
 	int pageWidth, pageHeight;
-	GetPageSizePixels(&pageWidth, &pageHeight);
+	dc.GetSize(&pageWidth, &pageHeight);
 
 	// Prepare DC
 	dc.SetBackgroundMode(wxTRANSPARENT);
