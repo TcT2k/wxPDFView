@@ -27,6 +27,9 @@
 #include "PDFViewBookmarks.h"
 #include "PDFViewTextRange.h"
 
+#include "v8.h"
+#include "libplatform/libplatform.h"
+
 class wxPDFViewImpl: public wxPDFViewPagesClient, public wxEvtHandler
 {
 public:
@@ -133,7 +136,7 @@ private:
 
 	// PDF SDK Structures
 	static wxAtomicInt ms_pdfSDKRefCount;
-	static bool ms_v8initialized;
+	static v8::Platform* ms_platform;
 	FPDF_FILEACCESS m_pdfFileAccess;
 	FX_FILEAVAIL m_pdfFileAvail;
 	FX_DOWNLOADHINTS m_hints;
