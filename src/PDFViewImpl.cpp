@@ -385,7 +385,7 @@ private:
 //
 
 wxAtomicInt wxPDFViewImpl::ms_pdfSDKRefCount = 0;
-bool wxPDFViewImpl::ms_v8initialized = false;
+v8::Platform* wxPDFViewImpl::ms_platform = 0;
 
 wxPDFViewImpl::wxPDFViewImpl(wxPDFView* ctrl):
 	m_ctrl(ctrl),
@@ -1317,7 +1317,7 @@ bool wxPDFViewImpl::EvaluateLinkTargetPageAtClientPos(const wxPoint& clientPos, 
 				}
 
 				if (dest)
-					GoToPage(FPDFDest_GetPageIndex(m_pdfDoc, dest));
+					GoToPage(FPDFDest_GetDestPageIndex(m_pdfDoc, dest));
 			}
 		}
 		else
@@ -1571,7 +1571,7 @@ bool wxPDFViewImpl::AcquireSDK()
 	if (ms_pdfSDKRefCount == 0)
 	{
 		// Initialize PDF Rendering library
-		if (!ms_v8initialized)
+		if (!ms_platform)
 		{
 			v8::V8::InitializeICU();
 
@@ -1583,16 +1583,14 @@ bool wxPDFViewImpl::AcquireSDK()
 			wxString resPathStr = resPath.GetFullPath();
 			v8::V8::InitializeExternalStartupData(resPathStr.c_str());
 
-			v8::Platform* platform = v8::platform::CreateDefaultPlatform();
-			v8::V8::InitializePlatform(platform);
+			ms_platform = v8::platform::CreateDefaultPlatform();
+			v8::V8::InitializePlatform(ms_platform);
 			v8::V8::Initialize();
 
 			// By enabling predictable mode, V8 won't post any background tasks.
 			const char predictable_flag[] = "--predictable";
 			v8::V8::SetFlagsFromString(predictable_flag,
 									   static_cast<int>(strlen(predictable_flag)));
-			
-			ms_v8initialized = true;
 		}
 		
 		FPDF_LIBRARY_CONFIG config;
@@ -1613,6 +1611,14 @@ void wxPDFViewImpl::ReleaseSDK()
 	wxAtomicDec(ms_pdfSDKRefCount);
 	if (ms_pdfSDKRefCount == 0)
 	{
+		if (ms_platform)
+		{
+			v8::V8::Dispose();
+			v8::V8::ShutdownPlatform();
+			delete ms_platform;
+			ms_platform = 0;
+		}
+
 		FPDF_DestroyLibrary();
 	}
 }

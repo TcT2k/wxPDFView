@@ -41,7 +41,7 @@ public:
 
 	virtual void Navigate(wxPDFView* pdfView)
 	{
-		FPDF_DOCUMENT doc = pdfView->GetImpl()->GetDocument();
+		FPDF_DOCUMENT doc = static_cast<FPDF_DOCUMENT>(pdfView->GetImpl()->GetDocument());
 		FPDF_ACTION action = FPDFBookmark_GetAction(m_bookmark);
 		FPDF_DEST dest = NULL;
 		if (action)
@@ -55,7 +55,7 @@ public:
 		}
 		if (dest)
 		{
-			unsigned long pageIndex = FPDFDest_GetPageIndex(doc, dest);
+			unsigned long pageIndex = FPDFDest_GetDestPageIndex(doc, dest);
 			pdfView->GoToPage(pageIndex);
 		}
 	}
