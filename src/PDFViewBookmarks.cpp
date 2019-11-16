@@ -55,7 +55,7 @@ public:
 		}
 		if (dest)
 		{
-			unsigned long pageIndex = FPDFDest_GetPageIndex(doc, dest);
+			unsigned long pageIndex = FPDFDest_GetDestPageIndex(doc, dest);
 			pdfView->GoToPage(pageIndex);
 		}
 	}

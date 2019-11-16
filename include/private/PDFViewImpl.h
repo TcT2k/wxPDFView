@@ -86,7 +86,7 @@ public:
 
 	std::istream* GetStream() const { return m_pDataStream.get(); };
 
-	void* GetDocument() const { return m_pdfDoc; };
+	FPDF_DOCUMENT GetDocument() const { return m_pdfDoc; };
 
 	wxPDFViewPages* GetPages() { return &m_pages; };
 

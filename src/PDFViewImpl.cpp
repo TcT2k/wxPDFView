@@ -1317,7 +1317,7 @@ bool wxPDFViewImpl::EvaluateLinkTargetPageAtClientPos(const wxPoint& clientPos, 
 				}
 
 				if (dest)
-					GoToPage(FPDFDest_GetPageIndex(m_pdfDoc, dest));
+					GoToPage(FPDFDest_GetDestPageIndex(m_pdfDoc, dest));
 			}
 		}
 		else
@@ -1583,7 +1583,7 @@ bool wxPDFViewImpl::AcquireSDK()
 			wxString resPathStr = resPath.GetFullPath();
 			v8::V8::InitializeExternalStartupData(resPathStr.c_str());
 
-			v8::Platform* platform = v8::platform::CreateDefaultPlatform();
+			v8::Platform* platform = v8::platform::NewDefaultPlatform().get();
 			v8::V8::InitializePlatform(platform);
 			v8::V8::Initialize();
 
