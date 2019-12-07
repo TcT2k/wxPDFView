@@ -6,7 +6,10 @@ include(FindPackageHandleStandardArgs)
 set(PDFIUM_ROOT_DIR "" CACHE PATH "PDFium root directory")
 
 set(PDFIUM_BUILD_DIR ${PDFIUM_ROOT_DIR}/out)
-set(PDFIUM_BUILD_SUB_DIR obj/)
+set(PDFIUM_BUILD_SUB_DIR )
+# obj/
+
+set(PDFIUM_USE_WX_LIBS true)
 		  
 set(PDFIUM_FOUND FALSE)
 
@@ -14,36 +17,38 @@ set(PDFIUM_FOUND FALSE)
 
 set(PDFIUM_SEARCH_LIBS
 	pdfium
-	formfiller
-	pdfium
-	pwl
-	fpdfapi
-	fdrm
-	fpdfdoc
-	fpdftext
-	fxcodec
-	fxcrt
-	fxge
-	fxjs
+#	formfiller
+#	pdfium
+#	pwl
+#	fpdfapi
+#	fdrm
+#	fpdfdoc
+#	fpdftext
+#	fxcodec
+#	fxcrt
+#	fxge
+#	fxjs
 	)
 
 set(PDFIUM_3RD_PARTY_SEARCH_LIBS
-	bigint
-	fx_agg
-	fx_freetype
-	fx_lcms2
-	fx_libopenjpeg
+#	bigint
+#	fx_agg
+#	fx_freetype
+#	fx_lcms2
+#	fx_libopenjpeg
 	)
 
 set(PDFIUM_SHARED_LIBS
 	icui18n
 	icuuc
+	libc++
 	)
 
 set (PDFIUM_SHARED_LIB_SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX})
 
 if (WIN32)
 	# link to .dll.lib on Windows
+	message(STATUS "Change to ${PDFIUM_SHARED_LIB_SUFFIX}.lib")
 	set(PDFIUM_SHARED_LIB_SUFFIX ${PDFIUM_SHARED_LIB_SUFFIX}.lib)
 endif ()
 
@@ -58,6 +63,8 @@ if(${WITH_PDFIUM_SOURCE})
 			debug ${PDFIUM_BUILD_DIR}/Debug/${PDFIUM_BUILD_SUB_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}${LIB}${CMAKE_STATIC_LIBRARY_SUFFIX}
 			optimized ${PDFIUM_BUILD_DIR}/Release/${PDFIUM_BUILD_SUB_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}${LIB}${CMAKE_STATIC_LIBRARY_SUFFIX})
 	endforeach()
+
+			
 	foreach(LIB ${PDFIUM_3RD_PARTY_SEARCH_LIBS})
 		set(PDFIUM_LIBRARIES ${PDFIUM_LIBRARIES}
 			debug ${PDFIUM_BUILD_DIR}/Debug/${PDFIUM_BUILD_SUB_DIR}/third_party/${CMAKE_STATIC_LIBRARY_PREFIX}${LIB}${CMAKE_STATIC_LIBRARY_SUFFIX}

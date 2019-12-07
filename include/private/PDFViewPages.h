@@ -38,13 +38,13 @@ public:
 
 	FPDF_TEXTPAGE GetTextPage();
 
-	void Draw(wxPDFViewPagesClient* client, wxDC& dc, wxGraphicsContext& gc, const wxRect& rect);
+	void Draw(wxPDFViewPagesClient* client, wxDC& dc, wxGraphicsContext& gc, const wxRect& rect, int rotate);
 
 	void DrawThumbnail(wxPDFViewPagesClient* client, wxDC& dc, const wxRect& rect);
 
 	bool DrawPrint(wxDC& dc, const wxRect& rect, bool forceBitmap);
 
-	wxBitmap CreateCacheBitmap(const wxSize& bmpSize);
+	wxBitmap CreateCacheBitmap(const wxSize& bmpSize, int rotate);
 
 	wxRect PageToScreen(const wxRect& pageRect, double left, double top, double right, double bottom);
 
@@ -54,7 +54,7 @@ private:
 	FPDF_PAGE m_page;
 	FPDF_TEXTPAGE m_textPage;
 
-	static wxBitmap CreateBitmap(FPDF_PAGE page, FPDF_FORMHANDLE form, const wxSize& bmpSize, int flags);
+	static wxBitmap CreateBitmap(FPDF_PAGE page, FPDF_FORMHANDLE form, const wxSize& bmpSize, int flags, int rotate);
 };
 
 class wxPDFViewPages: public wxVector<wxPDFViewPage>
@@ -99,7 +99,7 @@ public:
 
 	int GetLastVisiblePage() const { return m_lastVisiblePage; };
 
-	wxBitmap GetCachedBitmap(int pageIndex, const wxSize& size);
+	wxBitmap GetCachedBitmap(int pageIndex, const wxSize& size, int rotate);
 
 	void RemoveCachedBitmap(int pageIndex);
 

@@ -140,6 +140,8 @@ bool wxPDFViewDocumentFrame::Create(wxWindow* parent,
 	m_toolBar->AddTool(ID_ZOOM_OUT, _("Zoom Out"), GetToolbarBitmap(wxART_PDFVIEW_ZOOM_OUT), _("Zoom Out"));
 	m_toolBar->AddTool(ID_ZOOM_IN, _("Zoom In"), GetToolbarBitmap(wxART_PDFVIEW_ZOOM_IN), _("Zoom In"));
 	m_toolBar->AddControl(m_zoomComboBox);
+	m_toolBar->AddSeparator();
+	m_toolBar->AddTool(ID_ROTATE, _("Rotate View"), GetToolbarBitmap(wxART_PDFVIEW_ZOOM_IN), _("Rotate View"));
 
 	m_toolBar->AddSeparator();
 	m_toolBar->AddTool(ID_ZOOM_PAGE_FIT, _("Page Fit"), GetToolbarBitmap(wxART_PDFVIEW_PAGE_FIT), _("Fit one full page to window"), wxITEM_CHECK);
@@ -163,6 +165,7 @@ bool wxPDFViewDocumentFrame::Create(wxWindow* parent,
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnPrintClicked, this, wxID_PRINT);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnSearchNext, this, ID_FIND_NEXT);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnSearchPrev, this, ID_FIND_PREV);
+	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentFrame::OnRotateViewClick, this, ID_ROTATE);
 
 	Layout();
 
@@ -478,6 +481,33 @@ void wxPDFViewDocumentFrame::OnZoomPageWidthClick( wxCommandEvent& event)
 
 	event.Skip();
 }
+
+void wxPDFViewDocumentFrame::OnRotateViewClick(wxCommandEvent& event)
+{
+	wxPDFViewPageOrientation currentOrientation = m_pdfView->GetOrientation();
+	wxPDFViewPageOrientation newOrientation;
+	switch (currentOrientation)
+	{
+	case wxPDFVIEW_PAGE_ORIENTATION_LEFT:
+		newOrientation = wxPDFVIEW_PAGE_ORIENTATION_UP;
+		break;
+	case wxPDFVIEW_PAGE_ORIENTATION_UP:
+		newOrientation = wxPDFVIEW_PAGE_ORIENTATION_RIGHT;
+		break;
+	case wxPDFVIEW_PAGE_ORIENTATION_RIGHT:
+		newOrientation = wxPDFVIEW_PAGE_ORIENTATION_DOWN;
+		break;
+	case wxPDFVIEW_PAGE_ORIENTATION_DOWN:
+		newOrientation = wxPDFVIEW_PAGE_ORIENTATION_LEFT;
+		break;
+	default:	
+		newOrientation = wxPDFVIEW_PAGE_ORIENTATION_UP;
+		break;
+	}
+	m_pdfView->SetOrientation(newOrientation);
+	event.Skip();
+}
+
 
 void wxPDFViewDocumentFrame::OnSearchCtrlFind(wxCommandEvent& event)
 {

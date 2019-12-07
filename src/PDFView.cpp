@@ -23,7 +23,7 @@ wxDEFINE_EVENT(wxEVT_PDFVIEW_LAUNCH, wxCommandEvent);
 wxDEFINE_EVENT(wxEVT_PDFVIEW_UNSUPPORTED_FEATURE, wxCommandEvent);
 wxDEFINE_EVENT(wxEVT_PDFVIEW_ACTIVITY, wxCommandEvent);
 wxDEFINE_EVENT(wxEVT_PDFVIEW_NAMED_ACTION, wxCommandEvent);
-
+wxDEFINE_EVENT(wxEVT_PDFVIEW_ORIENTATION_CHANGED, wxCommandEvent);
 //
 // wxPDFView
 //
@@ -156,6 +156,20 @@ wxPDFViewZoomType wxPDFView::GetZoomType() const
 		return m_impl->GetZoomType();
 	else
 		return wxPDFVIEW_ZOOM_TYPE_FREE;
+}
+
+void wxPDFView::SetOrientation(wxPDFViewPageOrientation orientation)
+{
+	if (m_impl)
+		m_impl->SetOrientation(orientation);
+}
+
+wxPDFViewPageOrientation wxPDFView::GetOrientation() const
+{
+	if (m_impl)
+		return m_impl->GetOrientation();
+	else
+		return wxPDFVIEW_PAGE_ORIENTATION_UP;
 }
 
 long wxPDFView::Find(const wxString& text, int flags)

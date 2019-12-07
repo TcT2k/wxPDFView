@@ -415,6 +415,7 @@ wxPDFViewImpl::wxPDFViewImpl(wxPDFView* ctrl):
 	m_docPermissions = 0;
 	m_linearized = false;
 	m_backPage = -1;
+	m_orientation = wxPDFVIEW_PAGE_ORIENTATION_UP;
 
 	// PDF SDK structures
 	memset(&m_pdfFileAccess, '\0', sizeof(m_pdfFileAccess));
@@ -511,6 +512,13 @@ void wxPDFViewImpl::RecalculatePageRects()
 		double height;
 		if (pageAvail && FPDF_GetPageSizeByIndex(m_pdfDoc, i, &width, &height))
 		{
+			if ((m_orientation == wxPDFVIEW_PAGE_ORIENTATION_RIGHT) || (m_orientation == wxPDFVIEW_PAGE_ORIENTATION_LEFT))
+			{
+				double temp = width;
+				width = height;
+				height = temp;
+			}
+			
 			pageSize = wxSize(width, height);
 			if (!defaultPageSize.IsFullySpecified())
 				defaultPageSize = pageSize;
@@ -606,7 +614,7 @@ void wxPDFViewImpl::OnPaint(wxPaintEvent& WXUNUSED(event))
 		wxRect pageRect = m_pageRects[pageIndex];
 		if (pageRect.Intersects(rectUpdate))
 		{
-			m_pages[pageIndex].Draw(this, dc, *gc, pageRect);
+			m_pages[pageIndex].Draw(this, dc, *gc, pageRect, m_orientation);
 			if (GetPagePosition(pageIndex) == wxPDFVIEW_PAGE_POS_RIGHT)
 			{
 				// Draw line between left and right page
@@ -813,6 +821,21 @@ void wxPDFViewImpl::SetZoomType(wxPDFViewZoomType zoomType)
 	m_ctrl->Refresh();
 	wxCommandEvent zoomEvent(wxEVT_PDFVIEW_ZOOM_TYPE_CHANGED);
 	m_ctrl->ProcessEvent(zoomEvent);
+}
+
+void wxPDFViewImpl::SetOrientation(wxPDFViewPageOrientation orientation)
+{
+	if (m_orientation == orientation)
+		return;
+	m_orientation = orientation;
+
+	// TODO: check orientation
+	RecalculatePageRects();
+	CalcZoomLevel();
+	CalcVisiblePages();
+	m_ctrl->Refresh();
+	wxCommandEvent orientationEvent(wxEVT_PDFVIEW_ORIENTATION_CHANGED);
+	m_ctrl->ProcessEvent(orientationEvent);
 }
 
 void wxPDFViewImpl::SetDisplayFlags(int flags)
@@ -1144,7 +1167,7 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream, const wxString
 	RecalculatePageRects();
 
 	if (GetPageCount() > 0)
-		GetCachedBitmap(0, m_pageRects[0].GetSize());
+		GetCachedBitmap(0, m_pageRects[0].GetSize(), m_orientation);
 
 	m_bookmarks = new wxPDFViewBookmarks(m_pdfDoc);
 	m_ctrl->Refresh();
@@ -1583,8 +1606,9 @@ bool wxPDFViewImpl::AcquireSDK()
 			wxString resPathStr = resPath.GetFullPath();
 			v8::V8::InitializeExternalStartupData(resPathStr.c_str());
 
-			v8::Platform* platform = v8::platform::NewDefaultPlatform().get();
-			v8::V8::InitializePlatform(platform);
+			// std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
+			
+			// v8::V8::InitializePlatform(platform);
 			v8::V8::Initialize();
 
 			// By enabling predictable mode, V8 won't post any background tasks.

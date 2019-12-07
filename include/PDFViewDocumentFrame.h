@@ -83,7 +83,8 @@ protected:
 		ID_ZOOM_PAGE_FIT,
 		ID_ZOOM_PAGE_WIDTH,
 		ID_FIND_NEXT,
-		ID_FIND_PREV
+		ID_FIND_PREV,
+		ID_ROTATE
 	};
 
 	wxSplitterWindow* m_splitter;
@@ -160,6 +161,8 @@ private:
 	void OnPDFLaunch(wxCommandEvent& event);
 	void OnPDFUnsupportedFeature(wxCommandEvent& event);
 	void OnPDFActivity(wxCommandEvent& event);
+
+	void OnRotateViewClick(wxCommandEvent& event);
 
 	void Find(const wxString& text, bool forward);
 	void UpdateSearchControls();

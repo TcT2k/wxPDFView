@@ -63,6 +63,10 @@ public:
 	void SetDisplayFlags(int flags);
 
 	int GetDisplayFlags() const;
+
+	void SetOrientation(wxPDFViewPageOrientation orientation);
+
+	wxPDFViewPageOrientation GetOrientation() const { return m_orientation; };
 	
 	long Find(const wxString& text, int flags);
 
@@ -162,6 +166,7 @@ private:
 	wxCursor m_handCursor;
 	wxStockCursor m_defaultCursor;
 	wxVector<wxPDFViewTextRange> m_selection;
+	wxPDFViewPageOrientation m_orientation;
 
 	// Find information
 	wxString m_findText;

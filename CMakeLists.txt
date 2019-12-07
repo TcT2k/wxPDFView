@@ -11,6 +11,8 @@ project(wxPDFView)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 
+set(WITH_PDFIUM_SOURCE true)
+
 # Required components
 find_package(PDFium)
 find_package(wxWidgets COMPONENTS core base adv REQUIRED)

@@ -80,7 +80,7 @@ wxRect wxPDFViewPage::PageToScreen(const wxRect& pageRect, double left, double t
 	return wxRect(screenLeft, screenTop, screenRight - screenLeft + 1, screenBottom - screenTop + 1);
 }
 
-void wxPDFViewPage::Draw(wxPDFViewPagesClient* client, wxDC& dc, wxGraphicsContext& gc, const wxRect& rect)
+void wxPDFViewPage::Draw(wxPDFViewPagesClient* client, wxDC& dc, wxGraphicsContext& gc, const wxRect& rect, int rotate)
 {
 	// Calculate the required bitmap size
 	wxSize bmpSize = rect.GetSize();
@@ -93,7 +93,7 @@ void wxPDFViewPage::Draw(wxPDFViewPagesClient* client, wxDC& dc, wxGraphicsConte
 	bmpSize.x *= screenScale;
 	bmpSize.y *= screenScale;
 
-	wxBitmap bmp = client->GetCachedBitmap(m_index, bmpSize);
+	wxBitmap bmp = client->GetCachedBitmap(m_index, bmpSize, rotate);
 	if (bmp.IsOk())
 	{
 		gc.DrawBitmap(bmp, rect.x, rect.y, rect.width, rect.height);
@@ -111,7 +111,8 @@ void wxPDFViewPage::DrawThumbnail(wxPDFViewPagesClient* client, wxDC& dc, const 
 	dc.SetPen(*wxLIGHT_GREY_PEN);
 	dc.DrawRectangle(rect.Inflate(1, 1));
 
-	wxBitmap bmp = client->GetCachedBitmap(m_index, rect.GetSize());
+	// TODO: rotate
+	wxBitmap bmp = client->GetCachedBitmap(m_index, rect.GetSize(), 0);
 	if (bmp.Ok())
 	{
 		dc.DrawBitmap(bmp, rect.GetPosition());
@@ -130,7 +131,7 @@ bool wxPDFViewPage::DrawPrint(wxDC& dc, const wxRect& rect, bool forceBitmap)
 	} else
 #endif
 	{
-		wxBitmap bmp = CreateBitmap(page, m_pages->form(), rect.GetSize(), renderFlags);
+		wxBitmap bmp = CreateBitmap(page, m_pages->form(), rect.GetSize(), renderFlags, 0);
 		if (!bmp.IsOk())
 			return false;
 		dc.DrawBitmap(bmp, wxPoint(0, 0));
@@ -138,7 +139,7 @@ bool wxPDFViewPage::DrawPrint(wxDC& dc, const wxRect& rect, bool forceBitmap)
 	return true;
 }
 
-wxBitmap wxPDFViewPage::CreateCacheBitmap(const wxSize& bmpSize)
+wxBitmap wxPDFViewPage::CreateCacheBitmap(const wxSize& bmpSize, int rotate)
 {
 	// Render to bitmap
 	FPDF_PAGE page = GetPage();
@@ -151,11 +152,11 @@ wxBitmap wxPDFViewPage::CreateCacheBitmap(const wxSize& bmpSize)
 	FPDF_RenderPage(memDC.GetHDC(), page, 0, 0, bmpSize.x, bmpSize.y, 0, FPDF_LCD_TEXT);
 	return bmp;
 #else
-	return CreateBitmap(page, m_pages->form(), bmpSize, FPDF_LCD_TEXT);
+	return CreateBitmap(page, m_pages->form(), bmpSize, FPDF_LCD_TEXT, rotate);
 #endif
 }
 
-wxBitmap wxPDFViewPage::CreateBitmap(FPDF_PAGE page, FPDF_FORMHANDLE form, const wxSize& bmpSize, int flags)
+wxBitmap wxPDFViewPage::CreateBitmap(FPDF_PAGE page, FPDF_FORMHANDLE form, const wxSize& bmpSize, int flags, int rotate)
 {
 	FPDF_BITMAP bitmap = FPDFBitmap_Create(bmpSize.x, bmpSize.y, 0);
 	if (!bitmap) // Could not allocate PDF bitmap return null bitmap
@@ -163,12 +164,12 @@ wxBitmap wxPDFViewPage::CreateBitmap(FPDF_PAGE page, FPDF_FORMHANDLE form, const
 
 	FPDFBitmap_FillRect(bitmap, 0, 0, bmpSize.x, bmpSize.y, 0xFFFFFFFF);
 
-	FPDF_RenderPageBitmap(bitmap, page, 0, 0, bmpSize.x, bmpSize.y, 0, flags);
+	FPDF_RenderPageBitmap(bitmap, page, 0, 0, bmpSize.x, bmpSize.y, rotate, flags);
 	unsigned char* buffer =
 		reinterpret_cast<unsigned char*>(FPDFBitmap_GetBuffer(bitmap));
 
 	if (form)
-		FPDF_FFLDraw(form, bitmap, page, 0, 0, bmpSize.x, bmpSize.y, 0, flags);
+		FPDF_FFLDraw(form, bitmap, page, 0, 0, bmpSize.x, bmpSize.y, rotate, flags);
 
 	// Convert BGRA image data from PDF SDK to RGB image data
 	wxBitmap bmp(bmpSize, 24);
@@ -292,12 +293,12 @@ bool wxPDFViewPagesClient::IsPageVisible(int pageIndex) const
 	return pageIndex >= m_firstVisiblePage && pageIndex <= m_lastVisiblePage;
 }
 
-wxBitmap wxPDFViewPagesClient::GetCachedBitmap(int pageIndex, const wxSize& size)
+wxBitmap wxPDFViewPagesClient::GetCachedBitmap(int pageIndex, const wxSize& size, int rotate)
 {
 	wxBitmap bmp = m_bitmapCache[pageIndex];
 	if (!bmp.IsOk() || bmp.GetSize() != size)
 	{
-		bmp = (*m_pPages)[pageIndex].CreateCacheBitmap(size);
+		bmp = (*m_pPages)[pageIndex].CreateCacheBitmap(size, rotate);
 		m_bitmapCache[pageIndex] = bmp;
 	}
 

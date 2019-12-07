@@ -58,6 +58,14 @@ enum wxPDFViewPagePosition
 	wxPDFVIEW_PAGE_POS_RIGHT
 };
 
+enum wxPDFViewPageOrientation
+{
+	wxPDFVIEW_PAGE_ORIENTATION_UP = 0, // normal
+	wxPDFVIEW_PAGE_ORIENTATION_RIGHT,  // rotated 90 degrees clockwise
+	wxPDFVIEW_PAGE_ORIENTATION_DOWN,   // rotated 180 degrees
+	wxPDFVIEW_PAGE_ORIENTATION_LEFT	   // rotated 90 degrees counter-clockwise
+};
+
 class wxPDFViewBookmark;
 class wxPDFViewPrintValidator;
 
@@ -213,6 +221,13 @@ public:
 
 	wxPDFViewPrintValidator* GetPrintValidator() const;
 
+	/**
+	Sets the orientation of the document
+	*/
+	void SetOrientation(wxPDFViewPageOrientation orientation);
+
+	wxPDFViewPageOrientation GetOrientation() const;
+
 private:
 	wxPDFViewImpl* m_impl;
 
@@ -284,5 +299,6 @@ wxDECLARE_EVENT(wxEVT_PDFVIEW_LAUNCH, wxCommandEvent);
 wxDECLARE_EVENT(wxEVT_PDFVIEW_UNSUPPORTED_FEATURE, wxCommandEvent);
 wxDECLARE_EVENT(wxEVT_PDFVIEW_ACTIVITY, wxCommandEvent);
 wxDECLARE_EVENT(wxEVT_PDFVIEW_NAMED_ACTION, wxCommandEvent);
+wxDECLARE_EVENT(wxEVT_PDFVIEW_ORIENTATION_CHANGED, wxCommandEvent);
 
 #endif // PDFVIEW_H
