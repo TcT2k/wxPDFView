@@ -25,6 +25,7 @@ void wxPDFViewThumbnailListBoxImpl::SetPDFView(wxPDFView* pdfView)
 		m_pdfView->Unbind(wxEVT_PDFVIEW_DOCUMENT_READY, &wxPDFViewThumbnailListBoxImpl::OnPDFDocumentReady, this);
 		m_pdfView->Unbind(wxEVT_PDFVIEW_DOCUMENT_CLOSED, &wxPDFViewThumbnailListBoxImpl::OnPDFDocumentClosed, this);
 		m_pdfView->Unbind(wxEVT_PDFVIEW_PAGE_CHANGED, &wxPDFViewThumbnailListBoxImpl::OnPDFPageChanged, this);
+		m_pdfView->Unbind(wxEVT_PDFVIEW_ORIENTATION_CHANGED, &wxPDFViewThumbnailListBoxImpl::OnPDFOrientationChanged, this);
 		SetPages(NULL);
 	}
 
@@ -37,20 +38,20 @@ void wxPDFViewThumbnailListBoxImpl::SetPDFView(wxPDFView* pdfView)
 		m_pdfView->Bind(wxEVT_PDFVIEW_DOCUMENT_READY, &wxPDFViewThumbnailListBoxImpl::OnPDFDocumentReady, this);
 		m_pdfView->Bind(wxEVT_PDFVIEW_DOCUMENT_CLOSED, &wxPDFViewThumbnailListBoxImpl::OnPDFDocumentClosed, this);
 		m_pdfView->Bind(wxEVT_PDFVIEW_PAGE_CHANGED, &wxPDFViewThumbnailListBoxImpl::OnPDFPageChanged, this);
+		m_pdfView->Bind(wxEVT_PDFVIEW_ORIENTATION_CHANGED, &wxPDFViewThumbnailListBoxImpl::OnPDFOrientationChanged, this);
 	}
 }
 
 void wxPDFViewThumbnailListBoxImpl::DrawPage(wxDC& dc, const wxRect& rect, int pageIndex)
 {
-	if (m_pPages && m_pPages->empty())
+	if ((!m_pPages) || m_pPages->empty())
 		return;
 
 	wxRect pageDrawRect = rect;
 	wxPDFViewPage& page = (*m_pPages)[pageIndex];
 	wxRect pageRect(m_pdfView->GetImpl()->GetPageSize(pageIndex));
 	pageDrawRect.width = pageDrawRect.height / ((double) pageRect.height / pageRect.width);
-
-	page.DrawThumbnail(this, dc, pageDrawRect.CenterIn(rect));
+	page.DrawThumbnail(this, dc, pageDrawRect.CenterIn(rect), m_pdfView->GetImpl()->GetOrientation());
 }
 
 void wxPDFViewThumbnailListBoxImpl::HandleScrollWindow(int WXUNUSED(dx), int WXUNUSED(dy))
@@ -83,6 +84,14 @@ void wxPDFViewThumbnailListBoxImpl::OnPDFPageChanged(wxCommandEvent& event)
 	if (!m_ctrl->IsVisible(pageIndex))
 		m_ctrl->ScrollToRow(pageIndex);
 
+	event.Skip();
+}
+
+void wxPDFViewThumbnailListBoxImpl::OnPDFOrientationChanged(wxCommandEvent& event)
+{
+	m_pdfView->GoToPage(m_ctrl->GetSelection());
+	UpdateVisiblePages();
+	m_ctrl->Refresh();
 	event.Skip();
 }
 

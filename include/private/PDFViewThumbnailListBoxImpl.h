@@ -35,6 +35,8 @@ private:
 	void OnPDFDocumentClosed(wxCommandEvent& event);
 
 	void OnPDFPageChanged(wxCommandEvent& event);
+	
+	void OnPDFOrientationChanged(wxCommandEvent& event);
 
 	void OnSelectionChanged(wxCommandEvent& event);
 

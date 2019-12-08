@@ -829,7 +829,6 @@ void wxPDFViewImpl::SetOrientation(wxPDFViewPageOrientation orientation)
 		return;
 	m_orientation = orientation;
 
-	// TODO: check orientation
 	RecalculatePageRects();
 	CalcZoomLevel();
 	CalcVisiblePages();

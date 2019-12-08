@@ -19,6 +19,7 @@
 
 #include "fpdf_doc.h"
 #include "fpdf_formfill.h"
+#include <PDFView.h>
 
 class wxPDFViewPages;
 class wxPDFViewPagesClient;
@@ -38,13 +39,13 @@ public:
 
 	FPDF_TEXTPAGE GetTextPage();
 
-	void Draw(wxPDFViewPagesClient* client, wxDC& dc, wxGraphicsContext& gc, const wxRect& rect, int rotate);
+	void Draw(wxPDFViewPagesClient* client, wxDC& dc, wxGraphicsContext& gc, const wxRect& rect, wxPDFViewPageOrientation rotate);
 
-	void DrawThumbnail(wxPDFViewPagesClient* client, wxDC& dc, const wxRect& rect);
+	void DrawThumbnail(wxPDFViewPagesClient* client, wxDC& dc, const wxRect& rect, wxPDFViewPageOrientation rotate);
 
 	bool DrawPrint(wxDC& dc, const wxRect& rect, bool forceBitmap);
 
-	wxBitmap CreateCacheBitmap(const wxSize& bmpSize, int rotate);
+	wxBitmap CreateCacheBitmap(const wxSize& bmpSize, wxPDFViewPageOrientation rotate);
 
 	wxRect PageToScreen(const wxRect& pageRect, double left, double top, double right, double bottom);
 
@@ -54,7 +55,7 @@ private:
 	FPDF_PAGE m_page;
 	FPDF_TEXTPAGE m_textPage;
 
-	static wxBitmap CreateBitmap(FPDF_PAGE page, FPDF_FORMHANDLE form, const wxSize& bmpSize, int flags, int rotate);
+	static wxBitmap CreateBitmap(FPDF_PAGE page, FPDF_FORMHANDLE form, const wxSize& bmpSize, int flags, wxPDFViewPageOrientation rotate);
 };
 
 class wxPDFViewPages: public wxVector<wxPDFViewPage>
@@ -99,7 +100,7 @@ public:
 
 	int GetLastVisiblePage() const { return m_lastVisiblePage; };
 
-	wxBitmap GetCachedBitmap(int pageIndex, const wxSize& size, int rotate);
+	wxBitmap GetCachedBitmap(int pageIndex, const wxSize& size, wxPDFViewPageOrientation rotate);
 
 	void RemoveCachedBitmap(int pageIndex);
 
