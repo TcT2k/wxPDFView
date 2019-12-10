@@ -201,6 +201,9 @@ void wxPDFViewDocumentPanel::SetToolBar(wxToolBar* toolBar)
 	m_toolBar->AddControl(m_zoomComboBox);
 
 	m_toolBar->AddSeparator();
+	m_toolBar->AddTool(ID_ROTATE, _("Rotate View"), GetToolbarBitmap(wxART_PDFVIEW_ZOOM_IN), _("Rotate View"));
+
+	m_toolBar->AddSeparator();
 	AddTool(ID_ZOOM_PAGE_FIT, _("Page Fit"), wxART_PDFVIEW_PAGE_FIT, _("Fit one full page to window"), wxITEM_CHECK);
 	AddTool(ID_ZOOM_PAGE_WIDTH, _("Fit Width"), wxART_PDFVIEW_PAGE_WIDTH, _("Fit to window width"), wxITEM_CHECK);
 	m_toolBar->AddSeparator();
@@ -227,6 +230,7 @@ void wxPDFViewDocumentPanel::SetToolBar(wxToolBar* toolBar)
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnPrintClicked, this, wxID_PRINT);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnSearchNext, this, ID_FIND_NEXT);
 	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnSearchPrev, this, ID_FIND_PREV);
+	m_toolBar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &wxPDFViewDocumentPanel::OnRotateViewClick, this, ID_ROTATE);
 
 	// Prepare for display while loading
 	m_toolBar->EnableTool(wxID_FORWARD, false);
@@ -474,6 +478,32 @@ void wxPDFViewDocumentPanel::OnPageTextEnter( wxCommandEvent& event )
 		m_pdfView->SetFocus();
 	}
 
+	event.Skip();
+}
+
+void wxPDFViewDocumentPanel::OnRotateViewClick(wxCommandEvent& event)
+{
+	wxPDFViewPageOrientation currentOrientation = m_pdfView->GetOrientation();
+	wxPDFViewPageOrientation newOrientation;
+	switch (currentOrientation)
+	{
+	case wxPDFVIEW_PAGE_ORIENTATION_LEFT:
+		newOrientation = wxPDFVIEW_PAGE_ORIENTATION_UP;
+		break;
+	case wxPDFVIEW_PAGE_ORIENTATION_UP:
+		newOrientation = wxPDFVIEW_PAGE_ORIENTATION_RIGHT;
+		break;
+	case wxPDFVIEW_PAGE_ORIENTATION_RIGHT:
+		newOrientation = wxPDFVIEW_PAGE_ORIENTATION_DOWN;
+		break;
+	case wxPDFVIEW_PAGE_ORIENTATION_DOWN:
+		newOrientation = wxPDFVIEW_PAGE_ORIENTATION_LEFT;
+		break;
+	default:
+		newOrientation = wxPDFVIEW_PAGE_ORIENTATION_UP;
+		break;
+	}
+	m_pdfView->SetOrientation(newOrientation);
 	event.Skip();
 }
 

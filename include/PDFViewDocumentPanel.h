@@ -79,7 +79,8 @@ protected:
 		ID_DISPLAY_2PAGES,
 		ID_DISPLAY_2PAGES_COVER,
 		ID_FIND_NEXT,
-		ID_FIND_PREV
+		ID_FIND_PREV,
+		ID_ROTATE
 	};
 
 	wxSplitterWindow* m_splitter;
@@ -141,6 +142,8 @@ private:
 
 	void OnZoomTypeClick( wxCommandEvent& event);
 	void OnDisplayTypeClick( wxCommandEvent& event);
+
+	void OnRotateViewClick(wxCommandEvent& event);
 
 	void OnSearchCtrlFind(wxCommandEvent& event);
 	void OnSearchCtrlCancel(wxCommandEvent& event);
