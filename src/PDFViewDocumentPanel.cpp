@@ -201,7 +201,7 @@ void wxPDFViewDocumentPanel::SetToolBar(wxToolBar* toolBar)
 	m_toolBar->AddControl(m_zoomComboBox);
 
 	m_toolBar->AddSeparator();
-	m_toolBar->AddTool(ID_ROTATE, _("Rotate View"), GetToolbarBitmap(wxART_PDFVIEW_ZOOM_IN), _("Rotate View"));
+	m_toolBar->AddTool(ID_ROTATE, _("Rotate View"), GetToolbarBitmap(wxART_PDFVIEW_ROTATE), _("Rotate View"));
 
 	m_toolBar->AddSeparator();
 	AddTool(ID_ZOOM_PAGE_FIT, _("Page Fit"), wxART_PDFVIEW_PAGE_FIT, _("Fit one full page to window"), wxITEM_CHECK);

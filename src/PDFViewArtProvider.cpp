@@ -13,6 +13,7 @@
 
 #include "../art/page_fit.h"
 #include "../art/page_width.h"
+#include "../art/page_rotate.h"
 #include "../art/page_dual.h"
 #include "../art/page_dual_cover.h"
 #include "../art/page_single.h"
@@ -61,6 +62,7 @@ wxBitmap wxPDFViewArtProvider::CreateBitmap(const wxArtID& id,
 		{ wxART_PDFVIEW_TWO_PAGES_COVER,	 BITMAP_DATA(page_dual_cover)   },
 		{ wxART_PDFVIEW_ZOOM_IN,             BITMAP_DATA(view_zoom_in)      },
 		{ wxART_PDFVIEW_ZOOM_OUT,            BITMAP_DATA(view_zoom_out)     },
+		{ wxART_PDFVIEW_ROTATE,              BITMAP_DATA(page_rotate)       },
 	};
 
 	#undef BITMAP_ARRAY_NAME
