@@ -18,8 +18,7 @@
 #include "fpdf_text.h"
 #include "fpdf_fwlevent.h"
 
-#include "v8.h"
-#include "libplatform/libplatform.h"
+#include "fpdf_libs.h"
 
 // See Table 3.20 in
 // http://www.adobe.com/devnet/acrobat/pdfs/pdf_reference_1-7.pdf
@@ -1595,25 +1594,13 @@ bool wxPDFViewImpl::AcquireSDK()
 		// Initialize PDF Rendering library
 		if (!ms_v8initialized)
 		{
-			v8::V8::InitializeICU();
-
-			// Build path for external startup data (natives_blob.bin and snapshot_blob.bin)
+			// Build path for external startup data (snapshot_blob.bin)
 #if defined(__WXMSW__) && !defined(NDEBUG)
 			wxStandardPaths::Get().DontIgnoreAppSubDir();
 #endif
 			wxFileName resPath(wxStandardPaths::Get().GetResourcesDir(), "");
 			wxString resPathStr = resPath.GetFullPath();
-			v8::V8::InitializeExternalStartupData(resPathStr.c_str());
-
-			// std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
-			
-			// v8::V8::InitializePlatform(platform);
-			v8::V8::Initialize();
-
-			// By enabling predictable mode, V8 won't post any background tasks.
-			const char predictable_flag[] = "--predictable";
-			v8::V8::SetFlagsFromString(predictable_flag,
-									   static_cast<int>(strlen(predictable_flag)));
+			FPDF_InitEmbeddedLibraries(resPathStr.c_str());
 			
 			ms_v8initialized = true;
 		}
