@@ -20,6 +20,7 @@ Currently implemented:
 * Search
 * Printing
 * Forms
+* Rotate page view
 * Loading PDF from custom sources (any std::istream)
 
 Currently not implemented:
@@ -32,6 +33,9 @@ Requirements
 
 Compiling
 ---------
+It's recommended to use [PDFium binaries][3] (Version 4012 or newer) which makes building very easy.
+
+If you dare to build PDFium yourself follow the following instructions:
 * Build PDFium per instructions on the [PDFium page][2].
 * Use GYP_DEFINES='pdf_enable_xfa=0' when building pdfium
 * Use [CMake][4] to build the samples/simple project
@@ -54,6 +58,7 @@ view.
 
 [1]: http://www.wxwidgets.org
 [2]: https://pdfium.googlesource.com/pdfium/
+[3]: https://github.com/bblanchon/pdfium-binaries
 [4]: http://cmake.org/
 =======
 # wxPDFView
