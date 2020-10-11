@@ -22,10 +22,16 @@
 #include "fpdf_doc.h"
 #include "fpdf_formfill.h"
 
+#include "fpdf_annot.h"
+
 #include "PDFView.h"
 #include "PDFViewPages.h"
 #include "PDFViewBookmarks.h"
 #include "PDFViewTextRange.h"
+#include "PDFViewAnnotations.h"
+
+#include "json.hpp"
+using json = nlohmann::json;
 
 class wxPDFViewImpl: public wxPDFViewPagesClient, public wxEvtHandler
 {
@@ -127,6 +133,7 @@ private:
 	wxPDFViewBookmarks* m_bookmarks;
 	wxPDFViewPrintValidator* m_printValidator;
 
+	wxPDFViewAnnotations* m_annotations;
 	// Data source
 	wxSharedPtr<std::istream> m_pDataStream;
 	FPDF_DOCUMENT m_pdfDoc;
@@ -166,6 +173,8 @@ private:
 	wxCursor m_handCursor;
 	wxStockCursor m_defaultCursor;
 	wxVector<wxPDFViewTextRange> m_selection;
+	wxVector<wxPDFViewTextRange> m_annotationTexts;
+	wxPDFViewTextRange* m_currentAnnotationSelection;
 	wxPDFViewPageOrientation m_orientation;
 
 	// Find information
@@ -175,6 +184,13 @@ private:
 	int m_lastPageToSearch;
 	int m_lastCharacterIndexToSearch;
 	int m_currentFindIndex;
+	// Selection (for annotation)
+	bool m_SelectStarted;
+	wxPoint m_SelectionStart;
+	int m_selectStartCharpos;
+	double m_selectPage_x;
+	double m_selectPage_y;
+	wchar_t* m_selectBuffer;
 
 	void UpdateDocumentInfo();
 	

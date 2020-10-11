@@ -164,7 +164,7 @@ wxBitmap wxPDFViewPage::CreateBitmap(FPDF_PAGE page, FPDF_FORMHANDLE form, const
 		return wxNullBitmap;
 
 	FPDFBitmap_FillRect(bitmap, 0, 0, bmpSize.x, bmpSize.y, 0xFFFFFFFF);
-
+	flags = flags | FPDF_ANNOT;
 	FPDF_RenderPageBitmap(bitmap, page, 0, 0, bmpSize.x, bmpSize.y, rotate, flags);
 	unsigned char* buffer =
 		reinterpret_cast<unsigned char*>(FPDFBitmap_GetBuffer(bitmap));

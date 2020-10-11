@@ -261,6 +261,33 @@ public:
 	virtual ~wxPDFViewBookmark() { }
 };
 
+/**
+   PDF Annotation
+
+   If defined in the PDF document can be used to query bookmarks in the document.
+   This could be used for display of the bookmarks in the UI. The wxPDFViewBookmarksCtrl
+   control uses this to display it's bookmark tree.
+
+   @see wxPDFViewAnnotationCtrl
+*/
+class wxPDFViewAnnotation
+{
+public:
+	/// Get the bookmarks title
+	virtual wxString GetTitle() const = 0;
+
+	/**
+	   Navigate to the annotation in the specified PDF view.
+
+	   @param pdfView wxPDFView in which this annotation should be navigated to
+
+	   @see wxPDFView
+	*/
+	virtual void Navigate(wxPDFView* pdfView) = 0;
+
+	virtual ~wxPDFViewAnnotation() { }
+};
+
 class wxPDFViewPrintValidator
 {
 public:

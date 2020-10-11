@@ -196,7 +196,7 @@ bool wxPDFViewDocumentFrame::Create(wxWindow* parent,
 
 	UpdateSearchControls();
 	
-	ShowNavigationPane(false);
+	ShowNavigationPane(true);
 	
 	wxPersistenceManager::Get().RegisterAndRestore(this);
 	

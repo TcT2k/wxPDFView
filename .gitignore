@@ -1,3 +1,13 @@
 /samples/simple/build
 /samples/simple/cmake-build-debug
 /docs/out
+/.vs
+/3rdparty/wxWidgets/lib/vc_lib
+/3rdparty/wxWidgets/lib
+/build/.vs
+/build
+/out/build
+/samples/simple/.vs
+/samples/simple/out/build
+/samples/simple/CMakeSettings.json
+/CMakeSettings.json
