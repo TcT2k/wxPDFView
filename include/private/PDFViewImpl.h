@@ -171,6 +171,7 @@ private:
 	double m_minZoom;
 	int m_mostVisiblePage;
 	wxCursor m_handCursor;
+	wxCursor m_selectCursor;
 	wxStockCursor m_defaultCursor;
 	wxVector<wxPDFViewTextRange> m_selection;
 	wxVector<wxPDFViewTextRange> m_annotationTexts;

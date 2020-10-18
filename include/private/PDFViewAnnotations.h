@@ -18,16 +18,16 @@
 class wxPDFViewAnnotations
 {
 public:
-	wxPDFViewAnnotations(wxPDFViewPages pages);
+	wxPDFViewAnnotations(wxPDFViewPages* pages);
 
-	wxPDFViewAnnotation* GetAnnotationAtPos(FPDF_PAGE page, float x, float y);
+	FPDF_ANNOTATION GetAnnotationAtPos(FPDF_PAGE page, float x, float y);
 
 	std::string GetJsonSerialized();
 
-	wxPDFViewAnnotation* CreateAnnotation(FPDF_PAGE page, FPDF_ANNOTATION_SUBTYPE subtype, FS_RECTF* annotRect);
-
-	wxPDFViewAnnotation* CreateAnnotation(FPDF_PAGE page, FPDF_ANNOTATION_SUBTYPE subtype, FS_RECTF* annotRect, wxPDFViewTextRange* textRange);
+	wxPDFViewAnnotation* CreateAnnotation(FPDF_ANNOTATION_SUBTYPE subtype, FS_RECTF* annotRect, wxPDFViewTextRange* textRange);
+	int CreateAnnotationsFromJson();
 private:
+	wxPDFViewPages* m_viewPages;
 	wxVector<wxPDFViewAnnotation*> m_annotations;
 };
 

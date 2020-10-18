@@ -401,6 +401,7 @@ wxPDFViewImpl::wxPDFViewImpl(wxPDFView* ctrl) :
 	m_ctrl(ctrl),
 	m_handCursor(wxCURSOR_HAND),
 	m_defaultCursor(wxCURSOR_ARROW),
+	m_selectCursor(wxCURSOR_IBEAM),
 	m_currentAnnotationSelection(NULL)
 {
 	AcquireSDK();
@@ -765,6 +766,10 @@ void wxPDFViewImpl::OnMouseMotion(wxMouseEvent& event)
 			int charPos = FPDFText_GetCharIndexAtPos(textpage, page_x, page_y, 10.0, 10.0);
 			if (charPos > 0)
 			{
+				if (!!m_currentAnnotationSelection)
+				{
+					delete m_currentAnnotationSelection;
+				}
 				m_currentAnnotationSelection = new wxPDFViewTextRange(&m_pages[pageIndex], m_selectStartCharpos, charPos - m_selectStartCharpos + 1);
 				double left, right, top, bottom;
 				if (FPDFText_GetCharBox(textpage, m_selectStartCharpos, &left, &right, &bottom, &top))
@@ -775,58 +780,55 @@ void wxPDFViewImpl::OnMouseMotion(wxMouseEvent& event)
 			FPDFText_ClosePage(textpage);
 
 			// TODO: Check for annotation with page_x and page_y ?
-			wxPDFViewAnnotation* annot = m_annotations->GetAnnotationAtPos(page, page_x, page_y);
+			FPDF_ANNOTATION	annot = m_annotations->GetAnnotationAtPos(page, page_x, page_y);
 			if (!!annot)
 			{
 				m_ctrl->SetCursor(m_handCursor);
 			}
 			else
-				m_ctrl->SetCursor(m_defaultCursor);
+				m_ctrl->SetCursor(m_selectCursor);
 			event.Skip();
 			InvalidatePage(pageIndex);
 			return;
 
 		}
 	}
-
-
-	if (EvaluateLinkTargetPageAtClientPos(event.GetPosition(), event.GetEventType()))
-		m_ctrl->SetCursor(m_handCursor);
 	else
-		m_ctrl->SetCursor(m_defaultCursor);
+	{
+		// Check if cursor is over a text
+		wxPoint clientPos = event.GetPosition();
+
+		wxPoint pagePos;
+		int pageIndex = ClientToPage(clientPos, pagePos);
+		if (pageIndex >= 0)
+		{
+			FPDF_PAGE page = m_pages[pageIndex].GetPage();
+			wxRect pageRect = m_pageRects[pageIndex];
+			double page_x;
+			double page_y;
+			FPDF_DeviceToPage(page, 0, 0, pageRect.width, pageRect.height, 0, pagePos.x, pagePos.y, &page_x, &page_y);
+
+			FPDF_TEXTPAGE textpage = FPDFText_LoadPage(page);
+			int charPos = FPDFText_GetCharIndexAtPos(textpage, page_x, page_y, 5.0, 5.0);
+			if (charPos > 0)
+			{
+				m_ctrl->SetCursor(m_selectCursor);
+			}
+			else
+			{
+				if (EvaluateLinkTargetPageAtClientPos(event.GetPosition(), event.GetEventType()))
+					m_ctrl->SetCursor(m_handCursor);
+				else
+					m_ctrl->SetCursor(m_defaultCursor);
+			}
+		}
+	}
 
 	event.Skip();
 }
 
 void wxPDFViewImpl::OnMouseLeftDown(wxMouseEvent& event)
 {
-	/*
-	{
-"id": 1,
-"valid": true,
-"color": "#eeaa00",
-"date": "2020-08-14T14:46:49.990Z",
-"type": 0,
-"comment": "",
-"page": 7,
-"coords": ["[72,577.0062469482422,312.09375000000006,567.0062438964843]", "[72,577.8062438964844,312.09375000000006,566.6062408447266]"]
-}
-	*/
-	json j2 = {
-  {"id", 1},
-  {"valid", true},
-  {"color", "#eeaa00"},
-  {"date", "2020-08-14T14:46:49.990Z"},
-		{"type", 0},
-	{"comment", ""},
-		{"page", 7},
-		{"coords", {{72,577.0062469482422,312.09375000000006,567.0062438964843},
-		{72,577.8062438964844,312.09375000000006,566.6062408447266}}
-	}
-	};
-
-	
-
 	// TODO: Start selection for annotation
 	m_SelectStarted = true;
 	m_SelectionStart = event.GetPosition();
@@ -886,6 +888,10 @@ void wxPDFViewImpl::OnMouseLeftDown(wxMouseEvent& event)
 		m_selectStartCharpos = FPDFText_GetCharIndexAtPos(textpage, m_selectPage_x, m_selectPage_y, 10.0, 10.0);
 		if (m_selectStartCharpos > 0)
 		{
+			if (!!m_currentAnnotationSelection)
+			{
+				delete m_currentAnnotationSelection;
+			}
 			m_currentAnnotationSelection = new wxPDFViewTextRange(&m_pages[pageIndex], m_selectStartCharpos, 2);
 		}
 		FPDFText_ClosePage(textpage);
@@ -910,7 +916,7 @@ void wxPDFViewImpl::OnMouseLeftUp(wxMouseEvent& event)
 		double page_x;
 		double page_y;
 		FPDF_DeviceToPage(page, 0, 0, pageRect.width, pageRect.height, 0, pagePos.x, pagePos.y, &page_x, &page_y);
-		FPDF_TEXTPAGE textpage = FPDFText_LoadPage(page);
+		FPDF_TEXTPAGE textpage = m_pages[pageIndex].GetTextPage(); // FPDFText_LoadPage(page);
 		int charpos = FPDFText_GetCharIndexAtPos(textpage, m_selectPage_x, m_selectPage_y, 10.0, 10.0);
 		if (charpos >= 0)
 		{
@@ -924,12 +930,11 @@ void wxPDFViewImpl::OnMouseLeftUp(wxMouseEvent& event)
 			rect.bottom = page_y;
 
 			if ((rect.left != rect.right) && (rect.top != rect.bottom))
-				m_annotations->CreateAnnotation(page, FPDF_ANNOT_HIGHLIGHT, &rect, m_currentAnnotationSelection);
-		}
-		// m_annotations.push_back(result);
+				m_annotations->CreateAnnotation(FPDF_ANNOT_HIGHLIGHT, &rect, m_currentAnnotationSelection);
+		}		
 		delete m_currentAnnotationSelection;
 		m_currentAnnotationSelection = nullptr;
-		FPDFText_ClosePage(textpage);
+		// TOOD: Check FPDFText_ClosePage(textpage);
 		InvalidatePage(pageIndex);
 		std::string s = m_annotations->GetJsonSerialized();
 	}
@@ -1406,7 +1411,8 @@ bool wxPDFViewImpl::LoadStream(wxSharedPtr<std::istream> pStream, const wxString
 
 	m_ctrl->Refresh();
 	UpdateDocumentInfo();
-	m_annotations = new wxPDFViewAnnotations(m_pages);
+	m_annotations = new wxPDFViewAnnotations(&m_pages);
+	m_annotations->CreateAnnotationsFromJson();
 	FORM_DoDocumentJSAction(m_pdfForm);
 	FORM_DoDocumentOpenAction(m_pdfForm);
 
