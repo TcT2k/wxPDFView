@@ -40,6 +40,7 @@ set(PRIVATE_INCLUDES
 	
 set(SOURCES
 	PDFView.cpp
+	PDFViewAnnotations.cpp
 	PDFViewImpl.cpp
 	PDFViewActivityPanel.cpp
 	PDFViewArtProvider.cpp
